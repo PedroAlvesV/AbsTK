@@ -1,7 +1,7 @@
 local lgi = require 'lgi'
 local Gtk = lgi.require('Gtk')
-local curses = require 'curses' -- só consegui instalar o lcurses no luarocks de lua 5.1, i. e.: o programa só roda em lua 5.1
-                                -- http://www.pjb.com.au/comp/lua/lcurses.html
+local curses = require 'curses'
+
 local GtkClass
 
 GtkClass = {
