@@ -1,22 +1,21 @@
 local lgi = require 'lgi'
 local Gtk = lgi.require('Gtk')
-local curses = require 'curses'
+local curses = require 'curses' 
 
-local GtkClass
+local GtkClass, CursesClass
 
 GtkClass = {
-  
   new = function(title, w, h)
     local self = {
-        window = Gtk.Window {
-          title = title,
-          default_width = w,
-          default_height = h,
-          on_destroy = Gtk.main_quit
-        }
+      window = Gtk.Window {
+        title = title,
+        default_width = w,
+        default_height = h,
+        on_destroy = Gtk.main_quit
+      }
     }
     local mt = {
-       __index = GtkClass,
+      __index = GtkClass,
     }
     setmetatable(self, mt)
     return self
@@ -33,45 +32,48 @@ GtkClass = {
     self.window:show_all()
     Gtk.main()
   end,
-
 }
 
-function runInCurses()
-  curses.initscr()
-  curses.cbreak()
-  curses.echo(false)  -- not noecho !
-  curses.nl(false)    -- not nonl !
-  local stdscr = curses.stdscr()  -- it's a userdatum
-  stdscr:clear()
-  local i = 0
-  function addLabel(label)
-    stdscr:mvaddstr(i,0,label)
-    i = i + 2
-  end
-  addLabel('AbsTk Minimalist Test')
-  addLabel('Parameter 1:\t\t1234')
-  addLabel('Parameter 2:\t\tABCD')
-  addLabel('Parameter 3:\t\tWXYZ')
-  stdscr:refresh()
-  local c = stdscr:getch()
-  curses.endwin()
-end
+CursesClass = {
+  new = function(title)
+    curses.initscr()
+    local self = {
+      stdscr = curses.stdscr()
+    }
+    local mt = {
+       __index = CursesClass,
+    }
+    setmetatable(self, mt)
+    self:addLabel('AbsTk Minimalist Test')
+    return self
+  end,
+  
+  altLine = 0,
+  
+  addLabel = function(self, label)
+    self.stdscr:mvaddstr(self.altLine,0,label)
+    self.altLine = self.altLine + 2
+  end,
 
-function runInGtk()
-  local gtk = GtkClass.new('AbsTk Minimalist Test', 400, 300)
-  gtk:addLabel('Parameter 1:\t\t1234')
-  gtk:addLabel('Parameter 2:\t\tABCD')
-  gtk:addLabel('Parameter 3:\t\tWXYZ')
-  gtk:run()
-end
+  run = function(self)
+    self.stdscr:refresh()
+    local c = self.stdscr:getch()
+    curses.endwin()
+  end,
+}
 
 function main()
-  local s = io.read();
+  local s = io.read()
+  local scr
   if s == 'cur' then
-    runInCurses()
+    scr = CursesClass.new('AbsTk Minimalist Test')
   elseif s == 'gtk' then
-    runInGtk()
+    scr = GtkClass.new('AbsTk Minimalist Test', 400, 300)
   end
+  scr:addLabel('Parameter 1:\t\t1234')
+  scr:addLabel('Parameter 2:\t\tABCD')
+  scr:addLabel('Parameter 3:\t\tWXYZ')
+  scr:run()
 end
 
 main()
