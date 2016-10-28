@@ -1,5 +1,40 @@
 local lgi = require 'lgi'
-local curses = require 'curses'
+local Gtk = lgi.require('Gtk')
+local curses = require 'curses' -- só consegui instalar o lcurses no luarocks de lua 5.1, i. e.: o programa só roda em lua 5.1
+                                -- http://www.pjb.com.au/comp/lua/lcurses.html
+local GtkClass
+
+GtkClass = {
+  
+  new = function(title, w, h)
+    local self = {
+        window = Gtk.Window {
+          title = title,
+          default_width = w,
+          default_height = h,
+          on_destroy = Gtk.main_quit
+        }
+    }
+    local mt = {
+       __index = GtkClass,
+    }
+    setmetatable(self, mt)
+    return self
+  end,
+  
+  vbox = Gtk.VBox(),
+  
+  addLabel = function(self, label)
+    self.vbox:pack_start(Gtk.Label { label = label }, true, true, 0)
+  end,
+
+  run = function(self)
+    self.window:add(self.vbox)
+    self.window:show_all()
+    Gtk.main()
+  end,
+
+}
 
 function runInCurses()
   curses.initscr()
@@ -23,23 +58,11 @@ function runInCurses()
 end
 
 function runInGtk()
-  local Gtk = lgi.require('Gtk')
-  local window = Gtk.Window {
-     title = 'AbsTk Minimalist Test',
-     default_width = 400,
-     default_height = 300,
-     on_destroy = Gtk.main_quit
-  }
-  function addLabel(vbox, label)
-    vbox:pack_start(Gtk.Label { label = label }, true, true, 0)
-  end
-  local vbox = Gtk.VBox()
-  addLabel(vbox, 'Parameter 1:\t\t1234')
-  addLabel(vbox, 'Parameter 2:\t\tABCD')
-  addLabel(vbox, 'Parameter 3:\t\tWXYZ')
-  window:add(vbox)
-  window:show_all()
-  Gtk.main()
+  local gtk = GtkClass.new('AbsTk Minimalist Test', 400, 300)
+  gtk:addLabel('Parameter 1:\t\t1234')
+  gtk:addLabel('Parameter 2:\t\tABCD')
+  gtk:addLabel('Parameter 3:\t\tWXYZ')
+  gtk:run()
 end
 
 function main()
