@@ -1,7 +1,7 @@
 local abstk = {}
 
-local AbsGtk = require 'abstk/AbsGtk'
-local AbsCurses = require 'abstk/AbsCurses'
+local AbsGtk = require 'abstk.AbsGtk'
+local AbsCurses = require 'abstk.AbsCurses'
 
 local mode = nil
 
