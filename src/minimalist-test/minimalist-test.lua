@@ -1,6 +1,5 @@
 local abstk = require 'abstk'
 
--- if mode is nil, then autodetect
 abstk.set_mode(...)
 
 local scr = abstk.new_screen("AbsTK Minimalist Test")
