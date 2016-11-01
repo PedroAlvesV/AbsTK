@@ -6,15 +6,17 @@ local AbsCurses = require 'abstk.AbsCurses'
 local mode = nil
 
 function abstk.set_mode(arg)
-  if arg ~= 'curses' and arg ~= 'gtk' then
-    mode = 'curses'
-  else
+  if arg == 'curses' or arg == 'gtk' then
     mode = arg
+  elseif os.getenv("DISPLAY") then
+    mode = 'gtk'
+  else
+    mode = 'curses'
   end
 end
 
 function abstk.new_screen(title, w, h)
-  local self = {}
+  local obj
   if mode == 'gtk' then
     if w == nil then
       w = 400
@@ -22,21 +24,21 @@ function abstk.new_screen(title, w, h)
     if h == nil then
       h = w*0.75
     end
-    self = AbsGtk.new(title, w, h)
-    setmetatable(self, { __index = AbsGtk } )
+    obj = AbsGtk.new(title, w, h)
   elseif mode == 'curses' then
-    self = AbsCurses.new(title)
-    setmetatable(self, { __index = AbsCurses } )
+    obj = AbsCurses.new(title)
   end
+  local self = {
+    add_label = function(self, label)
+      obj:add_label(label)
+    end,
+    run = function(self)
+      obj:run()
+    end,
+  }
   return self
 end
 
-function abstk:add_label(label)
-  self:add_label(label)
-end
-
-function abstk:run()
-  self:run()
-end
+abstk.set_mode()
 
 return abstk
