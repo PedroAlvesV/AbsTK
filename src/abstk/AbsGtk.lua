@@ -24,6 +24,28 @@ function AbsGtk:add_label(label)
   self.vbox:pack_start(Gtk.Label { label = label }, true, true, 0)
 end
 
+function AbsGtk:create_button_box(number_buttons, names)
+  local function create_bbox(orientation, title, spacing, layout)
+    return Gtk.Frame {
+      label = title,
+      Gtk.ButtonBox {
+        orientation = orientation,
+        border_width = 5,
+        layout_style = layout,
+        spacing = spacing,
+        Gtk.Button { use_stock = true, label = Gtk.STOCK_OK },
+        Gtk.Button { use_stock = true, label = Gtk.STOCK_CANCEL },
+        Gtk.Button { use_stock = true, label = Gtk.STOCK_HELP }
+      }
+    }
+  end
+  self.vbox:pack_start(Gtk.Box {
+    orientation = 'VERTICAL',
+    border_width = 10,
+    create_bbox('HORIZONTAL', "Spread", 40, 'SPREAD'),
+  }, true, true, 0)
+end
+
 function AbsGtk:run()
   self.window:add(self.vbox)
   self.window:show_all()
