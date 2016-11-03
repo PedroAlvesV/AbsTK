@@ -24,25 +24,83 @@ function AbsGtk:add_label(label)
   self.vbox:pack_start(Gtk.Label { label = label }, true, true, 0)
 end
 
-function AbsGtk:create_button_box(number_buttons, names)
+function AbsGtk:create_button_box(labels)
   local function create_bbox(orientation, title, spacing, layout)
-    return Gtk.Frame {
+    local frame = Gtk.Frame {
       label = title,
       Gtk.ButtonBox {
+        id = 'bbox',
         orientation = orientation,
         border_width = 5,
         layout_style = layout,
         spacing = spacing,
-        Gtk.Button { use_stock = true, label = Gtk.STOCK_OK },
-        Gtk.Button { use_stock = true, label = Gtk.STOCK_CANCEL },
-        Gtk.Button { use_stock = true, label = Gtk.STOCK_HELP }
       }
     }
+    for _, label in ipairs(labels) do
+      local button = Gtk.Button { label = label }
+      frame.child.bbox:add(button)
+    end
+    return frame
   end
   self.vbox:pack_start(Gtk.Box {
     orientation = 'VERTICAL',
     border_width = 10,
-    create_bbox('HORIZONTAL', "Spread", 40, 'SPREAD'),
+    create_bbox('HORIZONTAL', "Simple Buttons", 40, 'SPREAD'),
+  }, true, true, 0)
+end
+
+function AbsGtk:create_combobox(labels, sort) -- sort can be "SIMPLE" or "TREE"
+  local frame
+  if sort == 'TREE' then
+    local function create_store()
+      local store = Gtk.TreeStore.new { lgi.GObject.Type.STRING }
+      for _, group in ipairs(labels) do
+        local gi = store:append(nil, { [1] = group.name })
+        for _, leaf in ipairs(group) do
+          store:append(gi, { [1] = leaf })
+        end
+      end
+      return store
+    end
+    frame = Gtk.Frame {
+      label = "ComboBox (Tree)",
+      Gtk.Box {
+        orientation = 'VERTICAL',
+        border_width = 10,
+        Gtk.ComboBox {
+          id = 'tree',
+          model = create_store(),
+          cells = {
+            {
+              Gtk.CellRendererText(),
+              { text = 1 },
+              align = 'start',
+            }
+          }
+        },
+      },
+    }
+    else
+      frame = Gtk.Frame {
+        label = "ComboBox (Simple)",
+        Gtk.Box {
+          orientation = 'VERTICAL',
+          border_width = 10,
+          Gtk.ComboBoxText {
+            id = 'simple',
+            entry_text_column = 0,
+            id_column = 1,
+          },
+        },
+      }
+      for i=1, #labels, 1 do
+        frame.child.simple:append_text(labels[i])
+      end
+    end
+  self.vbox:pack_start(Gtk.Box {
+    orientation = 'VERTICAL',
+    spacing = 10,
+    frame,
   }, true, true, 0)
 end
 
