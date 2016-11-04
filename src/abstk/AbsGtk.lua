@@ -24,7 +24,15 @@ function AbsGtk:add_label(label)
   self.vbox:pack_start(Gtk.Label { label = label }, true, true, 0)
 end
 
-function AbsGtk:create_button_box(labels)
+function AbsGtk:add_button(label)
+  self.vbox:pack_start(Gtk.Box {
+    orientation = 'HORIZONTAL',
+    border_width = 10,
+    Gtk.Button { label = label },
+  }, false, false, 0)
+end
+
+function AbsGtk:create_button_box(title, labels)
   local function create_bbox(orientation, title, spacing, layout)
     local frame = Gtk.Frame {
       label = title,
@@ -45,7 +53,7 @@ function AbsGtk:create_button_box(labels)
   self.vbox:pack_start(Gtk.Box {
     orientation = 'VERTICAL',
     border_width = 10,
-    create_bbox('HORIZONTAL', "Simple Buttons", 40, 'SPREAD'),
+    create_bbox('HORIZONTAL', title, 40, 'SPREAD'),
   }, true, true, 0)
 end
 
@@ -102,6 +110,11 @@ function AbsGtk:create_combobox(labels, sort) -- sort can be "SIMPLE" or "TREE"
     spacing = 10,
     frame,
   }, true, true, 0)
+end
+
+function AbsGtk:add_image(path, width, height) -- must find a way to scale the image
+  local img = Gtk.Image.new_from_file(path)
+  self.vbox:pack_start(img, false, false, 0)
 end
 
 function AbsGtk:run()
