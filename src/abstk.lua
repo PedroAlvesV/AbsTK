@@ -32,11 +32,17 @@ function abstk.new_screen(title, w, h)
     add_label = function(self, label)
       obj:add_label(label)
     end,
-    create_button_box = function(self, number_buttons, labels)
-      obj:create_button_box(number_buttons, labels)
+    add_button = function(self, label)
+      obj:add_button(label)
+    end,
+    create_button_box = function(self, title, labels)
+      obj:create_button_box(title, labels)
     end,
     create_combobox = function(self, labels, sort)
       obj:create_combobox(labels, sort)
+    end,
+    add_image = function(self, path, width, height)
+      obj:add_image(path, width, height)
     end,
     run = function(self)
       obj:run()
