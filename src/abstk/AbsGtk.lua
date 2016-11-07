@@ -54,7 +54,7 @@ function AbsGtk:create_button_box(title, labels)
     orientation = 'VERTICAL',
     border_width = 10,
     create_bbox('HORIZONTAL', title, 40, 'SPREAD'),
-  }, true, true, 0)
+  }, false, false, 0)
 end
 
 function AbsGtk:create_combobox(labels, sort) -- sort can be "SIMPLE" or "TREE"
@@ -109,12 +109,56 @@ function AbsGtk:create_combobox(labels, sort) -- sort can be "SIMPLE" or "TREE"
     orientation = 'VERTICAL',
     spacing = 10,
     frame,
-  }, true, true, 0)
+  }, false, false, 0)
 end
 
 function AbsGtk:add_image(path, width, height) -- must find a way to scale the image
+  --local pbuf_src = lgi.GdkPixbuf.Pixbuf.new_from_file(path)
+  --local pbuf_dest = lgi.GdkPixbuf.Pixbuf()
+  --pbuf_dest = lgi.GdkPixbuf.Pixbuf.scale_simple(pbuf_src, width, height, 'INTERP_HYPER')
+  --local img = Gtk.Image.new_from_pixbuf(pbuf_dest)
   local img = Gtk.Image.new_from_file(path)
   self.vbox:pack_start(img, false, false, 0)
+end
+
+function AbsGtk:add_text_input(title, is_password)
+  local entry = Gtk.Entry()
+  if is_password then
+    Gtk.Entry.set_visibility(entry, false)
+    Gtk.Entry.set_invisible_char(entry, 8)
+  end
+  local frame = Gtk.Frame {
+    label = title,
+    Gtk.Box {
+      orientation = 'VERTICAL',
+      border_width = 10,
+      entry,
+    },
+  }
+  self.vbox:pack_start(Gtk.Box {
+    orientation = 'VERTICAL',
+  --Gtk.Box {
+  --  orientation = 'HORIZONTAL',
+  --  spacing = 8,
+  --  border_width = 10,
+  --  Gtk.Label { label = title },
+  --  Gtk.Entry {},
+  --},
+    frame
+  }, false, false, 0)
+end
+
+function AbsGtk:add_textbox(title, width, height)
+  self.vbox:pack_start(Gtk.Frame {
+    label = title,
+    Gtk.Box {
+      orientation = 'VERTICAL',
+      border_width = 10,
+      Gtk.ScrolledWindow {
+        Gtk.TextView { expand = true }
+      },
+    },
+  }, false, false, 0)
 end
 
 function AbsGtk:run()
