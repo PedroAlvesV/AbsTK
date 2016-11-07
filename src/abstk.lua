@@ -44,6 +44,12 @@ function abstk.new_screen(title, w, h)
     add_image = function(self, path, width, height)
       obj:add_image(path, width, height)
     end,
+    add_text_input = function(self, title, is_password)
+      obj:add_text_input(title, is_password)
+    end,
+    add_textbox = function(self, title, width, height)
+      obj:add_textbox(title, width, height)
+    end,
     run = function(self)
       obj:run()
     end,
