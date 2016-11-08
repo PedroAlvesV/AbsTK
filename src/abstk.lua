@@ -35,8 +35,8 @@ function abstk.new_screen(title, w, h)
     add_button = function(self, label)
       obj:add_button(label)
     end,
-    create_button_box = function(self, title, labels)
-      obj:create_button_box(title, labels)
+    create_button_box = function(self, labels, layout)
+      obj:create_button_box(labels, layout)
     end,
     create_combobox = function(self, labels, sort)
       obj:create_combobox(labels, sort)
@@ -49,6 +49,12 @@ function abstk.new_screen(title, w, h)
     end,
     add_textbox = function(self, title, width, height)
       obj:add_textbox(title, width, height)
+    end,
+    create_checklist = function(self, labels)
+      obj:create_checklist(labels)
+    end,
+    create_radiolist = function(self, labels)
+      obj:create_radiolist(labels)
     end,
     run = function(self)
       obj:run()
