@@ -32,33 +32,30 @@ function AbsGtk:add_button(label)
   }, false, false, 0)
 end
 
-function AbsGtk:create_button_box(title, labels)
-  local function create_bbox(orientation, title, spacing, layout)
-    local frame = Gtk.Frame {
-      label = title,
-      Gtk.ButtonBox {
-        id = 'bbox',
-        orientation = orientation,
-        border_width = 5,
-        layout_style = layout,
-        spacing = spacing,
-      }
+function AbsGtk:create_button_box(labels, layout)
+  local function create_bbox(orientation, spacing, layout)
+    local bbox = Gtk.ButtonBox {
+      id = 'bbox',
+      orientation = orientation,
+      border_width = 5,
+      layout_style = layout,
+      spacing = spacing,
     }
     for _, label in ipairs(labels) do
       local button = Gtk.Button { label = label }
-      frame.child.bbox:add(button)
+      bbox:add(button)
     end
-    return frame
+    return bbox
   end
   self.vbox:pack_start(Gtk.Box {
     orientation = 'VERTICAL',
     border_width = 10,
-    create_bbox('HORIZONTAL', title, 40, 'SPREAD'),
+    create_bbox('HORIZONTAL', 20, layout),
   }, false, false, 0)
 end
 
 function AbsGtk:create_combobox(labels, sort) -- sort can be "SIMPLE" or "TREE"
-  local frame
+  local box
   if sort == 'TREE' then
     local function create_store()
       local store = Gtk.TreeStore.new { lgi.GObject.Type.STRING }
@@ -70,45 +67,39 @@ function AbsGtk:create_combobox(labels, sort) -- sort can be "SIMPLE" or "TREE"
       end
       return store
     end
-    frame = Gtk.Frame {
-      label = "ComboBox (Tree)",
-      Gtk.Box {
-        orientation = 'VERTICAL',
-        border_width = 10,
-        Gtk.ComboBox {
-          id = 'tree',
-          model = create_store(),
-          cells = {
-            {
-              Gtk.CellRendererText(),
-              { text = 1 },
-              align = 'start',
-            }
+    box = Gtk.Box {
+      orientation = 'VERTICAL',
+      border_width = 10,
+      Gtk.ComboBox {
+        id = 'tree',
+        model = create_store(),
+        cells = {
+          {
+            Gtk.CellRendererText(),
+            { text = 1 },
+            align = 'start',
           }
-        },
+        }
       },
     }
     else
-      frame = Gtk.Frame {
-        label = "ComboBox (Simple)",
-        Gtk.Box {
-          orientation = 'VERTICAL',
-          border_width = 10,
-          Gtk.ComboBoxText {
-            id = 'simple',
-            entry_text_column = 0,
-            id_column = 1,
-          },
+      box = Gtk.Box {
+        orientation = 'VERTICAL',
+        border_width = 10,
+        Gtk.ComboBoxText {
+          id = 'simple',
+          entry_text_column = 0,
+          id_column = 1,
         },
       }
       for i=1, #labels, 1 do
-        frame.child.simple:append_text(labels[i])
+        box.child.simple:append_text(labels[i])
       end
     end
   self.vbox:pack_start(Gtk.Box {
     orientation = 'VERTICAL',
     spacing = 10,
-    frame,
+    box,
   }, false, false, 0)
 end
 
@@ -144,7 +135,7 @@ function AbsGtk:add_text_input(title, is_password)
   --  Gtk.Label { label = title },
   --  Gtk.Entry {},
   --},
-    frame
+    frame,
   }, false, false, 0)
 end
 
@@ -159,6 +150,32 @@ function AbsGtk:add_textbox(title, width, height)
       },
     },
   }, false, false, 0)
+end
+
+function AbsGtk:create_checklist(labels)
+  local checklist = Gtk.Box {
+    orientation = 'VERTICAL',
+    border_width = 10,
+  }
+  for _, label in ipairs(labels) do
+    local checkbutton = Gtk.CheckButton { label = label }
+    Gtk.ToggleButton.set_active(checkbutton, false)
+    checklist:add(checkbutton)
+  end
+  self.vbox:pack_start(checklist, true, true, 0)
+end
+
+function AbsGtk:create_radiolist(labels) -- must set radiobuttons as unactive by default
+  local radiolist = Gtk.Box {
+    orientation = 'VERTICAL',
+    border_width = 10,
+  }
+  for _, label in ipairs(labels) do
+    local radiobutton = Gtk.RadioButton { label = label }
+    Gtk.ToggleButton.set_active(radiobutton, false)
+    radiolist:add(radiobutton)
+  end
+  self.vbox:pack_start(radiolist, true, true, 0)
 end
 
 function AbsGtk:run()
