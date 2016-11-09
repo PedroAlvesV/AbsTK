@@ -47,6 +47,9 @@ function AbsGtk:create_button_box(labels, layout)
     end
     return bbox
   end
+  if layout == nil then
+    layout = 'SPREAD'
+  end
   self.vbox:pack_start(Gtk.Box {
     orientation = 'VERTICAL',
     border_width = 10,
@@ -116,40 +119,41 @@ function AbsGtk:add_text_input(title, is_password)
   local entry = Gtk.Entry()
   if is_password then
     Gtk.Entry.set_visibility(entry, false)
-    Gtk.Entry.set_invisible_char(entry, 8)
   end
-  local frame = Gtk.Frame {
-    label = title,
-    Gtk.Box {
+  local tinput
+  if not title then
+    tinput = Gtk.Box {
       orientation = 'VERTICAL',
       border_width = 10,
       entry,
-    },
-  }
-  self.vbox:pack_start(Gtk.Box {
-    orientation = 'VERTICAL',
-  --Gtk.Box {
-  --  orientation = 'HORIZONTAL',
-  --  spacing = 8,
-  --  border_width = 10,
-  --  Gtk.Label { label = title },
-  --  Gtk.Entry {},
-  --},
-    frame,
-  }, false, false, 0)
+    }
+  else
+    tinput = Gtk.Frame {
+      label = title,
+      Gtk.Box {
+        orientation = 'VERTICAL',
+        border_width = 10,
+        entry,
+      },
+    }
+  end
+  self.vbox:pack_start(tinput, false, false, 0)
 end
 
-function AbsGtk:add_textbox(title, width, height)
-  self.vbox:pack_start(Gtk.Frame {
-    label = title,
-    Gtk.Box {
-      orientation = 'VERTICAL',
-      border_width = 10,
-      Gtk.ScrolledWindow {
-        Gtk.TextView { expand = true }
-      },
+function AbsGtk:add_textbox(title)
+  local tbox = Gtk.Box {
+    orientation = 'VERTICAL',
+    border_width = 10,
+    Gtk.ScrolledWindow {
+      --Gtk.TextView { expand = true },
+      Gtk.TextView {},
     },
-  }, false, false, 0)
+  }
+  if not title then
+    self.vbox:pack_start(tbox, false, false, 0) 
+  else
+    self.vbox:pack_start(Gtk.Frame { label = title, tbox }, false, false, 0)
+  end
 end
 
 function AbsGtk:create_checklist(labels)
@@ -159,7 +163,7 @@ function AbsGtk:create_checklist(labels)
   }
   for _, label in ipairs(labels) do
     local checkbutton = Gtk.CheckButton { label = label }
-    Gtk.ToggleButton.set_active(checkbutton, false)
+    Gtk.CheckButton.set_active(checkbutton, false)
     checklist:add(checkbutton)
   end
   self.vbox:pack_start(checklist, true, true, 0)
@@ -170,9 +174,16 @@ function AbsGtk:create_radiolist(labels) -- must set radiobuttons as unactive by
     orientation = 'VERTICAL',
     border_width = 10,
   }
+  --local radiosrc
+  --for _, label in ipairs(labels) do
+  --  local radiobutton = Gtk.RadioButton { label = label }
+  --  Gtk.RadioMenuItem.join_group(radiobutton, radiosrc)
+  --  radiolist:add(radiobutton)
+  --  radiosrc = radiobutton
+  --end
   for _, label in ipairs(labels) do
     local radiobutton = Gtk.RadioButton { label = label }
-    Gtk.ToggleButton.set_active(radiobutton, false)
+    Gtk.RadioButton.set_active(radiobutton, false)
     radiolist:add(radiobutton)
   end
   self.vbox:pack_start(radiolist, true, true, 0)
