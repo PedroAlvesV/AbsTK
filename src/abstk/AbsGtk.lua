@@ -11,7 +11,10 @@ function AbsGtk.new(title, w, h)
       default_height = h,
       on_destroy = Gtk.main_quit
     },
-    vbox = Gtk.VBox()
+    vbox = Gtk.VBox(),
+    --button_clicked = function(bt_name)
+    --  print(bt_name, 'was clicked')
+    --end
   }
   local mt = {
     __index = AbsGtk,
@@ -25,10 +28,12 @@ function AbsGtk:add_label(label)
 end
 
 function AbsGtk:add_button(label)
+  local button = Gtk.Button { label = label }
+  --Gtk.g_signal_connect(button, "clicked", self.button_clicked(label))
   self.vbox:pack_start(Gtk.Box {
     orientation = 'HORIZONTAL',
     border_width = 10,
-    Gtk.Button { label = label },
+    button,
   }, false, false, 0)
 end
 
@@ -144,10 +149,7 @@ function AbsGtk:add_textbox(title)
   local tbox = Gtk.Box {
     orientation = 'VERTICAL',
     border_width = 10,
-    Gtk.ScrolledWindow {
-      --Gtk.TextView { expand = true },
-      Gtk.TextView {},
-    },
+    Gtk.ScrolledWindow { Gtk.TextView {} },
   }
   if not title then
     self.vbox:pack_start(tbox, false, false, 0) 
@@ -173,22 +175,22 @@ function AbsGtk:create_checklist(labels)
   end
 end
 
-function AbsGtk:create_radiolist(labels) -- must set radiobuttons as unactive by default
+function AbsGtk:create_radiolist(labels)
   local radiolist = Gtk.Box {
     orientation = 'VERTICAL',
     border_width = 10,
   }
-  --local radiosrc
-  --for _, label in ipairs(labels) do
-  --  local radiobutton = Gtk.RadioButton { label = label }
-  --  Gtk.RadioMenuItem.join_group(radiobutton, radiosrc)
-  --  radiolist:add(radiobutton)
-  --  radiosrc = radiobutton
-  --end
+  local radiosrc
   for _, label in ipairs(labels) do
-    local radiobutton = Gtk.RadioButton { label = label }
+    local radiobutton
+    if _ == 1 then
+      radiobutton = Gtk.RadioButton.new_with_label(nil, label)
+    else
+      radiobutton = Gtk.RadioButton.new_with_label(Gtk.RadioButton.get_group(radiosrc), label)
+    end
     Gtk.RadioButton.set_active(radiobutton, false)
     radiolist:add(radiobutton)
+    radiosrc = radiobutton
   end
   self.vbox:pack_start(radiolist, true, true, 0)
 end
