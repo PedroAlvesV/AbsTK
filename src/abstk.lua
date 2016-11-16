@@ -41,8 +41,8 @@ function abstk.new_screen(title, w, h)
     create_combobox = function(self, labels, sort)
       obj:create_combobox(labels, sort)
     end,
-    add_image = function(self, path, width, height)
-      obj:add_image(path, width, height)
+    add_image = function(self, path, dimensions)
+      obj:add_image(path, dimensions)
     end,
     add_text_input = function(self, title, is_password)
       obj:add_text_input(title, is_password)
@@ -55,6 +55,9 @@ function abstk.new_screen(title, w, h)
     end,
     create_radiolist = function(self, labels)
       obj:create_radiolist(labels)
+    end,
+    create_list = function(self, labels)
+      obj:create_list(labels)
     end,
     run = function(self)
       obj:run()
