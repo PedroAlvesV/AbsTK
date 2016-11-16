@@ -111,12 +111,16 @@ function AbsGtk:create_combobox(labels, sort) -- sort can be "SIMPLE" or "TREE"
   }, false, false, 0)
 end
 
-function AbsGtk:add_image(path, width, height) -- must find a way to scale the image
-  --local pbuf_src = lgi.GdkPixbuf.Pixbuf.new_from_file(path)
-  --local pbuf_dest = lgi.GdkPixbuf.Pixbuf()
-  --pbuf_dest = lgi.GdkPixbuf.Pixbuf.scale_simple(pbuf_src, width, height, 'INTERP_HYPER')
-  --local img = Gtk.Image.new_from_pixbuf(pbuf_dest)
-  local img = Gtk.Image.new_from_file(path)
+function AbsGtk:add_image(path, dimensions)
+  local img
+  if not dimensions then
+    img = Gtk.Image.new_from_file(path)
+  else
+    local pbuf_src = lgi.GdkPixbuf.Pixbuf.new_from_file(path)
+    local pbuf_dest = lgi.GdkPixbuf.Pixbuf()
+    pbuf_dest = lgi.GdkPixbuf.Pixbuf.scale_simple(pbuf_src, dimensions[1], dimensions[2], 1)
+    img = Gtk.Image.new_from_pixbuf(pbuf_dest)
+  end
   self.vbox:pack_start(img, false, false, 0)
 end
 
