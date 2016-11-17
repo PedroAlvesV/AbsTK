@@ -29,35 +29,35 @@ function abstk.new_screen(title, w, h)
     obj = AbsCurses.new(title)
   end
   local self = {
-    add_label = function(self, label)
-      obj:add_label(label)
+    add_label = function(self, id, label, default_value, tooltip, callback)
+      obj:add_label(id, label, default_value, tooltip, callback)
     end,
-    add_button = function(self, label)
-      obj:add_button(label)
+    add_button = function(self, id, label, default_value, tooltip, callback)
+      obj:add_button(id, label, default_value, tooltip, callback)
     end,
-    create_button_box = function(self, labels, layout)
-      obj:create_button_box(labels, layout)
+    create_button_box = function(self, id, labels, layout, default_value, tooltip, callback)
+      obj:create_button_box(id, labels, layout, default_value, tooltip, callback)
     end,
-    create_combobox = function(self, labels, sort)
-      obj:create_combobox(labels, sort)
+    create_combobox = function(self, id, labels, sort, default_value, tooltip, callback)
+      obj:create_combobox(id, labels, sort, default_value, tooltip, callback)
     end,
-    add_image = function(self, path, dimensions)
-      obj:add_image(path, dimensions)
+    add_image = function(self, id, path, dimensions, default_value, tooltip, callback)
+      obj:add_image(id, path, dimensions, default_value, tooltip, callback)
     end,
-    add_text_input = function(self, title, is_password)
-      obj:add_text_input(title, is_password)
+    add_text_input = function(self, id, title, is_password, default_value, tooltip, callback)
+      obj:add_text_input(id, title, is_password, default_value, tooltip, callback)
     end,
-    add_textbox = function(self, title, width, height)
-      obj:add_textbox(title, width, height)
+    add_textbox = function(self, id, width, height, default_value, tooltip, callback)
+      obj:add_textbox(id, width, height, default_value, tooltip, callback)
     end,
-    create_checklist = function(self, labels)
-      obj:create_checklist(labels)
+    create_checklist = function(self, id, labels, default_value, tooltip, callback)
+      obj:create_checklist(id, labels, default_value, tooltip, callback)
     end,
-    create_radiolist = function(self, labels)
-      obj:create_radiolist(labels)
+    create_radiolist = function(self, id, labels, default_value, tooltip, callback)
+      obj:create_radiolist(id, labels, default_value, tooltip, callback)
     end,
-    create_list = function(self, labels)
-      obj:create_list(labels)
+    create_list = function(self, id, labels, default_value, tooltip, callback)
+      obj:create_list(id, labels, default_value, tooltip, callback)
     end,
     run = function(self)
       obj:run()
