@@ -3,6 +3,9 @@ local AbsGtk = {}
 local lgi = require 'lgi'
 local Gtk = lgi.require('Gtk')
 
+-- indexar widgets por id
+-- criar wizard
+
 function AbsGtk.new(title, w, h)
   local self = {
     window = Gtk.Window {
@@ -12,9 +15,7 @@ function AbsGtk.new(title, w, h)
       on_destroy = Gtk.main_quit
     },
     vbox = Gtk.VBox(),
-    --button_clicked = function(bt_name)
-    --  print(bt_name, 'was clicked')
-    --end
+    widgets = {},
   }
   local mt = {
     __index = AbsGtk,
@@ -23,21 +24,22 @@ function AbsGtk.new(title, w, h)
   return self
 end
 
-function AbsGtk:add_label(label)
-  self.vbox:pack_start(Gtk.Label { label = label }, true, true, 0)
+function AbsGtk:add_label(id, label, default_value, tooltip, callback)
+  local widget = Gtk.Label { id = id, label = label }
+  table.insert(self.widgets, widget)
 end
 
-function AbsGtk:add_button(label)
-  local button = Gtk.Button { label = label }
-  --Gtk.g_signal_connect(button, "clicked", self.button_clicked(label))
-  self.vbox:pack_start(Gtk.Box {
+function AbsGtk:add_button(id, label, default_value, tooltip, callback)
+  local button = Gtk.Button { id = id, label = label }
+  local widget = Gtk.Box {
     orientation = 'HORIZONTAL',
     border_width = 10,
     button,
-  }, false, false, 0)
+  }
+  table.insert(self.widgets, widget)
 end
 
-function AbsGtk:create_button_box(labels, layout)
+function AbsGtk:create_button_box(id, labels, layout, default_value, tooltip, callback)
   local function create_bbox(orientation, spacing, layout)
     local bbox = Gtk.ButtonBox {
       id = 'bbox',
@@ -55,15 +57,17 @@ function AbsGtk:create_button_box(labels, layout)
   if layout == nil then
     layout = 'SPREAD'
   end
-  self.vbox:pack_start(Gtk.Box {
+  local widget = Gtk.Box {
+    id = id,
     orientation = 'VERTICAL',
     border_width = 10,
     create_bbox('HORIZONTAL', 20, layout),
-  }, false, false, 0)
+  }
+  table.insert(self.widgets, widget)
 end
 
-function AbsGtk:create_combobox(labels, sort) -- sort can be "SIMPLE" or "TREE"
-  local box
+function AbsGtk:create_combobox(id, labels, sort, default_value, tooltip, callback) -- sort can be "SIMPLE" or "TREE"
+    local box
   if sort == 'TREE' then
     local function create_store()
       local store = Gtk.TreeStore.new { lgi.GObject.Type.STRING }
@@ -90,28 +94,30 @@ function AbsGtk:create_combobox(labels, sort) -- sort can be "SIMPLE" or "TREE"
         }
       },
     }
-    else
-      box = Gtk.Box {
-        orientation = 'VERTICAL',
-        border_width = 10,
-        Gtk.ComboBoxText {
-          id = 'simple',
-          entry_text_column = 0,
-          id_column = 1,
-        },
-      }
-      for i=1, #labels, 1 do
-        box.child.simple:append_text(labels[i])
-      end
+  else
+    box = Gtk.Box {
+      orientation = 'VERTICAL',
+      border_width = 10,
+      Gtk.ComboBoxText {
+        id = 'simple',
+        entry_text_column = 0,
+        id_column = 1,
+      },
+    }
+    for i=1, #labels, 1 do
+      box.child.simple:append_text(labels[i])
     end
-  self.vbox:pack_start(Gtk.Box {
+  end
+  local widget = Gtk.Box {
+    id = id,
     orientation = 'VERTICAL',
     spacing = 10,
     box,
-  }, false, false, 0)
+  }
+  table.insert(self.widgets, widget)
 end
 
-function AbsGtk:add_image(path, dimensions)
+function AbsGtk:add_image(id, path, dimensions, default_value, tooltip, callback)
   local img
   if not dimensions then
     img = Gtk.Image.new_from_file(path)
@@ -121,66 +127,66 @@ function AbsGtk:add_image(path, dimensions)
     pbuf_dest = lgi.GdkPixbuf.Pixbuf.scale_simple(pbuf_src, dimensions[1], dimensions[2], 1)
     img = Gtk.Image.new_from_pixbuf(pbuf_dest)
   end
-  self.vbox:pack_start(img, false, false, 0)
+  local widget = Gtk.Box { id = id, img }
+  table.insert(self.widgets, widget)
 end
 
-function AbsGtk:add_text_input(title, is_password)
-  local entry = Gtk.Entry()
+function AbsGtk:add_text_input(id, title, is_password, default_value, tooltip, callback)
+  local entry = Gtk.Entry {hexpand = true}
   if is_password then
     Gtk.Entry.set_visibility(entry, false)
   end
-  local tinput
+  local widget
   if not title then
-    tinput = Gtk.Box {
+    widget = Gtk.Box {
+      id = id,
       orientation = 'VERTICAL',
-      border_width = 10,
+      border_width = 5,
       entry,
     }
   else
-    tinput = Gtk.Frame {
-      label = title,
-      Gtk.Box {
-        orientation = 'VERTICAL',
-        border_width = 10,
-        entry,
-      },
+    widget = Gtk.Box {
+      id = id,
+      orientation = 'HORIZONTAL',
+      border_width = 5,
+      spacing = 10,
+      Gtk.Label { label = title },
+      entry,
     }
   end
-  self.vbox:pack_start(tinput, false, false, 0)
+  table.insert(self.widgets, widget)
 end
 
-function AbsGtk:add_textbox(title)
-  local tbox = Gtk.Box {
+function AbsGtk:add_textbox(id, width, height, default_value, tooltip, callback)
+  local widget = Gtk.Box {
     orientation = 'VERTICAL',
     border_width = 10,
     Gtk.ScrolledWindow { Gtk.TextView {} },
   }
-  if not title then
-    self.vbox:pack_start(tbox, false, false, 0) 
-  else
-    self.vbox:pack_start(Gtk.Frame { label = title, tbox }, false, false, 0)
-  end
+  table.insert(self.widgets, widget)
 end
 
-function AbsGtk:create_checklist(labels)
+function AbsGtk:create_checklist(id, labels, default_value, tooltip, callback)
   if #labels < 4 then
-    local checklist = Gtk.Box {
+    local widget = Gtk.Box {
+      id = id,
       orientation = 'VERTICAL',
       border_width = 10,
     }
     for _, label in ipairs(labels) do
       local checkbutton = Gtk.CheckButton { label = label }
       Gtk.CheckButton.set_active(checkbutton, false)
-      checklist:add(checkbutton)
+      widget:add(checkbutton)
     end
-    self.vbox:pack_start(checklist, true, true, 0)
+    table.insert(self.widgets, widget)
   else
-    self:create_list(labels)
+    self:create_list(id, labels, default_value, tooltip, callback)
   end
 end
 
-function AbsGtk:create_radiolist(labels)
-  local radiolist = Gtk.Box {
+function AbsGtk:create_radiolist(id, labels, default_value, tooltip, callback)
+  local widget = Gtk.Box {
+    id = id,
     orientation = 'VERTICAL',
     border_width = 10,
   }
@@ -193,13 +199,13 @@ function AbsGtk:create_radiolist(labels)
       radiobutton = Gtk.RadioButton.new_with_label(Gtk.RadioButton.get_group(radiosrc), label)
     end
     Gtk.RadioButton.set_active(radiobutton, false)
-    radiolist:add(radiobutton)
+    widget:add(radiobutton)
     radiosrc = radiobutton
   end
-  self.vbox:pack_start(radiolist, true, true, 0)
+  table.insert(self.widgets, widget)
 end
 
-function AbsGtk:create_list(labels)
+function AbsGtk:create_list(id, labels, default_value, tooltip, callback)
   local grid = Gtk.Grid.new()
   local x, y = 1, 1
   for _, label in ipairs(labels) do
@@ -212,10 +218,14 @@ function AbsGtk:create_list(labels)
       x = x + 1
     end
   end
-  self.vbox:pack_start(Gtk.Frame { Gtk.Box { border_width = 10, grid } }, true, false, 10)
+  local widget = Gtk.Frame { Gtk.Box { id = id, border_width = 10, grid } }
+  table.insert(self.widgets, widget)
 end
 
 function AbsGtk:run()
+  for _, widget in ipairs(self.widgets) do
+    self.vbox:pack_start(widget, false, false, 0)
+  end 
   self.window:add(self.vbox)
   self.window:show_all()
   Gtk.main()
