@@ -24,9 +24,9 @@ function abstk.new_screen(title, w, h)
     if h == nil then
       h = w*0.75
     end
-    obj = AbsGtk.new(title, w, h)
+    obj = AbsGtk.new_screen(title, w, h)
   elseif mode == 'curses' then
-    obj = AbsCurses.new(title)
+    obj = AbsCurses.new_screen(title)
   end
   local self = {
     add_label = function(self, id, label, default_value, tooltip, callback)
@@ -58,6 +58,30 @@ function abstk.new_screen(title, w, h)
     end,
     create_list = function(self, id, labels, default_value, tooltip, callback)
       obj:create_list(id, labels, default_value, tooltip, callback)
+    end,
+    run = function(self)
+      obj:run()
+    end,
+  }
+  return obj
+end
+
+function abstk.new_wizard(title, w, h)
+  local obj
+  if mode == 'gtk' then
+    if w == nil then
+      w = 400
+    end
+    if h == nil then
+      h = w*0.75
+    end
+    obj = AbsGtk.new_wizard(title, w, h)
+  elseif mode == 'curses' then
+    obj = AbsCurses.new_wizard(title)
+  end
+  local self = {
+    add_page = function(self, id, screen, page_type)
+      obj:add_page(id, screen, page_type)
     end,
     run = function(self)
       obj:run()
