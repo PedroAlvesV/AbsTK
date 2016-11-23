@@ -3,11 +3,6 @@ local AbsGtk = {}
 local lgi = require 'lgi'
 local Gtk = lgi.require('Gtk')
 
--- Wizard.add_screen(scr), Screen substitui Window
--- Wizard.run() [cria Gtk.Assistant()]
--- Screen.run() [cria Gtk.Window()]
--- Não precisa mais de 'page_number'
-
 local Screen = {}
 local Wizard = {}
 
