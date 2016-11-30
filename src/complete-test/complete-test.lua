@@ -38,14 +38,30 @@ scr3:add_image('lua_img', 'imgs/lua.png')
 scr3:add_image('batman_img', 'imgs/batman.png', {512, 384})
 
 -- Fill the fourth screen
-scr4:add_label('label1', 'CheckBoxes')
+scr4:add_label('label1', 'CheckBoxes (default construction)')
 scr4:create_checklist('chklist1', {'a', 'b', 'c'})
-scr4:add_label('label2', 'RadioButtons')
+scr4:add_label('label2', 'CheckBoxes (constructed by passing values)')
+local checklist_values = {
+  z = false,
+  x = true,
+  c = true,
+  v = false,
+  b = false,
+}
+scr4:create_checklist('chklist2', checklist_values)
+scr4:add_label('label3', 'RadioButtons (default construction)')
 scr4:create_radiolist('rdlist', {'x', 'y', 'z'})
-scr4:add_label('label3', 'CheckList (if greater than 3 and less than 10, turns into grid)')
-scr4:create_checklist('chklist2', {'q', 'w', 'e', 'r', 't', 'y'})
-scr4:add_label('label4', 'CheckList (if larger than 10, turns into scrolled list)')
-scr4:create_checklist('chklist3', {'01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'})
+scr4:add_label('label4', 'RadioButtons (constructed by passing values)')
+local radiolist_values = {
+  q = false,
+  w = true,
+  e = false,
+}
+scr4:create_radiolist('rdlist2', radiolist_values)
+scr4:add_label('label5', 'CheckList (if greater than 3 and less than 10, turns into grid)')
+scr4:create_checklist('chklist3', {'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o'})
+scr4:add_label('label6', 'CheckList (if larger than 9, turns into scrolled list)')
+scr4:create_checklist('chklist4', {'01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'})
 
 -- Fill the fifth screen
 scr5:add_text_input('input1', 'Username')
