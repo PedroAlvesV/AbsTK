@@ -235,7 +235,7 @@ function Screen:create_checklist(id, list, default_value, tooltip, callback)
   function create_grid(id, list, default_value, tooltip, callback)
     local grid = Gtk.Grid.new()
     local x, y = 1, 1
-    for _, label in ipairs(labels) do
+    for _, label in ipairs(list) do
       local checkbutton = Gtk.CheckButton { label = label }
       Gtk.CheckButton.set_active(checkbutton, false)
       Gtk.Grid.attach(grid, checkbutton, x, y, 1, 1)
@@ -251,13 +251,13 @@ function Screen:create_checklist(id, list, default_value, tooltip, callback)
       widget = Gtk.Frame {
         Gtk.Box {
           border_width = 10,
-          grid
+          grid,
         }
       }
     }
     table.insert(self.widgets, item)
   end
-  if #labels < 4 then
+  if #list < 4 then
     local item = {
       id = id,
       type = 'CHECKLIST',
@@ -266,13 +266,21 @@ function Screen:create_checklist(id, list, default_value, tooltip, callback)
         border_width = 10,
       }
     }
-    for _, label in ipairs(list) do
-      local checkbutton = Gtk.CheckButton { label = label }
-      Gtk.CheckButton.set_active(checkbutton, false)
-      item.widget:add(checkbutton)
+    if type(next(list)) == "string" then -- maybe it should sort the table in order to maintain running consistency 
+      for k,v in pairs(list) do
+        local checkbutton = Gtk.CheckButton { label = k }
+        Gtk.RadioButton.set_active(checkbutton, v)
+        item.widget:add(checkbutton)
+      end
+    else
+      for _, label in ipairs(list) do
+        local checkbutton = Gtk.CheckButton { label = label }
+        Gtk.CheckButton.set_active(checkbutton, false)
+        item.widget:add(checkbutton)
+      end
     end
     table.insert(self.widgets, item)
-  elseif #labels < 10 then
+  elseif #list < 10 then
     create_grid(id, list, default_value, tooltip, callback)
   else
     self:create_list(id, list, default_value, tooltip, callback)
@@ -289,32 +297,48 @@ function Screen:create_radiolist(id, list, default_value, tooltip, callback)
     }
   }
   local radiosrc
-  for i, label in ipairs(list) do
-    local radiobutton
-    if i == 1 then
-      radiobutton = Gtk.RadioButton.new_with_label(nil, label)
-    else
-      radiobutton = Gtk.RadioButton.new_with_label(Gtk.RadioButton.get_group(radiosrc), label)
+  if type(next(list)) == "string" then -- maybe it should sort the table in order to maintain running consistency 
+    local veri = true
+    for k,v in pairs(list) do
+      local radiobutton
+      if veri then
+        radiobutton = Gtk.RadioButton.new_with_label(nil, k)
+        veri = false
+      else
+        radiobutton = Gtk.RadioButton.new_with_label(Gtk.RadioButton.get_group(radiosrc), k)
+      end
+      Gtk.RadioButton.set_active(radiobutton, v)
+      item.widget:add(radiobutton)
+      radiosrc = radiobutton
     end
-    Gtk.RadioButton.set_active(radiobutton, false)
-    item.widget:add(radiobutton)
-    radiosrc = radiobutton
+  else
+    for i, field in ipairs(list) do
+      local radiobutton
+      if i == 1 then
+        radiobutton = Gtk.RadioButton.new_with_label(nil, field)
+      else
+        radiobutton = Gtk.RadioButton.new_with_label(Gtk.RadioButton.get_group(radiosrc), field)
+      end
+      Gtk.RadioButton.set_active(radiobutton, false)
+      item.widget:add(radiobutton)
+      radiosrc = radiobutton
+    end
   end
   table.insert(self.widgets, item)
 end
 
 function Screen:create_list(id, list, default_value, tooltip, callback)
   local scrolled_window = Gtk.ScrolledWindow.new()
-  local list = Gtk.Box {
+  local box = Gtk.Box {
     orientation = 'VERTICAL',
     border_width = 10,
   }
   for _, label in ipairs(list) do
     local checkbutton = Gtk.CheckButton { label = label }
     Gtk.CheckButton.set_active(checkbutton, false)
-    list:add(checkbutton)
+    box:add(checkbutton)
   end
-  Gtk.ScrolledWindow.add_with_viewport(scrolled_window, list)
+  Gtk.ScrolledWindow.add_with_viewport(scrolled_window, box)
   Gtk.ScrolledWindow.set_min_content_height(scrolled_window, 90);
   local item = {
     id = id,
