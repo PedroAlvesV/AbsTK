@@ -5,8 +5,8 @@ local Gtk = lgi.require('Gtk')
 
 -- inicializar com default_value
 -- fazer Screen:get_value(id) e Screen:set_value(id, value)
-
 -- criar callbacks para cada widget
+
 -- show_message_box(), Screen:set_enabled(id, bool)
 -- e adicionar tooltips
 
@@ -61,6 +61,11 @@ function Screen:add_button(id, label, default_value, tooltip, callback)
     id = 'button',
     label = label,
   }
+  if callback then
+    button.on_clicked = function(self)
+      callback()
+    end
+  end
   local item = {
     id = id,
     type = 'BUTTON',
@@ -84,6 +89,11 @@ function Screen:create_button_box(id, labels, layout, default_value, tooltip, ca
     }
     for _, label in ipairs(labels) do
       local button = Gtk.Button { label = label }
+      if callback then
+        button.on_clicked = function(self)
+          callback()
+        end
+      end
       bbox:add(button)
     end
     return bbox
@@ -103,7 +113,7 @@ function Screen:create_button_box(id, labels, layout, default_value, tooltip, ca
   table.insert(self.widgets, item)
 end
 
-function Screen:create_combobox(id, labels, sort, default_value, tooltip, callback) -- sort can be "SIMPLE" or "TREE"
+function Screen:create_combobox(id, labels, sort, default_value, tooltip, callback) -- sort can be 'SIMPLE' or 'TREE'
   local box
   if sort == 'TREE' then
     local function create_store()
@@ -216,6 +226,14 @@ function Screen:add_text_input(id, title, is_password, default_value, tooltip, c
 end
 
 function Screen:add_textbox(id, width, height, default_value, tooltip, callback)
+  local textview = Gtk.TextView { id = 'textview' }
+  local buffer = Gtk.TextBuffer.new()
+  if callback then
+    buffer.on_changed = function(self)
+      callback()
+    end
+  end
+  Gtk.TextView.set_buffer(textview, buffer)
   local item = {
     id = id,
     type = 'TEXTBOX',
@@ -224,7 +242,7 @@ function Screen:add_textbox(id, width, height, default_value, tooltip, callback)
       border_width = 10,
       Gtk.ScrolledWindow {
         id = 'scrolled_window',
-        Gtk.TextView { id = 'textview' },
+        textview,
       },
     }
   }
@@ -235,14 +253,38 @@ function Screen:create_checklist(id, list, default_value, tooltip, callback)
   function create_grid(id, list, default_value, tooltip, callback)
     local grid = Gtk.Grid.new()
     local x, y = 1, 1
-    for _, label in ipairs(list) do
-      local checkbutton = Gtk.CheckButton { label = label }
-      Gtk.CheckButton.set_active(checkbutton, false)
-      Gtk.Grid.attach(grid, checkbutton, x, y, 1, 1)
-      y = y + 1
-      if y == 4 then
-        y = 1
-        x = x + 1
+    if type(list[1]) == "table" then
+      for _, entry in ipairs(list) do
+        local label, value = entry[1], entry[2]
+        local checkbutton = Gtk.CheckButton { label = label }
+        if callback then
+          checkbutton.on_button_release_event = function(self)
+            callback()
+          end
+        end
+        Gtk.RadioButton.set_active(checkbutton, value)
+        Gtk.Grid.attach(grid, checkbutton, x, y, 1, 1)
+        y = y + 1
+        if y == 4 then
+          y = 1
+          x = x + 1
+        end
+      end
+    else
+      for _, label in ipairs(list) do
+        local checkbutton = Gtk.CheckButton { label = label }
+        if callback then
+          checkbutton.on_button_release_event = function(self)
+            callback()
+          end
+        end
+        Gtk.CheckButton.set_active(checkbutton, false)
+        Gtk.Grid.attach(grid, checkbutton, x, y, 1, 1)
+        y = y + 1
+        if y == 4 then
+          y = 1
+          x = x + 1
+        end
       end
     end
     local item = {
@@ -266,16 +308,27 @@ function Screen:create_checklist(id, list, default_value, tooltip, callback)
         border_width = 10,
       }
     }
-    if type(next(list)) == "string" then -- maybe it should sort the table in order to maintain running consistency 
-      for k,v in pairs(list) do
-        local checkbutton = Gtk.CheckButton { label = k }
-        Gtk.RadioButton.set_active(checkbutton, v)
+    if type(list[1]) == "table" then
+      for _, entry in ipairs(list) do
+        local label, value = entry[1], entry[2]
+        local checkbutton = Gtk.CheckButton { label = label }
+        Gtk.CheckButton.set_active(checkbutton, value)
+        if callback then
+          checkbutton.on_button_release_event = function(self)
+            callback()
+          end
+        end
         item.widget:add(checkbutton)
       end
     else
       for _, label in ipairs(list) do
         local checkbutton = Gtk.CheckButton { label = label }
         Gtk.CheckButton.set_active(checkbutton, false)
+        if callback then
+          checkbutton.on_button_release_event = function(self)
+            callback()
+          end
+        end
         item.widget:add(checkbutton)
       end
     end
@@ -297,17 +350,23 @@ function Screen:create_radiolist(id, list, default_value, tooltip, callback)
     }
   }
   local radiosrc
-  if type(next(list)) == "string" then -- maybe it should sort the table in order to maintain running consistency 
+  if type(list[1]) == "table" then
     local veri = true
-    for k,v in pairs(list) do
+    for _, entry in ipairs(list) do
+      local label, value = entry[1], entry[2]
       local radiobutton
       if veri then
-        radiobutton = Gtk.RadioButton.new_with_label(nil, k)
+        radiobutton = Gtk.RadioButton.new_with_label(nil, label)
         veri = false
       else
-        radiobutton = Gtk.RadioButton.new_with_label(Gtk.RadioButton.get_group(radiosrc), k)
+        radiobutton = Gtk.RadioButton.new_with_label(Gtk.RadioButton.get_group(radiosrc), label)
       end
-      Gtk.RadioButton.set_active(radiobutton, v)
+      Gtk.RadioButton.set_active(radiobutton, value)
+      if callback then
+        radiobutton.on_button_release_event = function(self)
+          callback()
+        end
+      end
       item.widget:add(radiobutton)
       radiosrc = radiobutton
     end
@@ -319,7 +378,11 @@ function Screen:create_radiolist(id, list, default_value, tooltip, callback)
       else
         radiobutton = Gtk.RadioButton.new_with_label(Gtk.RadioButton.get_group(radiosrc), field)
       end
-      Gtk.RadioButton.set_active(radiobutton, false)
+      if callback then
+        radiobutton.on_button_release_event = function(self)
+          callback()
+        end
+      end
       item.widget:add(radiobutton)
       radiosrc = radiobutton
     end
@@ -335,7 +398,11 @@ function Screen:create_list(id, list, default_value, tooltip, callback)
   }
   for _, label in ipairs(list) do
     local checkbutton = Gtk.CheckButton { label = label }
-    Gtk.CheckButton.set_active(checkbutton, false)
+    if callback then
+      checkbutton.on_button_release_event = function(self)
+        callback()
+      end
+    end
     box:add(checkbutton)
   end
   Gtk.ScrolledWindow.add_with_viewport(scrolled_window, box)
