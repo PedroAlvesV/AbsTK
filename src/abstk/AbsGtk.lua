@@ -3,8 +3,8 @@ local AbsGtk = {}
 local lgi = require 'lgi'
 local Gtk = lgi.require('Gtk')
 
--- inicializar com default_value
 -- fazer Screen:get_value(id) e Screen:set_value(id, value)
+-- inicializar com default_value
 -- criar callbacks para cada widget
 
 -- show_message_box(), Screen:set_enabled(id, bool)
@@ -87,8 +87,8 @@ function Screen:create_button_box(id, labels, layout, default_value, tooltip, ca
       layout_style = layout,
       spacing = spacing,
     }
-    for _, label in ipairs(labels) do
-      local button = Gtk.Button { label = label }
+    for i, label in ipairs(labels) do
+      local button = Gtk.Button { id = i, label = label }
       if callback then
         button.on_clicked = function(self)
           callback()
@@ -251,12 +251,12 @@ end
 
 function Screen:create_checklist(id, list, default_value, tooltip, callback)
   function create_grid(id, list, default_value, tooltip, callback)
-    local grid = Gtk.Grid.new()
+    local grid = Gtk.Grid.new{ id = 'grid' }
     local x, y = 1, 1
     if type(list[1]) == "table" then
-      for _, entry in ipairs(list) do
+      for i, entry in ipairs(list) do
         local label, value = entry[1], entry[2]
-        local checkbutton = Gtk.CheckButton { label = label }
+        local checkbutton = Gtk.CheckButton { id = i, label = label }
         if callback then
           checkbutton.on_button_release_event = function(self)
             callback()
@@ -271,8 +271,8 @@ function Screen:create_checklist(id, list, default_value, tooltip, callback)
         end
       end
     else
-      for _, label in ipairs(list) do
-        local checkbutton = Gtk.CheckButton { label = label }
+      for i, label in ipairs(list) do
+        local checkbutton = Gtk.CheckButton { id = i, label = label }
         if callback then
           checkbutton.on_button_release_event = function(self)
             callback()
@@ -292,6 +292,7 @@ function Screen:create_checklist(id, list, default_value, tooltip, callback)
       type = 'GRID',
       widget = Gtk.Frame {
         Gtk.Box {
+          id = 'box',
           border_width = 10,
           grid,
         }
@@ -309,9 +310,9 @@ function Screen:create_checklist(id, list, default_value, tooltip, callback)
       }
     }
     if type(list[1]) == "table" then
-      for _, entry in ipairs(list) do
+      for i, entry in ipairs(list) do
         local label, value = entry[1], entry[2]
-        local checkbutton = Gtk.CheckButton { label = label }
+        local checkbutton = Gtk.CheckButton { id = i, label = label }
         Gtk.CheckButton.set_active(checkbutton, value)
         if callback then
           checkbutton.on_button_release_event = function(self)
@@ -321,8 +322,8 @@ function Screen:create_checklist(id, list, default_value, tooltip, callback)
         item.widget:add(checkbutton)
       end
     else
-      for _, label in ipairs(list) do
-        local checkbutton = Gtk.CheckButton { label = label }
+      for i, label in ipairs(list) do
+        local checkbutton = Gtk.CheckButton { id = i, label = label }
         Gtk.CheckButton.set_active(checkbutton, false)
         if callback then
           checkbutton.on_button_release_event = function(self)
@@ -393,11 +394,12 @@ end
 function Screen:create_list(id, list, default_value, tooltip, callback)
   local scrolled_window = Gtk.ScrolledWindow.new()
   local box = Gtk.Box {
+    id = 'box',
     orientation = 'VERTICAL',
     border_width = 10,
   }
-  for _, label in ipairs(list) do
-    local checkbutton = Gtk.CheckButton { label = label }
+  for i, label in ipairs(list) do
+    local checkbutton = Gtk.CheckButton { id = i, label = label }
     if callback then
       checkbutton.on_button_release_event = function(self)
         callback()
@@ -415,15 +417,16 @@ function Screen:create_list(id, list, default_value, tooltip, callback)
   table.insert(self.widgets, item)
 end
 
-function Screen:set_value(id, value)
+function Screen:set_value(id, value, ...)
   for _, item in ipairs(self.widgets) do
+    local i, j = ...
     if item.id == id then
       if item.type == 'LABEL' then
         Gtk.Label.set_text(item.widget, value)
       elseif item.type == 'BUTTON' then
         Gtk.Button.set_label(item.widget.child.button, value)
       elseif item.type == 'BUTTON_BOX' then
-        -- must set buttonbox values
+        Gtk.Button.set_label(item.widget.child.bbox.child[i])
       elseif item.type == 'COMBOBOX' then
         -- must set combobox values
       elseif item.type == 'IMAGE' then
@@ -436,27 +439,28 @@ function Screen:set_value(id, value)
         Gtk.TextBuffer.set_text(buffer, value, -1);
         Gtk.TextView.set_buffer(item.widget.child.scrolled_window.child.textview, buffer)
       elseif item.type == 'GRID' then
-        -- must set grid values
-      elseif item.type == 'CHECKLIST' then
-        -- must set checklist values
-      elseif item.type == 'RADIOLIST' then
-        -- must set radiolist values
+        local grid = item.widget.child.box.child[1]
+        local button = Gtk.Grid.get_child_at(grid, i, j)
+        Gtk.ToggleButton.set_active(button, value)
+      elseif item.type == 'CHECKLIST' or item.type == 'RADIOLIST' then
+        Gtk.ToggleButton.set_active(item.widget.child[i], value)
       elseif item.type == 'LIST' then
-        -- must set list values
+        Gtk.ToggleButton.set_active(item.widget.child.box.child[i], value)
       end
     end
   end
 end
 
-function Screen:get_value(id)
+function Screen:get_value(id, ...)
   for _, item in ipairs(self.widgets) do
+    local i, j = ...
     if item.id == id then
       if item.type == 'LABEL' then
         return Gtk.Label.get_text(item.widget)
       elseif item.type == 'BUTTON' then
         return Gtk.Button.get_label(item.widget.child.button)
       elseif item.type == 'BUTTON_BOX' then
-        -- must get buttonbox values
+        return Gtk.Button.get_label(item.widget.child.bbox.child[i])
       elseif item.type == 'COMBOBOX' then
         -- must get combobox values
       elseif item.type == 'IMAGE' then
@@ -469,13 +473,13 @@ function Screen:get_value(id)
         local end_iter = Gtk.TextBuffer.get_end_iter(buffer)
         return Gtk.TextBuffer.get_text(buffer, start_iter, end_iter)
       elseif item.type == 'GRID' then
-        -- must get grid values
-      elseif item.type == 'CHECKLIST' then
-        -- must get checklist values
-      elseif item.type == 'RADIOLIST' then
-        -- must get radiolist values
+        local grid = item.widget.child.box.child[1]
+        local button = Gtk.Grid.get_child_at(grid, i, j)
+        return Gtk.ToggleButton.get_active(button)
+      elseif item.type == 'CHECKLIST' or item.type == 'RADIOLIST' then
+        return Gtk.ToggleButton.get_active(item.widget.child[i])
       elseif item.type == 'LIST' then
-        -- must get list values
+        return Gtk.ToggleButton.get_active(item.widget.child.box.child[i])
       end
     end
   end
