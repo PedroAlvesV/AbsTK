@@ -40,15 +40,8 @@ scr2:add_button('bt1', 'Button1', nil, nil, bt_callback)
 scr2:add_button('bt2', 'Button2', nil, nil, bt_callback)
 scr2:add_label('label2', 'ButtonBox')
 scr2:create_button_box('bbox', {'A', 'B', 'C', 'D'}, 'SPREAD', nil, nil, bt_callback)
-scr2:add_label('label3', 'ComboBox (Simple)')
-scr2:create_combobox('cbox1', {'Label1', 'Label2', 'Label3'}, 'SIMPLE', nil, nil, bt_callback)
-local t = {
-  { name = "Parent1", "Leaf1", "Leaf2", "Leaf3"}, 
-  { name = "Parent2", "Leaf4", "Leaf5", "Leaf6"},
-  { name = "Parent3", "Leaf7", "Leaf8", "Leaf9"},
-}
-scr2:add_label('label4', 'ComboBox (Tree)')
-scr2:create_combobox('cbox2', t, 'TREE', nil, nil, bt_callback)
+scr2:add_label('label3', 'ComboBox')
+scr2:create_combobox('cbox', {'Label1', 'Label2', 'Label3'}, nil, nil, bt_callback)
 
 -- Fill the third screen
 scr3:add_image('lua_img', 'imgs/lua.png')
@@ -65,7 +58,7 @@ local checklist_values = {
 }
 scr4:create_checklist('chklist2', checklist_values, nil, nil, chk_callback)
 scr4:add_label('label3', 'RadioButtons (default construction)')
-scr4:create_radiolist('rdlist', {'x', 'y', 'z'}, nil, nil, rd_callback)
+scr4:create_radiolist('rdlist1', {'x', 'y', 'z'}, nil, nil, rd_callback)
 scr4:add_label('label4', 'RadioButtons (constructed by passing values)')
 local radiolist_values = {
   {'q', false},
