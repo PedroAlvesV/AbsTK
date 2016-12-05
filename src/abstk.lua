@@ -38,8 +38,8 @@ function abstk.new_screen(title, w, h)
     create_button_box = function(self, id, labels, layout, default_value, tooltip, callback)
       obj:create_button_box(id, labels, layout, default_value, tooltip, callback)
     end,
-    create_combobox = function(self, id, labels, sort, default_value, tooltip, callback)
-      obj:create_combobox(id, labels, sort, default_value, tooltip, callback)
+    create_combobox = function(self, id, labels, default_value, tooltip, callback)
+      obj:create_combobox(id, labels, default_value, tooltip, callback)
     end,
     add_image = function(self, id, path, dimensions, tooltip, callback)
       obj:add_image(id, path, dimensions, tooltip, callback)
