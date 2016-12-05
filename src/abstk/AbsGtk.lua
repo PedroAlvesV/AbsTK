@@ -3,12 +3,9 @@ local AbsGtk = {}
 local lgi = require 'lgi'
 local Gtk = lgi.require('Gtk')
 
--- fazer Screen:get_value(id) e Screen:set_value(id, value)
+-- criar callbacks para combobox
 -- inicializar com default_value
--- criar callbacks para cada widget
-
--- show_message_box(), Screen:set_enabled(id, bool)
--- e adicionar tooltips
+-- show_message_box()
 
 local Screen = {}
 local Wizard = {}
@@ -61,6 +58,7 @@ function Screen:add_button(id, label, default_value, tooltip, callback)
     id = 'button',
     label = label,
   }
+  Gtk.Widget.set_tooltip_text(button, tooltip)
   if callback then
     button.on_clicked = function(self)
       callback()
@@ -89,6 +87,7 @@ function Screen:create_button_box(id, labels, layout, default_value, tooltip, ca
     }
     for i, label in ipairs(labels) do
       local button = Gtk.Button { id = i, label = label }
+      Gtk.Widget.set_tooltip_text(button, tooltip)
       if callback then
         button.on_clicked = function(self)
           callback()
@@ -113,51 +112,24 @@ function Screen:create_button_box(id, labels, layout, default_value, tooltip, ca
   table.insert(self.widgets, item)
 end
 
-function Screen:create_combobox(id, labels, sort, default_value, tooltip, callback) -- sort can be 'SIMPLE' or 'TREE'
-  local box
-  if sort == 'TREE' then
-    local function create_store()
-      local store = Gtk.TreeStore.new { lgi.GObject.Type.STRING }
-      for _, group in ipairs(labels) do
-        local gi = store:append(nil, { [1] = group.name })
-        for _, leaf in ipairs(group) do
-          store:append(gi, { [1] = leaf })
-        end
-      end
-      return store
-    end
-    box = Gtk.Box {
-      orientation = 'VERTICAL',
-      border_width = 10,
-      Gtk.ComboBox {
-        id = 'tree',
-        model = create_store(),
-        cells = {
-          {
-            Gtk.CellRendererText(),
-            { text = 1 },
-            align = 'start',
-          }
-        }
-      },
-    }
-  else
-    box = Gtk.Box {
-      orientation = 'VERTICAL',
-      border_width = 10,
-      Gtk.ComboBoxText {
-        id = 'simple',
-        entry_text_column = 0,
-        id_column = 1,
-      },
-    }
-    for _, label in ipairs(labels) do
-      box.child.simple:append_text(label)
-    end
+function Screen:create_combobox(id, labels, default_value, tooltip, callback)
+  local box = Gtk.Box {
+    id = 'box',
+    orientation = 'VERTICAL',
+    border_width = 10,
+    Gtk.ComboBoxText {
+      id = 'combobox',
+      entry_text_column = 0,
+      id_column = 1,
+    },
+  }
+  for _, label in ipairs(labels) do
+    box.child.combobox:append_text(label)
   end
   local item = {
     id = id,
     type = 'COMBOBOX',
+    labels = labels,
     widget = Gtk.Box {
       orientation = 'VERTICAL',
       spacing = 10,
@@ -178,6 +150,7 @@ function Screen:add_image(id, path, dimensions, tooltip, callback)
     img = Gtk.Image.new_from_pixbuf(pbuf_dest)
   end
   img.id = 'image'
+  Gtk.Widget.set_tooltip_text(img, tooltip)
   local item = {
     id = id,
     type = 'IMAGE',
@@ -192,6 +165,7 @@ function Screen:add_text_input(id, title, is_password, default_value, tooltip, c
     id = 'entry',
     hexpand = true,
   }
+  Gtk.Widget.set_tooltip_text(entry, tooltip)
   if callback then
     entry.on_changed = function(self)
       callback()
@@ -228,6 +202,7 @@ end
 function Screen:add_textbox(id, width, height, default_value, tooltip, callback)
   local textview = Gtk.TextView { id = 'textview' }
   local buffer = Gtk.TextBuffer.new()
+  Gtk.Widget.set_tooltip_text(textview, tooltip)
   if callback then
     buffer.on_changed = function(self)
       callback()
@@ -262,7 +237,7 @@ function Screen:create_checklist(id, list, default_value, tooltip, callback)
             callback()
           end
         end
-        Gtk.RadioButton.set_active(checkbutton, value)
+        Gtk.CheckButton.set_active(checkbutton, value)
         Gtk.Grid.attach(grid, checkbutton, x, y, 1, 1)
         y = y + 1
         if y == 4 then
@@ -298,6 +273,7 @@ function Screen:create_checklist(id, list, default_value, tooltip, callback)
         }
       }
     }
+    Gtk.Widget.set_tooltip_text(item.widget, tooltip)
     table.insert(self.widgets, item)
   end
   if #list < 4 then
@@ -309,27 +285,28 @@ function Screen:create_checklist(id, list, default_value, tooltip, callback)
         border_width = 10,
       }
     }
+    Gtk.Widget.set_tooltip_text(item.widget, tooltip)
     if type(list[1]) == "table" then
       for i, entry in ipairs(list) do
         local label, value = entry[1], entry[2]
         local checkbutton = Gtk.CheckButton { id = i, label = label }
-        Gtk.CheckButton.set_active(checkbutton, value)
         if callback then
           checkbutton.on_button_release_event = function(self)
             callback()
           end
         end
+        Gtk.CheckButton.set_active(checkbutton, value)
         item.widget:add(checkbutton)
       end
     else
       for i, label in ipairs(list) do
         local checkbutton = Gtk.CheckButton { id = i, label = label }
-        Gtk.CheckButton.set_active(checkbutton, false)
         if callback then
           checkbutton.on_button_release_event = function(self)
             callback()
           end
         end
+        Gtk.CheckButton.set_active(checkbutton, false)
         item.widget:add(checkbutton)
       end
     end
@@ -350,6 +327,7 @@ function Screen:create_radiolist(id, list, default_value, tooltip, callback)
       border_width = 10,
     }
   }
+  Gtk.Widget.set_tooltip_text(item.widget, tooltip)
   local radiosrc
   if type(list[1]) == "table" then
     local veri = true
@@ -362,12 +340,12 @@ function Screen:create_radiolist(id, list, default_value, tooltip, callback)
       else
         radiobutton = Gtk.RadioButton.new_with_label(Gtk.RadioButton.get_group(radiosrc), label)
       end
-      Gtk.RadioButton.set_active(radiobutton, value)
       if callback then
         radiobutton.on_button_release_event = function(self)
           callback()
         end
       end
+      Gtk.RadioButton.set_active(radiobutton, value)
       item.widget:add(radiobutton)
       radiosrc = radiobutton
     end
@@ -408,13 +386,27 @@ function Screen:create_list(id, list, default_value, tooltip, callback)
     box:add(checkbutton)
   end
   Gtk.ScrolledWindow.add_with_viewport(scrolled_window, box)
-  Gtk.ScrolledWindow.set_min_content_height(scrolled_window, 90);
+  Gtk.ScrolledWindow.set_min_content_height(scrolled_window, 90)
   local item = {
     id = id,
     type = 'LIST',
     widget = Gtk.Frame { scrolled_window }
   }
+  Gtk.Widget.set_tooltip_text(item.widget, tooltip)
   table.insert(self.widgets, item)
+end
+
+function Screen:set_enabled(id, bool, ...)
+  for _, item in ipairs(self.widgets) do
+    local i = ...
+    if item.id == id then
+      if item.type == 'BUTTON_BOX' then
+        Gtk.Widget.set_sensitive(item.widget.child.bbox.child[i], bool)
+      else
+        Gtk.Widget.set_sensitive(item.widget, bool)
+      end
+    end
+  end
 end
 
 function Screen:set_value(id, value, ...)
@@ -428,7 +420,9 @@ function Screen:set_value(id, value, ...)
       elseif item.type == 'BUTTON_BOX' then
         Gtk.Button.set_label(item.widget.child.bbox.child[i])
       elseif item.type == 'COMBOBOX' then
-        -- must set combobox values
+        item.labels[i] = value
+        item.widget.child.combobox:remove(i-1)
+        item.widget.child.combobox:insert_text(i-1, item.labels[i])
       elseif item.type == 'IMAGE' then
         item.path = value
         Gtk.Image.set_from_file(item.widget.child.image, value)
@@ -436,7 +430,7 @@ function Screen:set_value(id, value, ...)
         Gtk.Entry.set_text(item.widget.child.entry, value)
       elseif item.type == 'TEXTBOX' then
         local buffer = Gtk.TextBuffer {}
-        Gtk.TextBuffer.set_text(buffer, value, -1);
+        Gtk.TextBuffer.set_text(buffer, value, -1)
         Gtk.TextView.set_buffer(item.widget.child.scrolled_window.child.textview, buffer)
       elseif item.type == 'GRID' then
         local grid = item.widget.child.box.child[1]
@@ -462,7 +456,7 @@ function Screen:get_value(id, ...)
       elseif item.type == 'BUTTON_BOX' then
         return Gtk.Button.get_label(item.widget.child.bbox.child[i])
       elseif item.type == 'COMBOBOX' then
-        -- must get combobox values
+        return item.labels[i]
       elseif item.type == 'IMAGE' then
         return item.path
       elseif item.type == 'TEXT_INPUT' then
