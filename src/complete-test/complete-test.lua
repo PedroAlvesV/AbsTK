@@ -36,12 +36,12 @@ scr1:add_label('label3', 'Parameter 3:\t\tWXYZ')
 
 -- Fill the second screen
 scr2:add_label('label1', 'Simple Buttons')
-scr2:add_button('bt1', 'Button1', nil, nil, bt_callback)
-scr2:add_button('bt2', 'Button2', nil, nil, bt_callback)
+scr2:add_button('bt1', 'Button1', "tooltip", bt_callback)
+scr2:add_button('bt2', 'Button2', nil, bt_callback)
 scr2:add_label('label2', 'ButtonBox')
-scr2:create_button_box('bbox', {'A', 'B', 'C', 'D'}, 'SPREAD', nil, nil, bt_callback)
+scr2:create_button_box('bbox', {'A', 'B', 'C', 'D'}, 'SPREAD', nil, bt_callback)
 scr2:add_label('label3', 'ComboBox')
-scr2:create_combobox('cbox', {'Label1', 'Label2', 'Label3'}, nil, nil, bt_callback)
+scr2:create_combobox('cbox', {'Label1', 'Label2', 'Label3'}, nil, bt_callback)
 
 -- Fill the third screen
 scr3:add_image('lua_img', 'imgs/lua.png')
@@ -50,33 +50,37 @@ scr3:add_image('batman_img', 'imgs/batman.png', {512, 384})
 -- Fill the fourth screen
 scr4:add_label('label1', 'CheckBoxes (default construction)')
 scr4:create_checklist('chklist1', {'a', 'b', 'c'}, nil, nil, chk_callback)
-scr4:add_label('label2', 'CheckBoxes (constructed by passing values)')
+scr4:add_label('label2', 'CheckBoxes (constructed by passing values by default_value)')
+scr4:create_checklist('chklist2', {'7', '8', '9'}, {true, false, true}, nil, chk_callback)
+scr4:add_label('label3', 'CheckBoxes (constructed by passing values in the elements table)')
 local checklist_values = {
   {'z', false},
   {'x', true},
   {'c', true},
 }
-scr4:create_checklist('chklist2', checklist_values, nil, nil, chk_callback)
-scr4:add_label('label3', 'RadioButtons (default construction)')
+scr4:create_checklist('chklist3', checklist_values, nil, nil, chk_callback)
+scr4:add_label('label4', 'RadioButtons (default construction)')
 scr4:create_radiolist('rdlist1', {'x', 'y', 'z'}, nil, nil, rd_callback)
-scr4:add_label('label4', 'RadioButtons (constructed by passing values)')
+scr4:add_label('label5', 'RadioButtons (constructed by passing index by default_value)')
+scr4:create_radiolist('rdlist2', {'a', 's', 'd'}, 3, nil, rd_callback)
+scr4:add_label('label6', 'RadioButtons (constructed by passing booleans in the elements table)')
 local radiolist_values = {
   {'q', false},
   {'w', true},
   {'e', false},
 }
-scr4:create_radiolist('rdlist2', radiolist_values, nil, nil, rd_callback)
-scr4:add_label('label5', 'CheckList (if greater than 3 and less than 10, turns into grid)')
-scr4:create_checklist('chklist3', {'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o'}, nil, nil, chk_callback)
-scr4:add_label('label6', 'CheckList (if larger than 9, turns into scrolled list)')
-scr4:create_checklist('chklist4', {'01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'}, nil, nil, chk_callback)
+scr4:create_radiolist('rdlist3', radiolist_values, nil, nil, rd_callback)
+scr4:add_label('label7', 'CheckList (if greater than 3 and less than 10, turns into grid)')
+scr4:create_checklist('chklist4', {'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o'}, nil, nil, chk_callback)
+scr4:add_label('label8', 'CheckList (if larger than 9, turns into scrolled list)')
+scr4:create_checklist('chklist5', {'01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'}, nil, nil, chk_callback)
 
 -- Fill the fifth screen
 scr5:add_text_input('input1', 'Username', nil, nil, nil, t_input_callback)
 scr5:add_text_input('input2', 'Password', true, nil, nil, t_input_callback)
 scr5:add_text_input('input3', nil, nil, nil, nil, t_input_callback)
 scr5:add_label('label', 'TextBox')
-scr5:add_textbox('box', nil, nil, nil, nil, t_box_callback)
+scr5:add_textbox('box', nil, nil, t_box_callback)
 
 -- Add all screens to wizard
 wizard:add_page('screen1', scr1, 'INTRO')

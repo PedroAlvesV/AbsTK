@@ -17,6 +17,6 @@ scr:add_text_input('input2', 'Password', true, nil, nil, t_input_callback)
 scr:add_text_input('input3', nil, nil, nil, nil, t_input_callback)
 
 scr:add_label('label', 'TextBox')
-scr:add_textbox('box', nil, nil, nil, nil, t_box_callback)
+scr:add_textbox('box', nil, nil, t_box_callback)
 
 scr:run()
