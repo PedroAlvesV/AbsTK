@@ -47,8 +47,8 @@ function abstk.new_screen(title, w, h)
     add_text_input = function(self, id, title, is_password, default_value, tooltip, callback)
       obj:add_text_input(id, title, is_password, default_value, tooltip, callback)
     end,
-    add_textbox = function(self, id, width, height, default_value, tooltip, callback)
-      obj:add_textbox(id, width, height, default_value, tooltip, callback)
+    add_textbox = function(self, id, default_value, tooltip, callback)
+      obj:add_textbox(id, default_value, tooltip, callback)
     end,
     create_checklist = function(self, id, list, default_value, tooltip, callback)
       obj:create_checklist(id, list, default_value, tooltip, callback)
