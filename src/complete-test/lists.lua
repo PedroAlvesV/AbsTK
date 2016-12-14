@@ -4,12 +4,14 @@ abstk.set_mode(...)
 
 local scr = abstk.new_screen("AbsTK Complete Test - Lists Module")
 
-local chk_callback = function()
-  print("Checkbutton.")
+local chk_callback = function(id, value, index)
+  print(scr:get_value(id, index))
 end
-
-local rd_callback = function()
-  print("Radiobutton.")
+local rd_callback = function(id, value)
+  print(scr:get_value(id))
+end
+local list_callback = function(id, value, index)
+  print(scr:get_value(id, index))
 end
 
 scr:add_label('label1', 'CheckBoxes (default construction)')
@@ -43,7 +45,19 @@ scr:create_radiolist('rdlist3', radiolist_values, nil, nil, rd_callback)
 scr:add_label('label7', 'CheckList (if greater than 3 and less than 10, turns into grid)')
 scr:create_checklist('chklist4', {'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o'}, nil, nil, chk_callback)
 
-scr:add_label('label8', 'CheckList (if larger than 9, turns into scrolled list)')
-scr:create_checklist('chklist5', {'01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'}, nil, nil, chk_callback)
+local list = {
+  { false, "Item1" },
+  { true, "Item2" },
+  { false, "Item3" },
+  { false, "Item4" },
+  { false, "Item5" },
+  { false, "Item6" },
+  { false, "Item7" },
+  { false, "Item8" },
+  { false, "Item9" },
+}
+
+scr:add_label('label8', 'List')
+scr:create_list('chklist5', list, nil, list_callback)
 
 scr:run()
