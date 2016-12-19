@@ -72,7 +72,7 @@ function abstk.new_screen(title, w, h)
       obj:set_value(id, value, index)
     end,
     get_value = function(self, id, index)
-      obj:get_value(id, index)
+      return obj:get_value(id, index)
     end,
     run = function(self)
       obj:run()
