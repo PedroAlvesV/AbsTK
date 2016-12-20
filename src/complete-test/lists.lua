@@ -57,7 +57,10 @@ local list = {
   { false, "Item9" },
 }
 
-scr:add_label('label8', 'List')
-scr:create_list('chklist5', list, nil, list_callback)
+scr:add_label('label8', 'List (constructed by passing booleans in the elements table)')
+scr:create_list('chklist5', list , nil, list_callback)
+
+scr:add_label('label9', 'List (constructed by passing just the labels)')
+scr:create_list('chklist6', {"Item10", "Item11", "Item12"} , nil, list_callback)
 
 scr:run()

@@ -15,6 +15,7 @@ local scr5 = abstk.new_screen("Text Input Module")
 -- Generic callbacks
 local bt_callback = function(id, label)
   print(label.." clicado.")
+  scr2:show_message_box('msgbox', label, 'OK')
 end
 local cbb_callback = function(id, value)
   print(id, value)
@@ -42,7 +43,7 @@ scr2:add_label('label1', 'Simple Buttons')
 scr2:add_button('bt1', 'Button1', "tooltip", bt_callback)
 scr2:add_button('bt2', 'Button2', nil, bt_callback)
 scr2:add_label('label2', 'ButtonBox')
-scr2:create_button_box('bbox', {'A', 'B', 'C', 'D'}, 'SPREAD', nil, bt_callback)
+scr2:create_button_box('bbox', {'A', 'B', 'C', 'D'}, nil, bt_callback)
 scr2:add_label('label3', 'ComboBox')
 scr2:create_combobox('cbox', {'Label1', 'Label2', 'Label3'}, nil, cbb_callback)
 
@@ -73,7 +74,7 @@ local radiolist_values = {
   {'e', false},
 }
 scr4:create_radiolist('rdlist3', radiolist_values, nil, nil, rd_callback)
-scr4:add_label('label7', 'CheckList (if greater than 3 and less than 10, turns into grid)')
+scr4:add_label('label7', 'CheckList (if greater than 3, turns into grid)')
 scr4:create_checklist('chklist4', {'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o'}, nil, nil, chk_callback)
 local list = {
   { false, "Item1" },
@@ -86,8 +87,10 @@ local list = {
   { false, "Item8" },
   { false, "Item9" },
 }
-scr4:add_label('label8', 'List')
-scr4:create_list('chklist5', list, nil, list_callback)
+scr4:add_label('label8', 'List (constructed by passing booleans in the elements table)')
+scr4:create_list('chklist5', list , nil, list_callback)
+scr4:add_label('label9', 'List (constructed by passing just the labels)')
+scr4:create_list('chklist6', {"Item10", "Item11", "Item12"} , nil, list_callback)
 
 -- Fill the fifth screen
 scr5:add_text_input('input1', 'Username', nil, nil, txt_callback)
@@ -98,9 +101,9 @@ scr5:add_textbox('box', nil, nil, txt_callback)
 
 -- Add all screens to wizard
 wizard:add_page('screen1', scr1, 'INTRO')
-wizard:add_page('screen2', scr2, 'PROGRESS')
-wizard:add_page('screen3', scr3, 'PROGRESS')
-wizard:add_page('screen4', scr4, 'PROGRESS')
+wizard:add_page('screen2', scr2)
+wizard:add_page('screen3', scr3)
+wizard:add_page('screen4', scr4)
 wizard:add_page('screen5', scr5, 'CONFIRM')
 
 -- Run wizard
