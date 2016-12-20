@@ -1,3 +1,10 @@
+-------------------------------------------------
+-- Main module to AbsTK-Lua
+-- @module abstk
+-- @author Pedro Alves
+-- @license MIT
+-------------------------------------------------
+
 local abstk = {}
 
 local AbsGtk = require 'abstk.AbsGtk'
@@ -5,6 +12,11 @@ local AbsCurses = require 'abstk.AbsCurses'
 
 local mode = nil
 
+-------------------------------------------------
+-- sets mode to determine whether interface will be drawn,
+-- text (curses) or GUI (GTK).
+-- @param arg   	the mode
+-------------------------------------------------
 function abstk.set_mode(arg)
   if arg == 'curses' or arg == 'gtk' then
     mode = arg
@@ -15,6 +27,13 @@ function abstk.set_mode(arg)
   end
 end
 
+-------------------------------------------------
+-- returns a screen.
+-- @param title    the title of the screen
+-- @param w        the width of the screen (only used in GTK)
+-- @param h        the height of the screen (only used in GTK)
+-- @return 				  a Screen table
+-------------------------------------------------
 function abstk.new_screen(title, w, h)
   local obj
   if mode == 'gtk' then
@@ -29,14 +48,14 @@ function abstk.new_screen(title, w, h)
     obj = AbsCurses.new_screen(title)
   end
   local self = {
-    add_label = function(self, id, label, tooltip, callback)
-      obj:add_label(id, label, tooltip, callback)
+    add_label = function(self, id, label)
+      obj:add_label(id, label)
     end,
     add_button = function(self, id, label, tooltip, callback)
       obj:add_button(id, label, tooltip, callback)
     end,
-    create_button_box = function(self, id, labels, layout, tooltip, callback)
-      obj:create_button_box(id, labels, layout, tooltip, callback)
+    create_button_box = function(self, id, labels, tooltip, callback)
+      obj:create_button_box(id, labels, tooltip, callback)
     end,
     create_combobox = function(self, id, labels, default_value, tooltip, callback)
       obj:create_combobox(id, labels, default_value, tooltip, callback)
@@ -44,11 +63,11 @@ function abstk.new_screen(title, w, h)
     add_image = function(self, id, path, dimensions, tooltip)
       obj:add_image(id, path, dimensions, tooltip)
     end,
-    add_text_input = function(self, id, title, default_value, tooltip, callback)
-      obj:add_text_input(id, title, true, default_value, tooltip, callback)
+    add_text_input = function(self, id, label, default_value, tooltip, callback)
+      obj:add_text_input(id, label, true, default_value, tooltip, callback)
     end,
-    add_password = function(self, id, title, default_value, tooltip, callback)
-      obj:add_text_input(id, title, false, default_value, tooltip, callback)
+    add_password = function(self, id, label, default_value, tooltip, callback)
+      obj:add_text_input(id, label, false, default_value, tooltip, callback)
     end,
     add_textbox = function(self, id, default_value, tooltip, callback)
       obj:add_textbox(id, default_value, tooltip, callback)
@@ -85,6 +104,13 @@ function abstk.new_screen(title, w, h)
   return self
 end
 
+-------------------------------------------------
+-- returns a wizard.
+-- @param title    the title of the window
+-- @param w        the width of the window (only used in GTK)
+-- @param h        the height of the window (only used in GTK)
+-- @return 				  a Wizard table
+-------------------------------------------------
 function abstk.new_wizard(title, w, h)
   local obj
   if mode == 'gtk' then
