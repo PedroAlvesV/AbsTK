@@ -1,13 +1,41 @@
+-------------------------------------------------
+-- AbsGtk (GUI) to AbsTK-Lua
+-- @classmod AbsGtk
+-- @author Pedro Alves
+-- @license MIT
+-------------------------------------------------
+
 local AbsGtk = {}
 
 local lgi = require 'lgi'
 local Gtk = lgi.require('Gtk')
 
--- atualizar abstk
-
+-------------------------------------------------
+-- table that represents a Screen.
+-- @field title   the title of the screen
+-- @field width   the width of the screen
+-- @field height  the height of the screen
+-- @field widgets a table where all widgets will be stored
+-- @table Screen
+-------------------------------------------------
 local Screen = {}
+
+-------------------------------------------------
+-- table that represents a Wizard.
+-- @field assistant   a table that holds every aspect of the wizard
+-- window, such as its title, dimensions and etc.
+-- @field pages       a table where all the screens will be stored
+-- @table Wizard
+-------------------------------------------------
 local Wizard = {}
 
+-------------------------------------------------
+-- constructs a screen.
+-- @param title    the title of the screen
+-- @param w        the width of the screen
+-- @param h        the height of the screen
+-- @return 				  a Screen table.
+-------------------------------------------------
 function AbsGtk.new_screen(title, w, h)
   local self = {
     title = title,
@@ -22,6 +50,13 @@ function AbsGtk.new_screen(title, w, h)
   return self
 end
 
+-------------------------------------------------
+-- constructs a screen.
+-- @param title    the title of the window
+-- @param w        the width of the window
+-- @param h        the height of the window
+-- @return 				  a Wizard table.
+-------------------------------------------------
 function AbsGtk.new_wizard(title, w, h)
   local self = {
     assistant = Gtk.Assistant {
@@ -33,7 +68,6 @@ function AbsGtk.new_wizard(title, w, h)
       on_close = Gtk.main_quit
     },
     pages = {},
-    widgets = {},
   }
   local mt = {
     __index = Wizard,
@@ -42,7 +76,12 @@ function AbsGtk.new_wizard(title, w, h)
   return self
 end
 
-function Screen:add_label(id, label, tooltip, callback)
+-------------------------------------------------
+-- adds a label to the screen widgets table.
+-- @param id     the id to reference the widget later on
+-- @param label  the label itself that will be written 
+-------------------------------------------------
+function Screen:add_label(id, label)
   local label_widget = Gtk.Label { label = label }
   label_widget:set_halign('START')
   local item = {
@@ -53,6 +92,13 @@ function Screen:add_label(id, label, tooltip, callback)
   table.insert(self.widgets, item)
 end
 
+-------------------------------------------------
+-- creates a button and adds it to the screen widgets table.
+-- @param id              the id to reference the widget later on
+-- @param label           the label that will be written over the button
+-- @param[opt] tooltip    a tooltip to the button
+-- @param[opt] callback   a callback function to the button
+-------------------------------------------------
 function Screen:add_button(id, label, tooltip, callback)
   local button = Gtk.Button {
     id = 'button',
@@ -76,7 +122,14 @@ function Screen:add_button(id, label, tooltip, callback)
   table.insert(self.widgets, item)
 end
 
-function Screen:create_button_box(id, labels, layout, tooltip, callback)
+-------------------------------------------------
+-- creates a buttonset and adds it to the screen widgets table.
+-- @param id              the id to reference the widget later on
+-- @param labels          the labels that will be written over the buttons
+-- @param[opt] tooltip    a tooltip to the buttons
+-- @param[opt] callback   a callback function to the buttons
+-------------------------------------------------
+function Screen:create_button_box(id, labels, tooltip, callback)
   local function create_bbox(orientation, spacing, layout)
     local bbox = Gtk.ButtonBox {
       id = 'bbox',
@@ -97,21 +150,26 @@ function Screen:create_button_box(id, labels, layout, tooltip, callback)
     end
     return bbox
   end
-  if layout == nil then
-    layout = 'SPREAD'
-  end
   local item = {
     id = id,
     type = 'BUTTON_BOX',
     widget = Gtk.Box {
       orientation = 'VERTICAL',
       border_width = 10,
-      create_bbox('HORIZONTAL', 20, layout),
+      create_bbox('HORIZONTAL', 20, 'START'),
     }
   }
   table.insert(self.widgets, item)
 end
 
+-------------------------------------------------
+-- creates a dropdown menu and adds it to the screen widgets table.
+-- @param id                  the id to reference the widget later on
+-- @param labels              the labels that will be written on the rows
+-- @param[opt] default_value  the index of the starting row
+-- @param[opt] tooltip        a tooltip to the combobox
+-- @param[opt] callback       a callback function to the row
+-------------------------------------------------
 function Screen:create_combobox(id, labels, default_value, tooltip, callback)
   local combobox = Gtk.ComboBoxText { id = 'combobox' }
   for i, label in ipairs(labels) do
@@ -142,6 +200,13 @@ function Screen:create_combobox(id, labels, default_value, tooltip, callback)
   table.insert(self.widgets, item)
 end
 
+-------------------------------------------------
+-- creates an image widget and adds it to the screen widgets table.
+-- @param id               the id to reference the widget later on
+-- @param path             the path of the image file
+-- @param[opt] dimensions  a table with the dimensions to resize the image
+-- @param[opt] tooltip     a tooltip to the image
+-------------------------------------------------
 function Screen:add_image(id, path, dimensions, tooltip)
   local img
   if not dimensions then
@@ -163,7 +228,18 @@ function Screen:add_image(id, path, dimensions, tooltip)
   table.insert(self.widgets, item)
 end
 
-function Screen:add_text_input(id, title, visibility, default_value, tooltip, callback)
+-------------------------------------------------
+-- creates a text input field and adds it to the screen widgets table.
+-- @param id                  the id to reference the widget later on
+-- @param[opt] label          a label that precedes the field
+-- @param[opt] visibility     passed by abstk module, client call a
+--                            different function depending on whether it
+--                            wants, a common field or a password one
+-- @param[opt] default_value  a placeholder
+-- @param[opt] tooltip        a tooltip to the text input field
+-- @param[opt] callback       a callback function to the field
+-------------------------------------------------
+function Screen:add_text_input(id, label, visibility, default_value, tooltip, callback)
   local entry = Gtk.Entry {
     id = 'entry',
     hexpand = true,
@@ -177,7 +253,7 @@ function Screen:add_text_input(id, title, visibility, default_value, tooltip, ca
   entry:set_text(default_value or "")
   entry:set_visibility(visibility)
   local widget
-  if not title then
+  if not label then
     widget = Gtk.Box {
       orientation = 'VERTICAL',
       border_width = 5,
@@ -188,7 +264,7 @@ function Screen:add_text_input(id, title, visibility, default_value, tooltip, ca
       orientation = 'HORIZONTAL',
       border_width = 5,
       spacing = 10,
-      Gtk.Label { label = title },
+      Gtk.Label { label = label },
       entry,
     }
   end
@@ -200,6 +276,13 @@ function Screen:add_text_input(id, title, visibility, default_value, tooltip, ca
   table.insert(self.widgets, item)
 end
 
+-------------------------------------------------
+-- creates a textbox field and adds it to the screen widgets table.
+-- @param id                  the id to reference the widget later on
+-- @param[opt] default_value  a pre-written text
+-- @param[opt] tooltip        a tooltip to the textbox field
+-- @param[opt] callback       a callback function to the field
+-------------------------------------------------
 function Screen:add_textbox(id, default_value, tooltip, callback)
   local textview = Gtk.TextView { id = 'textview' }
   local buffer = Gtk.TextBuffer.new()
@@ -254,7 +337,6 @@ function Screen:create_checklist(id, list, default_value, tooltip, callback)
   local function create_grid(id, list, default_value, tooltip, callback)
     local grid = Gtk.Grid.new{ id = 'grid' }
     local x, y = 1, 1
-
     local function make_button(i, label, value)
       local checkbutton = Gtk.CheckButton { id = i, label = label }
       checkbutton:set_active(value)
@@ -267,7 +349,6 @@ function Screen:create_checklist(id, list, default_value, tooltip, callback)
       return checkbutton
     end
     make_buttons(make_button)
-
     local item = {
       id = id,
       type = 'GRID',
@@ -291,7 +372,6 @@ function Screen:create_checklist(id, list, default_value, tooltip, callback)
         border_width = 10,
       }
     }
-
     local function make_button(id, label, value)
       local checkbutton = Gtk.CheckButton { id = id, label = label }
       checkbutton:set_active(value)
@@ -299,13 +379,10 @@ function Screen:create_checklist(id, list, default_value, tooltip, callback)
       return checkbutton
     end
     make_buttons(make_button)
-
     item.widget:set_tooltip_text(tooltip)
     table.insert(self.widgets, item)
-  elseif #list < 10 then
-    create_grid(id, list, default_value, tooltip, callback)
   else
-    self:create_list(id, list, default_value, tooltip, callback)
+    create_grid(id, list, default_value, tooltip, callback)
   end
 end
 
@@ -331,7 +408,6 @@ function Screen:create_radiolist(id, list, default_value, tooltip, callback)
     item.widget:add(radiobutton)
     return radiobutton
   end
-
   local function make_buttons()
     local buttons = {}
     if type(list[1]) == "table" then
@@ -354,11 +430,8 @@ function Screen:create_radiolist(id, list, default_value, tooltip, callback)
       end
     end
   end
-
   item.widget:set_tooltip_text(tooltip)
-
   make_buttons()
-
   table.insert(self.widgets, item)
 end
 
@@ -375,13 +448,13 @@ function Screen:create_list(id, list, tooltip, callback)
     id = 'scrolled_window',
     shadow_type = 'ETCHED_IN',
     hscrollbar_policy = 'NEVER',
-    expand = true,
+    hexpand = true,
     Gtk.TreeView {
       id = 'view',
       model = store,
       Gtk.TreeViewColumn {
         id = 'column1',
-        fixed_width = 50,
+        fixed_width = 40,
         {
           Gtk.CellRendererToggle { id = 'checkbutton' },
           { active = columns.CHECKBUTTON },
@@ -440,14 +513,15 @@ function Screen:show_message_box(id, message, buttons)
   message_dialog:run()
 end
 
-function Screen:set_enabled(id, bool, ...)
+function Screen:set_enabled(id, bool, index)
   for _, item in ipairs(self.widgets) do
-    local i = ...
     if item.id == id then
       if item.type == 'BUTTON_BOX' then
-        Gtk.Widget.set_sensitive(item.widget.child.bbox.child[i], bool)
+        local button = item.widget.child.bbox.child[index]
+        button:set_sensitive(bool)
       else
-        Gtk.Widget.set_sensitive(item.widget, bool)
+        local widget = item.widget
+        widget:set_sensitive(bool)
       end
     end
   end
@@ -457,28 +531,34 @@ function Screen:set_value(id, value, index)
   for _, item in ipairs(self.widgets) do
     if item.id == id then
       if item.type == 'LABEL' then
-        Gtk.Label.set_text(item.widget, value)
+        local label_widget = item.widget
+        label_widget:set_text(value)
       elseif item.type == 'BUTTON' then
-        Gtk.Button.set_label(item.widget.child.button, value)
+        local button = item.widget.child.button
+        button:set_label(value)
       elseif item.type == 'BUTTON_BOX' then
-        Gtk.Button.set_label(item.widget.child.bbox.child[index])
+        local button = item.widget.child.bbox.child[index]
+        button:set_label(value)
       elseif item.type == 'COMBOBOX' then
         local combobox = item.widget.child.box.child.combobox
         for i, label in ipairs(item.labels) do
           if label == value then
-            Gtk.ComboBoxText.set_active(combobox, i-1)
+            combobox:set_active(i-1)
             return
           end
         end
       elseif item.type == 'IMAGE' then
+        local image = item.widget.child.image
         item.path = value
-        Gtk.Image.set_from_file(item.widget.child.image, value)
+        image:set_from_file(value)
       elseif item.type == 'TEXT_INPUT' then
-        Gtk.Entry.set_text(item.widget.child.entry, value)
+        local entry = item.widget.child.entry
+        entry:set_text(value)
       elseif item.type == 'TEXTBOX' then
         local buffer = Gtk.TextBuffer {}
-        Gtk.TextBuffer.set_text(buffer, value, -1)
-        Gtk.TextView.set_buffer(item.widget.child.scrolled_window.child.textview, buffer)
+        local textview = item.widget.child.scrolled_window.child.textview
+        buffer:set_text(value, -1)
+        textview:set_buffer(buffer)
       elseif item.type == 'GRID' then
         local grid = item.widget.child.box.child[1]
         local i, j = index%3, math.ceil(index/3)
@@ -486,9 +566,10 @@ function Screen:set_value(id, value, index)
           i = 3
         end
         local button = Gtk.Grid.get_child_at(grid, i, j)
-        Gtk.ToggleButton.set_active(button, value)
+        button:set_active(value)
       elseif item.type == 'CHECKLIST' or item.type == 'RADIOLIST' then
-        Gtk.ToggleButton.set_active(item.widget.child[index], value)
+        local button = item.widget.child[index]
+        button:set_active(value)
       elseif item.type == 'LIST' then
         index = index - 1
         local store = item.widget.child.scrolled_window.child.view.model
@@ -503,23 +584,27 @@ function Screen:get_value(id, index)
   for _, item in ipairs(self.widgets) do
     if item.id == id then
       if item.type == 'LABEL' then
-        return Gtk.Label.get_text(item.widget)
+        local label_widget = item.widget
+        return label_widget:get_text()
       elseif item.type == 'BUTTON' then
-        return Gtk.Button.get_label(item.widget.child.button)
+        local button = item.widget.child.button
+        return button:get_label()
       elseif item.type == 'BUTTON_BOX' then
-        return Gtk.Button.get_label(item.widget.child.bbox.child[index])
+        local button = item.widget.child.bbox.child[index]
+        return button:get_label()
       elseif item.type == 'COMBOBOX' then
         local combobox = item.widget.child.box.child.combobox
         return item.labels[combobox:get_active()+1]
       elseif item.type == 'IMAGE' then
         return item.path
       elseif item.type == 'TEXT_INPUT' then
-        return Gtk.Entry.get_text(item.widget.child.entry)
+        local entry = item.widget.child.entry
+        return entry:get_text()
       elseif item.type == 'TEXTBOX' then
         local buffer = Gtk.TextView.get_buffer(item.widget.child.scrolled_window.child.textview)
         local start_iter = Gtk.TextBuffer.get_start_iter(buffer)
         local end_iter = Gtk.TextBuffer.get_end_iter(buffer)
-        return Gtk.TextBuffer.get_text(buffer, start_iter, end_iter)
+        return buffer:get_text(start_iter, end_iter)
       elseif item.type == 'GRID' then
         local grid = item.widget.child.box.child[1]
         local i, j = index%3, math.ceil(index/3)
@@ -527,9 +612,10 @@ function Screen:get_value(id, index)
           i = 3
         end
         local button = Gtk.Grid.get_child_at(grid, j, i)
-        return button:get_label(), Gtk.ToggleButton.get_active(button)
+        return button:get_label(), button:get_active()
       elseif item.type == 'CHECKLIST' then
-        return item.widget.child[index]:get_label(), item.widget.child[index]:get_active()
+        local checkbutton = item.widget.child[index]
+        return checkbutton:get_label(), checkbutton:get_active()
       elseif item.type == 'RADIOLIST' then
         for _, button in ipairs(item.widget.child) do
           if button:get_active() then
@@ -574,7 +660,7 @@ function Wizard:add_page(id, screen, page_type)
     content = vbox,
   }
   table.insert(self.pages, page)
-  Gtk.Assistant.insert_page(self.assistant, page.content, -1)
+  Gtk.Assistant.append_page(self.assistant, page.content)
   Gtk.Assistant.set_page_title(self.assistant, page.content, screen.title)
   Gtk.Assistant.set_page_complete(self.assistant, page.content, true)
   if page_type == 'INTRO' or page_type == 'CONTENT' or page_type == 'CONFIRM'
