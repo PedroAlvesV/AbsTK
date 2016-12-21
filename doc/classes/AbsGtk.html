@@ -101,7 +101,8 @@
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#Screen:create_list">Screen:create_list (id, list[, default_value[, tooltip[, callback]]])</a></td>
-	<td class="summary">Creates a list with checkbuttons attached and adds it to the screen widgets table.</td>
+	<td class="summary">Creates a list with checkbuttons attached and adds it to the screen
+ widgets table.</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#Screen:show_message_box">Screen:show_message_box (id, message[, buttons='NONE'])</a></td>
@@ -151,7 +152,7 @@
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#AbsGtk:new_wizard">AbsGtk:new_wizard (title, w, h)</a></td>
-	<td class="summary">Constructs a screen.</td>
+	<td class="summary">Constructs a wizard.</td>
 	</tr>
 </table>
 
@@ -258,21 +259,22 @@
     <h3>Parameters:</h3>
     <ul>
         <li><span class="parameter">id</span>
-                          the id to reference the widget later on
+                              the id to reference the widget later on
         </li>
         <li><span class="parameter">labels</span>
-                      the labels that will be written on the rows
+                          the labels that will be written on the
+                                entries
         </li>
         <li><span class="parameter">default_value</span>
-          the index of the starting row
+          the index of the entry selected at start
          (<em>default</em> '1')
         </li>
         <li><span class="parameter">tooltip</span>
-                a tooltip to the combobox
+                    a tooltip to the combobox
          (<em>optional</em>)
         </li>
         <li><span class="parameter">callback</span>
-               a callback function to the row
+                   a callback function to the row
          (<em>optional</em>)
         </li>
     </ul>
@@ -311,6 +313,11 @@
 
 
 
+    <h3>Usage:</h3>
+    <ul>
+        <pre class="example">scr:add_image(<span class="string">'lua_img'</span>, <span class="string">'imgs/lua.png'</span>)
+scr:add_image(<span class="string">'batman_img'</span>, <span class="string">'imgs/batman.png'</span>, {<span class="number">512</span>, <span class="number">384</span>})</pre>
+    </ul>
 
 </dd>
     <dt>
@@ -392,7 +399,13 @@
     <strong>Screen:create_checklist (id, list[, default_value[, tooltip[, callback]]])</strong>
     </dt>
     <dd>
-    Creates a checkboxes list and adds it to the screen widgets table.  There are 3 ways to call it via client. The first one is by passing just an array with the labels as the 'list' parameter. The second one is similar, but you pass, also, an array of booleans, as 'default_value', representing the states of those buttons. The third one is an alternative to the second, since it's better readable: you pass an array of tables. Each table represents a box and its state.
+    Creates a checkboxes list and adds it to the screen widgets table.
+ There are 3 ways to call it via client. The first one is by passing
+ just an array with the labels as the 'list' parameter. The second one
+ is similar, but you pass, also, an array of booleans, as
+ 'default_value', representing the states of those buttons. The third
+ one is an alternative to the second, since it's better readable: you
+ pass an array of tables. Each table represents a box and its state.
 
 
 
@@ -442,7 +455,15 @@ scr:create_checklist(<span class="string">'style3'</span>, check_table, <span cl
     <strong>Screen:create_radiolist (id, list[, default_value[, tooltip[, callback]]])</strong>
     </dt>
     <dd>
-    Creates a radiobuttons list and adds it to the screen widgets table.  Its calling is very similar to checkboxes. There are 3 ways to do so. The first one is by passing just an array with the labels as the 'list' parameter. The second one is different from it's equivalent in checkboxes, because radiobuttons can only be active one at the time. So, the second way asks for a number — the index, more precisely —, as 'default_value', to activate that button. The third one is actually equal to it's equivalent in checkboxes.
+    Creates a radiobuttons list and adds it to the screen widgets table.  Its
+ calling is very similar to checkboxes. There are 3 ways to do so. The
+ first one is by passing just an array with the labels as the 'list'
+ parameter. The second one is different from it's equivalent in
+ checkboxes, because radiobuttons can only be active one at the time. So,
+ the second way asks for a number — the index, more precisely —, as
+ 'default_value', to activate that button. The third one is actually
+ equal to it's equivalent in checkboxes.
+
 
 
     <h3>Parameters:</h3>
@@ -455,7 +476,7 @@ scr:create_checklist(<span class="string">'style3'</span>, check_table, <span cl
                             tables holding paired info.
         </li>
         <li><span class="parameter">default_value</span>
-          a table containing the states of the boxes
+          a index to refer the active button
          (<em>optional</em>)
         </li>
         <li><span class="parameter">tooltip</span>
@@ -495,7 +516,12 @@ scr:create_radiolist(<span class="string">'style3'</span>, radiolist_values, <sp
     <strong>Screen:create_list (id, list[, default_value[, tooltip[, callback]]])</strong>
     </dt>
     <dd>
-    Creates a list with checkbuttons attached and adds it to the screen widgets table.  There are to ways to call it. It may explicit the state of every single row or let all the checkbuttons unchecked. The first one is quite similar to checkboxes 3th construction, but the state is passed as first index. The second one consist in passing an array with the labels.
+    Creates a list with checkbuttons attached and adds it to the screen
+ widgets table.  There are to ways to call it. It may explicit the state
+ of every single row or let all the checkbuttons unchecked. The first one
+ is actually identical to checkboxes 3th construction. The second one
+ consist in passing an array with the labels.
+
 
 
     <h3>Parameters:</h3>
@@ -531,15 +557,15 @@ scr:create_radiolist(<span class="string">'style3'</span>, radiolist_values, <sp
     <h3>Usage:</h3>
     <ul>
         <pre class="example"><span class="keyword">local</span> list = {
-  { <span class="keyword">false</span>, <span class="string">"Item1"</span> },
-  { <span class="keyword">true</span>, <span class="string">"Item2"</span> },
-  { <span class="keyword">false</span>, <span class="string">"Item3"</span> },
-  { <span class="keyword">false</span>, <span class="string">"Item4"</span> },
-  { <span class="keyword">false</span>, <span class="string">"Item5"</span> },
-  { <span class="keyword">false</span>, <span class="string">"Item6"</span> },
-  { <span class="keyword">false</span>, <span class="string">"Item7"</span> },
-  { <span class="keyword">false</span>, <span class="string">"Item8"</span> },
-  { <span class="keyword">false</span>, <span class="string">"Item9"</span> },
+  { <span class="string">"Item1"</span>, <span class="keyword">false</span> },
+  { <span class="string">"Item2"</span>, <span class="keyword">true</span> },
+  { <span class="string">"Item3"</span>, <span class="keyword">false</span> },
+  { <span class="string">"Item4"</span>, <span class="keyword">false</span> },
+  { <span class="string">"Item5"</span>, <span class="keyword">false</span> },
+  { <span class="string">"Item6"</span>, <span class="keyword">false</span> },
+  { <span class="string">"Item7"</span>, <span class="keyword">false</span> },
+  { <span class="string">"Item8"</span>, <span class="keyword">false</span> },
+  { <span class="string">"Item9"</span>, <span class="keyword">false</span> },
 }
 scr:create_list(<span class="string">'style1'</span>, list , tooltip, list_callback)
 
@@ -552,7 +578,14 @@ scr:create_list(<span class="string">'style2'</span>, {<span class="string">"Ite
     <strong>Screen:show_message_box (id, message[, buttons='NONE'])</strong>
     </dt>
     <dd>
-    Creates and shows a message box.
+    Creates and shows a message box.  There are a few constants to determine which buttonset is going to be used in a message box. Those are:
+ <p>'NONE' - no button at all
+ <p>'OK' - an OK button
+ <p>'CLOSE' - a Close button
+ <p>'CANCEL' - a Cancel button
+ <p>'YES_NO' - Yes and No buttons
+ <p>'OK_CANCEL' - OK and Cancel buttons<p>
+
 
 
     <h3>Parameters:</h3>
@@ -565,7 +598,7 @@ scr:create_list(<span class="string">'style2'</span>, {<span class="string">"Ite
                               the new window
         </li>
         <li><span class="parameter">buttons</span>
-           an constant of GTK that determines which
+           an constant that determines which
                               buttonset is going to be used
 
          (<em>default</em> 'NONE')
@@ -610,7 +643,17 @@ scr:create_list(<span class="string">'style2'</span>, {<span class="string">"Ite
     <strong>Screen:set_value (id, value[, index])</strong>
     </dt>
     <dd>
-    Sets a value to an widget.
+    Sets a value to an widget.  Each widget works with a type of value:
+ <p>Label - string (label itself)
+ <p>Button - string (button label)
+ <p>ButtonBox - string (single button label)
+ <p>ComboBox - string (entry to be set active)
+ <p>Image - string (image path)
+ <p>Text Input - string (text to be insert)
+ <p>TextBox - string (text to be insert)
+ <p>CheckList - boolean (state of button)
+ <p>RadioList - boolean (state of button)
+ <p>List - boolean (state of button)<p>
 
 
 
@@ -620,11 +663,12 @@ scr:create_list(<span class="string">'style2'</span>, {<span class="string">"Ite
                   the id of the required widget
         </li>
         <li><span class="parameter">value</span>
-               the value that will be assigned to the widget
+               the value that will be assigned to the widget.
         </li>
         <li><span class="parameter">index</span>
-          an index to target the child of the widget, if it
-                    has children
+          an index to target the child of the widget. Must be
+                    passed to refer to set ButtonBoxes, ComboBoxes,
+                    CheckLists, RadioLists and Lists.
 
          (<em>optional</em>)
         </li>
@@ -643,7 +687,6 @@ scr:create_list(<span class="string">'style2'</span>, {<span class="string">"Ite
     Gets the value of an widget.
 
 
-
     <h3>Parameters:</h3>
     <ul>
         <li><span class="parameter">id</span>
@@ -657,6 +700,21 @@ scr:create_list(<span class="string">'style2'</span>, {<span class="string">"Ite
         </li>
     </ul>
 
+    <h3>Returns:</h3>
+    <ol>
+
+         If label, a string (label itself);
+      <p>If button, a string (button label);
+      <p>If buttonbox, a string (single button label);
+      <p>If combobox, a string (active entry);
+      <p>If image, a string (image path);
+      <p>If text input, a string (current text);
+      <p>If textbox, a string (current text);
+      <p>If checklist, a string and a boolean (label and state of button);
+      <p>If radiolist, a string and a boolean (label and state of button);
+      <p>If list, a string and a boolean (label and state of button).
+
+    </ol>
 
 
 
@@ -667,7 +725,10 @@ scr:create_list(<span class="string">'style2'</span>, {<span class="string">"Ite
     <strong>Screen:run ()</strong>
     </dt>
     <dd>
-    Runs a single screen.  Doing so, presumes a single screen window. If it needs more than a single screen, must set them all into a wizard and run only the wizard.
+    Runs a single screen.  Doing so, presumes a single screen window. If it
+ needs more than a single screen, must set them all into a wizard and run
+ only the wizard.
+
 
 
 
@@ -685,7 +746,14 @@ scr:create_list(<span class="string">'style2'</span>, {<span class="string">"Ite
     <strong>Wizard:add_page (id, screen[, page_type])</strong>
     </dt>
     <dd>
-    Adds a screen to a wizard.  The screen turns into a whole page.
+    Adds a screen to a wizard.  The screen turns into a whole page. There are a few constants to determine which buttonset is going to be used in the page. Those are:
+ <p>'CONTENT'	- The page has regular contents.
+ <p>'INTRO' - The page contains an introduction to the assistant task.
+ <p>'CONFIRM' - The page lets the user confirm or deny the changes.
+ <p>'SUMMARY' - The page informs the user of the changes done.
+ <p>'PROGRESS' - Used for tasks that take a long time to complete, blocks
+ the assistant until the page is marked as complete.<p>
+
 
 
     <h3>Parameters:</h3>
@@ -697,9 +765,8 @@ scr:create_list(<span class="string">'style2'</span>, {<span class="string">"Ite
                     the screen that will be added
         </li>
         <li><span class="parameter">page_type</span>
-            an constant of GTK that determines which
-                          buttonset is going to be used. It's not the
-                          same constant from messagebox
+            a constant that determines which buttonset is
+                          going to be used.
 
          (<em>optional</em>)
         </li>
@@ -715,7 +782,9 @@ scr:create_list(<span class="string">'style2'</span>, {<span class="string">"Ite
     <strong>Wizard:run ()</strong>
     </dt>
     <dd>
-    Runs a wizard.  Must be called in the end of the code, because depends that all its pages have been set.
+    Runs a wizard.  Must be called in the end of the code, because depends
+ that all its pages have been set.
+
 
 
 
@@ -737,7 +806,10 @@ scr:create_list(<span class="string">'style2'</span>, {<span class="string">"Ite
     <strong>AbsGtk.Screen</strong>
     </dt>
     <dd>
-    Table that represents a Screen.
+    Table that represents a Screen.  A Screen is a single window that
+ works as standalone. To link it with other screens, you must use a
+ wizard.
+
 
 
     <h3>Fields:</h3>
@@ -758,6 +830,10 @@ scr:create_list(<span class="string">'style2'</span>, {<span class="string">"Ite
 
 
 
+    <h3>See also:</h3>
+    <ul>
+         <a href="../classes/AbsGtk.html#AbsGtk.Wizard">Wizard</a>
+    </ul>
 
 
 </dd>
@@ -766,7 +842,10 @@ scr:create_list(<span class="string">'style2'</span>, {<span class="string">"Ite
     <strong>AbsGtk.Wizard</strong>
     </dt>
     <dd>
-    Table that represents a Wizard.
+    Table that represents a Wizard.  Wizards are used to link screens as
+ pages. Using a wizard consists in creating it, attach the screens to
+ it and running it.
+
 
 
     <h3>Fields:</h3>
@@ -782,6 +861,11 @@ scr:create_list(<span class="string">'style2'</span>, {<span class="string">"Ite
 
 
 
+    <h3>See also:</h3>
+    <ul>
+         <li><a href="../classes/AbsGtk.html#Wizard:add_page">Wizard:add_page</a></li>
+         <li><a href="../classes/AbsGtk.html#Wizard:run">Wizard:run</a></li>
+    </ul>
 
 
 </dd>
@@ -795,6 +879,7 @@ scr:create_list(<span class="string">'style2'</span>, {<span class="string">"Ite
     </dt>
     <dd>
     Constructs a screen.
+
 
 
     <h3>Parameters:</h3>
@@ -825,7 +910,7 @@ scr:create_list(<span class="string">'style2'</span>, {<span class="string">"Ite
     <strong>AbsGtk:new_wizard (title, w, h)</strong>
     </dt>
     <dd>
-    Constructs a screen.
+    Constructs a wizard.
 
 
     <h3>Parameters:</h3>
@@ -858,7 +943,7 @@ scr:create_list(<span class="string">'style2'</span>, {<span class="string">"Ite
 </div> <!-- id="main" -->
 <div id="about">
 <i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
-<i style="float:right;">Last updated 2016-12-20 11:59:30 </i>
+<i style="float:right;">Last updated 2016-12-21 12:16:58 </i>
 </div> <!-- id="about" -->
 </div> <!-- id="container" -->
 </body>
