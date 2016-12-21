@@ -77,15 +77,15 @@ scr4:create_radiolist('rdlist3', radiolist_values, nil, nil, rd_callback)
 scr4:add_label('label7', 'CheckList (if greater than 3, turns into grid)')
 scr4:create_checklist('chklist4', {'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o'}, nil, nil, chk_callback)
 local list = {
-  { false, "Item1" },
-  { true, "Item2" },
-  { false, "Item3" },
-  { false, "Item4" },
-  { false, "Item5" },
-  { false, "Item6" },
-  { false, "Item7" },
-  { false, "Item8" },
-  { false, "Item9" },
+  { "Item1", false },
+  { "Item2", true },
+  { "Item3", false },
+  { "Item4", false },
+  { "Item5", false },
+  { "Item6", false },
+  { "Item7", false },
+  { "Item8", false },
+  { "Item9", false },
 }
 scr4:add_label('label8', 'List (constructed by passing booleans in the elements table)')
 scr4:create_list('chklist5', list , nil, list_callback)

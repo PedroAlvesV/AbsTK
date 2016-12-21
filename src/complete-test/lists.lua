@@ -46,15 +46,15 @@ scr:add_label('label7', 'CheckList (if greater than 3 and less than 10, turns in
 scr:create_checklist('chklist4', {'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o'}, nil, nil, chk_callback)
 
 local list = {
-  { false, "Item1" },
-  { true, "Item2" },
-  { false, "Item3" },
-  { false, "Item4" },
-  { false, "Item5" },
-  { false, "Item6" },
-  { false, "Item7" },
-  { false, "Item8" },
-  { false, "Item9" },
+  { "Item1", false },
+  { "Item2", true },
+  { "Item3", false },
+  { "Item4", false },
+  { "Item5", false },
+  { "Item6", false },
+  { "Item7", false },
+  { "Item8", false },
+  { "Item9", false },
 }
 
 scr:add_label('label8', 'List (constructed by passing booleans in the elements table)')
