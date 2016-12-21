@@ -11,7 +11,11 @@ local lgi = require 'lgi'
 local Gtk = lgi.require('Gtk')
 
 -------------------------------------------------
--- Table that represents a Screen.
+-- Table that represents a Screen. A Screen is a single window that 
+-- works as standalone. To link it with other screens, you must use a 
+-- wizard.
+--
+-- @see Wizard
 --
 -- @field title   the title of the screen
 -- @field width   the width of the screen
@@ -23,7 +27,12 @@ local Gtk = lgi.require('Gtk')
 local Screen = {}
 
 -------------------------------------------------
--- Table that represents a Wizard.
+-- Table that represents a Wizard. Wizards are used to link screens as 
+-- pages. Using a wizard consists in creating it, attach the screens to 
+-- it and running it.
+--
+-- @see Wizard:add_page
+-- @see Wizard:run
 --
 -- @field assistant   a table that holds every aspect of the wizard
 --                    window, such as its title, dimensions and etc.
@@ -34,13 +43,13 @@ local Screen = {}
 local Wizard = {}
 
 -------------------------------------------------
--- Constructs a screen.
+-- Constructs a screen. 
 --
 -- @param title    the title of the screen
 -- @param w        the width of the screen
 -- @param h        the height of the screen
 --
--- @return 				  a Screen table.
+-- @return 				 a Screen table.
 -------------------------------------------------
 function AbsGtk.new_screen(title, w, h)
   local self = {
@@ -57,7 +66,7 @@ function AbsGtk.new_screen(title, w, h)
 end
 
 -------------------------------------------------
--- Constructs a screen.
+-- Constructs a wizard.
 --
 -- @param title    the title of the window
 -- @param w        the width of the window
@@ -176,11 +185,12 @@ end
 -------------------------------------------------
 -- Creates a dropdown menu and adds it to the screen widgets table.
 --
--- @param id                  the id to reference the widget later on
--- @param labels              the labels that will be written on the rows
--- @param[opt='1'] default_value  the index of the starting row
--- @param[opt] tooltip        a tooltip to the combobox
--- @param[opt] callback       a callback function to the row
+-- @param id                      the id to reference the widget later on
+-- @param labels                  the labels that will be written on the 
+--                                entries
+-- @param[opt='1'] default_value  the index of the entry selected at start
+-- @param[opt] tooltip            a tooltip to the combobox
+-- @param[opt] callback           a callback function to the row
 -------------------------------------------------
 function Screen:create_combobox(id, labels, default_value, tooltip, callback)
   local combobox = Gtk.ComboBoxText { id = 'combobox' }
@@ -219,6 +229,9 @@ end
 -- @param path             the path of the image file
 -- @param[opt] dimensions  a table with the dimensions to resize the image
 -- @param[opt] tooltip     a tooltip to the image
+--
+-- @usage scr:add_image('lua_img', 'imgs/lua.png')
+-- scr:add_image('batman_img', 'imgs/batman.png', {512, 384})
 -------------------------------------------------
 function Screen:add_image(id, path, dimensions, tooltip)
   local img
@@ -325,7 +338,13 @@ function Screen:add_textbox(id, default_value, tooltip, callback)
 end
 
 -------------------------------------------------
--- Creates a checkboxes list and adds it to the screen widgets table. There are 3 ways to call it via client. The first one is by passing just an array with the labels as the 'list' parameter. The second one is similar, but you pass, also, an array of booleans, as 'default_value', representing the states of those buttons. The third one is an alternative to the second, since it's better readable: you pass an array of tables. Each table represents a box and its state.
+-- Creates a checkboxes list and adds it to the screen widgets table. 
+-- There are 3 ways to call it via client. The first one is by passing 
+-- just an array with the labels as the 'list' parameter. The second one 
+-- is similar, but you pass, also, an array of booleans, as 
+-- 'default_value', representing the states of those buttons. The third 
+-- one is an alternative to the second, since it's better readable: you 
+-- pass an array of tables. Each table represents a box and its state.
 --
 -- @param id                  the id to reference the widget later on
 -- @param list                an array with the labels or an array of
@@ -423,13 +442,21 @@ function Screen:create_checklist(id, list, default_value, tooltip, callback)
 end
 
 -------------------------------------------------
--- Creates a radiobuttons list and adds it to the screen widgets table. Its calling is very similar to checkboxes. There are 3 ways to do so. The first one is by passing just an array with the labels as the 'list' parameter. The second one is different from it's equivalent in checkboxes, because radiobuttons can only be active one at the time. So, the second way asks for a number — the index, more precisely —, as 'default_value', to activate that button. The third one is actually equal to it's equivalent in checkboxes.
+-- Creates a radiobuttons list and adds it to the screen widgets table. Its 
+-- calling is very similar to checkboxes. There are 3 ways to do so. The 
+-- first one is by passing just an array with the labels as the 'list' 
+-- parameter. The second one is different from it's equivalent in 
+-- checkboxes, because radiobuttons can only be active one at the time. So, 
+-- the second way asks for a number — the index, more precisely —, as 
+-- 'default_value', to activate that button. The third one is actually 
+-- equal to it's equivalent in checkboxes.
+--
 -- @see Screen:create_checklist
 --
 -- @param id                  the id to reference the widget later on
 -- @param list                an array with the labels or an array of
 --                            tables holding paired info.
--- @param[opt] default_value  a table containing the states of the boxes
+-- @param[opt] default_value  a index to refer the active button
 -- @param[opt] tooltip        a tooltip to the list
 -- @param[opt] callback       a callback function to the boxes
 --
@@ -494,7 +521,12 @@ function Screen:create_radiolist(id, list, default_value, tooltip, callback)
 end
 
 -------------------------------------------------
--- Creates a list with checkbuttons attached and adds it to the screen widgets table. There are to ways to call it. It may explicit the state of every single row or let all the checkbuttons unchecked. The first one is quite similar to checkboxes 3th construction, but the state is passed as first index. The second one consist in passing an array with the labels.
+-- Creates a list with checkbuttons attached and adds it to the screen 
+-- widgets table. There are to ways to call it. It may explicit the state 
+-- of every single row or let all the checkbuttons unchecked. The first one 
+-- is actually identical to checkboxes 3th construction. The second one 
+-- consist in passing an array with the labels.
+--
 -- @see Screen:create_checklist
 --
 -- @param id                  the id to reference the widget later on
@@ -505,15 +537,15 @@ end
 -- @param[opt] callback       a callback function to the boxes
 --
 -- @usage local list = {
---   { false, "Item1" },
---   { true, "Item2" },
---   { false, "Item3" },
---   { false, "Item4" },
---   { false, "Item5" },
---   { false, "Item6" },
---   { false, "Item7" },
---   { false, "Item8" },
---   { false, "Item9" },
+--   { "Item1", false },
+--   { "Item2", true },
+--   { "Item3", false },
+--   { "Item4", false },
+--   { "Item5", false },
+--   { "Item6", false },
+--   { "Item7", false },
+--   { "Item8", false },
+--   { "Item9", false },
 -- }
 -- scr:create_list('style1', list , tooltip, list_callback)
 --
@@ -523,17 +555,17 @@ function Screen:create_list(id, list, tooltip, callback)
   local function string_to_pair(list)
     local t = {}
     for _, label in ipairs(list) do
-      table.insert(t, {false, label})
+      table.insert(t, {label, false})
     end
     return t
   end
   if type(list[1]) == "string" then
     list = string_to_pair(list)
   end
-  local columns = { CHECKBUTTON = 1, LABEL = 2 }
+  local columns = { LABEL = 1, CHECKBUTTON = 2 }
   local store = Gtk.ListStore.new {
-    [columns.CHECKBUTTON] = lgi.GObject.Type.BOOLEAN,
     [columns.LABEL] = lgi.GObject.Type.STRING,
+    [columns.CHECKBUTTON] = lgi.GObject.Type.BOOLEAN,
   }
   for i, item in ipairs(list) do
     store:append(item)
@@ -581,12 +613,18 @@ function Screen:create_list(id, list, tooltip, callback)
 end
 
 -------------------------------------------------
--- Creates and shows a message box.
+-- Creates and shows a message box. There are a few constants to determine which buttonset is going to be used in a message box. Those are:
+-- <p>'NONE' - no button at all
+-- <p>'OK' - an OK button
+-- <p>'CLOSE' - a Close button
+-- <p>'CANCEL' - a Cancel button
+-- <p>'YES_NO' - Yes and No buttons
+-- <p>'OK_CANCEL' - OK and Cancel buttons<p>
 --
 -- @param id                    the id to reference the object later on
 -- @param message               the message that will be written over
 --                              the new window
--- @param[opt='NONE'] buttons   an constant of GTK that determines which 
+-- @param[opt='NONE'] buttons   an constant that determines which 
 --                              buttonset is going to be used
 -------------------------------------------------
 function Screen:show_message_box(id, message, buttons)
@@ -639,12 +677,23 @@ function Screen:set_enabled(id, bool, index)
 end
 
 -------------------------------------------------
--- Sets a value to an widget. 
+-- Sets a value to an widget. Each widget works with a type of value:
+-- <p>Label - string (label itself)
+-- <p>Button - string (button label)
+-- <p>ButtonBox - string (single button label)
+-- <p>ComboBox - string (entry to be set active)
+-- <p>Image - string (image path)
+-- <p>Text Input - string (text to be insert)
+-- <p>TextBox - string (text to be insert)
+-- <p>CheckList - boolean (state of button)
+-- <p>RadioList - boolean (state of button)
+-- <p>List - boolean (state of button)<p>
 --
 -- @param id          the id of the required widget
--- @param value       the value that will be assigned to the widget
--- @param[opt] index  an index to target the child of the widget, if it
---                    has children
+-- @param value       the value that will be assigned to the widget. 
+-- @param[opt] index  an index to target the child of the widget. Must be 
+--                    passed to refer to set ButtonBoxes, ComboBoxes, 
+--                    CheckLists, RadioLists and Lists.
 -------------------------------------------------
 function Screen:set_value(id, value, index)
   for _, item in ipairs(self.widgets) do
@@ -700,11 +749,22 @@ function Screen:set_value(id, value, index)
 end
 
 -------------------------------------------------
--- Gets the value of an widget. 
+-- Gets the value of an widget.
 --
 -- @param id          the id of the required widget
 -- @param[opt] index  an index to target the child of the widget, if it
 --                    has children
+--
+-- @return If label, a string (label itself);
+--      <p>If button, a string (button label);
+--      <p>If buttonbox, a string (single button label);
+--      <p>If combobox, a string (active entry);
+--      <p>If image, a string (image path);
+--      <p>If text input, a string (current text);
+--      <p>If textbox, a string (current text);
+--      <p>If checklist, a string and a boolean (label and state of button);
+--      <p>If radiolist, a string and a boolean (label and state of button);
+--      <p>If list, a string and a boolean (label and state of button).
 -------------------------------------------------
 function Screen:get_value(id, index)
   for _, item in ipairs(self.widgets) do
@@ -759,7 +819,10 @@ function Screen:get_value(id, index)
 end
 
 -------------------------------------------------
--- Runs a single screen. Doing so, presumes a single screen window. If it needs more than a single screen, must set them all into a wizard and run only the wizard.
+-- Runs a single screen. Doing so, presumes a single screen window. If it 
+-- needs more than a single screen, must set them all into a wizard and run 
+-- only the wizard.
+--
 -- @see Wizard:add_page
 -------------------------------------------------
 function Screen:run()
@@ -779,12 +842,18 @@ function Screen:run()
 end
 
 -------------------------------------------------
--- Adds a screen to a wizard. The screen turns into a whole page.
+-- Adds a screen to a wizard. The screen turns into a whole page. There are a few constants to determine which buttonset is going to be used in the page. Those are:
+-- <p>'CONTENT'	- The page has regular contents.
+-- <p>'INTRO' - The page contains an introduction to the assistant task.
+-- <p>'CONFIRM' - The page lets the user confirm or deny the changes.
+-- <p>'SUMMARY' - The page informs the user of the changes done.
+-- <p>'PROGRESS' - Used for tasks that take a long time to complete, blocks 
+-- the assistant until the page is marked as complete.<p>
+--
 -- @param id                the id to reference the screen later on
 -- @param screen            the screen that will be added
--- @param[opt] page_type    an constant of GTK that determines which 
---                          buttonset is going to be used. It's not the 
---                          same constant from messagebox
+-- @param[opt] page_type    a constant that determines which buttonset is 
+--                          going to be used.
 -------------------------------------------------
 function Wizard:add_page(id, screen, page_type)
   local vbox = Gtk.VBox()
@@ -808,7 +877,9 @@ function Wizard:add_page(id, screen, page_type)
 end
 
 -------------------------------------------------
--- Runs a wizard. Must be called in the end of the code, because depends that all its pages have been set.
+-- Runs a wizard. Must be called in the end of the code, because depends 
+-- that all its pages have been set.
+--
 -- @see Wizard:add_page
 -------------------------------------------------
 function Wizard:run()
