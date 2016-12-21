@@ -13,7 +13,7 @@ local AbsCurses = require 'abstk.AbsCurses'
 local mode = nil
 
 -------------------------------------------------
--- sets mode to determine whether interface will be drawn,
+-- Sets mode to determine whether interface will be drawn,
 -- text (curses) or GUI (GTK).
 -- @param arg   	the mode
 -------------------------------------------------
@@ -28,11 +28,13 @@ function abstk.set_mode(arg)
 end
 
 -------------------------------------------------
--- returns a screen.
+-- Constructs a screen. 
+--
 -- @param title    the title of the screen
--- @param w        the width of the screen (only used in GTK)
--- @param h        the height of the screen (only used in GTK)
--- @return 				  a Screen table
+-- @param w        the width of the screen (only used in GUI)
+-- @param h        the height of the screen (only used in GUI)
+--
+-- @return 				 a Screen table.
 -------------------------------------------------
 function abstk.new_screen(title, w, h)
   local obj
@@ -105,11 +107,13 @@ function abstk.new_screen(title, w, h)
 end
 
 -------------------------------------------------
--- returns a wizard.
+-- Constructs a wizard.
+--
 -- @param title    the title of the window
--- @param w        the width of the window (only used in GTK)
--- @param h        the height of the window (only used in GTK)
--- @return 				  a Wizard table
+-- @param w        the width of the window (only used in GUI)
+-- @param h        the height of the window (only used in GUI)
+--
+-- @return 				  a Wizard table.
 -------------------------------------------------
 function abstk.new_wizard(title, w, h)
   local obj
