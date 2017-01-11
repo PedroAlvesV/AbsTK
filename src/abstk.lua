@@ -17,6 +17,8 @@ local mode = nil
 -- Sets mode to determine whether interface will be drawn,
 -- text (curses) or GUI (GTK).
 --
+-- @within abstk
+--
 -- @param arg the mode
 -------------------------------------------------
 function abstk.set_mode(arg)
@@ -30,15 +32,13 @@ function abstk.set_mode(arg)
 end
 
 -------------------------------------------------
--- @type Screen
--------------------------------------------------
-
--------------------------------------------------
 -- Constructs a screen. 
 --
 -- @param title the title of the screen
 -- @param w the width of the screen (only used in GUI)
 -- @param h the height of the screen (only used in GUI)
+--
+-- @within abstk
 --
 -- @return 	a Screen table.
 -------------------------------------------------
@@ -56,6 +56,10 @@ function abstk.new_screen(title, w, h)
     obj = AbsCurses.new_screen(title)
   end
   local self = {
+    -------------------------------------------------
+    -- @type Screen
+    -------------------------------------------------
+    
     -------------------------------------------------
     -- Adds a label to the screen widgets table.
     --
@@ -344,15 +348,13 @@ function abstk.new_screen(title, w, h)
 end
 
 -------------------------------------------------
--- @type Wizard
--------------------------------------------------
-
--------------------------------------------------
 -- Constructs a wizard.
 --
 -- @param title the title of the window
 -- @param w the width of the window (only used in GUI)
 -- @param h the height of the window (only used in GUI)
+--
+-- @within abstk
 --
 -- @return  a Wizard table.
 -------------------------------------------------
@@ -370,6 +372,10 @@ function abstk.new_wizard(title, w, h)
     obj = AbsCurses.new_wizard(title)
   end
   local self = {
+    -------------------------------------------------
+    -- @type Wizard
+    -------------------------------------------------
+    
     -------------------------------------------------
     -- Adds a screen to a wizard. The screen turns into a whole page. There are a 
     -- few constants to determine which buttonset is going to be used in the 
