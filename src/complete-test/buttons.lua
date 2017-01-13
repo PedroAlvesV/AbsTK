@@ -5,7 +5,7 @@ abstk.set_mode(...)
 local scr = abstk.new_screen("AbsTK Complete Test - Buttons Module")
 
 local bt_callback = function()
-  print("Clicado.")
+   print("Clicado.")
 end
 
 scr:add_label('label1', 'Simple Buttons')

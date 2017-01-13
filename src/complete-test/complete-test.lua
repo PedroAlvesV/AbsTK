@@ -14,23 +14,23 @@ local scr5 = abstk.new_screen("Text Input Module")
 
 -- Generic callbacks
 local bt_callback = function(id, label)
-  print(label.." clicado.")
-  scr2:show_message_box('msgbox', label, 'OK')
+   print(label.." clicado.")
+   scr2:show_message_box('msgbox', label, 'OK')
 end
 local cbb_callback = function(id, value)
-  print(id, value)
+   print(id, value)
 end
 local chk_callback = function(id, value, index)
-  print(scr4:get_value(id, index))
+   print(scr4:get_value(id, index))
 end
 local rd_callback = function(id, value)
-  print(scr4:get_value(id))
+   print(scr4:get_value(id))
 end
 local list_callback = function(id, value, index)
-  print(scr4:get_value(id, index))
+   print(scr4:get_value(id, index))
 end
 local txt_callback = function(id, value)
-  print(id, value)
+   print(id, value)
 end
 
 -- Fill the first screen
@@ -58,9 +58,9 @@ scr4:add_label('label2', 'CheckBoxes (constructed by passing values by default_v
 scr4:create_checklist('chklist2', {'7', '8', '9'}, {true, false, true}, nil, chk_callback)
 scr4:add_label('label3', 'CheckBoxes (constructed by passing values in the elements table)')
 local checklist_values = {
-  {'z', false},
-  {'x', true},
-  {'c', true},
+   {'z', false},
+   {'x', true},
+   {'c', true},
 }
 scr4:create_checklist('chklist3', checklist_values, nil, nil, chk_callback)
 scr4:add_label('label4', 'RadioButtons (default construction)')
@@ -69,23 +69,23 @@ scr4:add_label('label5', 'RadioButtons (constructed by passing index by default_
 scr4:create_radiolist('rdlist2', {'a', 's', 'd'}, 3, nil, rd_callback)
 scr4:add_label('label6', 'RadioButtons (constructed by passing booleans in the elements table)')
 local radiolist_values = {
-  {'q', false},
-  {'w', true},
-  {'e', false},
+   {'q', false},
+   {'w', true},
+   {'e', false},
 }
 scr4:create_radiolist('rdlist3', radiolist_values, nil, nil, rd_callback)
 scr4:add_label('label7', 'CheckList (if greater than 3, turns into grid)')
 scr4:create_checklist('chklist4', {'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o'}, nil, nil, chk_callback)
 local list = {
-  { "Item1", false },
-  { "Item2", true },
-  { "Item3", false },
-  { "Item4", false },
-  { "Item5", false },
-  { "Item6", false },
-  { "Item7", false },
-  { "Item8", false },
-  { "Item9", false },
+   { "Item1", false },
+   { "Item2", true },
+   { "Item3", false },
+   { "Item4", false },
+   { "Item5", false },
+   { "Item6", false },
+   { "Item7", false },
+   { "Item8", false },
+   { "Item9", false },
 }
 scr4:add_label('label8', 'List (constructed by passing booleans in the elements table)')
 scr4:create_list('chklist5', list , nil, list_callback)

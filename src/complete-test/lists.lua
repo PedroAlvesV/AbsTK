@@ -5,13 +5,13 @@ abstk.set_mode(...)
 local scr = abstk.new_screen("AbsTK Complete Test - Lists Module")
 
 local chk_callback = function(id, value, index)
-  print(scr:get_value(id, index))
+   print(scr:get_value(id, index))
 end
 local rd_callback = function(id, value)
-  print(scr:get_value(id))
+   print(scr:get_value(id))
 end
 local list_callback = function(id, value, index)
-  print(scr:get_value(id, index))
+   print(scr:get_value(id, index))
 end
 
 scr:add_label('label1', 'CheckBoxes (default construction)')
@@ -22,9 +22,9 @@ scr:create_checklist('chklist2', {'7', '8', '9'}, {true, false, true}, nil, chk_
 
 scr:add_label('label3', 'CheckBoxes (constructed by passing values in the elements table)')
 local checklist_values = {
-  {'z', false},
-  {'x', true},
-  {'c', true},
+   {'z', false},
+   {'x', true},
+   {'c', true},
 }
 scr:create_checklist('chklist3', checklist_values, nil, nil, chk_callback)
 
@@ -36,9 +36,9 @@ scr:create_radiolist('rdlist2', {'a', 's', 'd'}, 3, nil, rd_callback)
 
 scr:add_label('label6', 'RadioButtons (constructed by passing booleans in the elements table)')
 local radiolist_values = {
-  {'q', false},
-  {'w', true},
-  {'e', false},
+   {'q', false},
+   {'w', true},
+   {'e', false},
 }
 scr:create_radiolist('rdlist3', radiolist_values, nil, nil, rd_callback)
 
@@ -46,15 +46,15 @@ scr:add_label('label7', 'CheckList (if greater than 3 and less than 10, turns in
 scr:create_checklist('chklist4', {'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o'}, nil, nil, chk_callback)
 
 local list = {
-  { "Item1", false },
-  { "Item2", true },
-  { "Item3", false },
-  { "Item4", false },
-  { "Item5", false },
-  { "Item6", false },
-  { "Item7", false },
-  { "Item8", false },
-  { "Item9", false },
+   { "Item1", false },
+   { "Item2", true },
+   { "Item3", false },
+   { "Item4", false },
+   { "Item5", false },
+   { "Item6", false },
+   { "Item7", false },
+   { "Item8", false },
+   { "Item9", false },
 }
 
 scr:add_label('label8', 'List (constructed by passing booleans in the elements table)')
