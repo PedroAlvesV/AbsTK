@@ -44,6 +44,13 @@ local function str_attr(str, attr)
   return ch
 end
 
+local function attr_code(attr)
+   local ch = curses.new_chstr(1)
+   ch:set_str(0, " ", attr)
+   local c, code = ch:get(0)
+   return code
+end
+
 function AbsCurses.new_screen(title)
   local self = {
     title = title,
@@ -335,7 +342,7 @@ local function init_curses()
   colors.widget_disabled = curses.color_pair(5) + curses.A_BOLD
   colors.current = curses.color_pair(6) + curses.A_BOLD
   stdscr:clear()
-  stdscr:wbkgd(str_attr(" ", colors.default)) -- TODO fix colors
+  stdscr:wbkgd(attr_code(colors.default))
   stdscr:attrset(colors.default)
   return stdscr
 end
