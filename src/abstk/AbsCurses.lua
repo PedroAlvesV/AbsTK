@@ -1,7 +1,11 @@
 local AbsCurses = {}
 
+-- FOCUS_ON_BUTTONS não existe mais como widget
+-- Wizard trata botões e reaproveita button_box
+
 local curses = require 'curses' -- http://www.pjb.com.au/comp/lua/lcurses.html
 -- https://github.com/jballanc/playgo/blob/master/doc/curses-examples/lcurses-test.lua
+
 local Screen = {}
 local Wizard = {}
 
@@ -11,7 +15,6 @@ local AbsCursesButtonBox = {}
 local AbsCursesComboBox = {}
 local AbsCursesTextInput = {}
 local AbsCursesTextBox = {}
-local AbsCursesGrid = {}
 local AbsCursesCheckList = {}
 local AbsCursesRadioList = {}
 local AbsCursesList = {}
@@ -30,6 +33,10 @@ local keys = {
    ENTER = 10,
    ESC = 27,
    SPACE = 32,
+   UP = 65,
+   DOWN = 66,
+   RIGHT = 67,
+   LEFT = 68,
 }
 local buttons = {
    PREVIOUS = 0,
@@ -49,6 +56,12 @@ local function attr_code(attr)
    ch:set_str(0, " ", attr)
    local c, code = ch:get(0)
    return code
+end
+
+local function run_callback(self)
+   if self.callback then
+      self.callback()
+   end
 end
 
 function AbsCurses.new_screen(title)
@@ -89,95 +102,101 @@ function AbsCursesLabel:draw(drawable, x, y)
    drawable:mvaddstr(y, x, self.label)
 end
 
-function AbsCursesButton.new(label)
+function AbsCursesButton.new(label, tooltip, callback)
    local self = {
       height = 1,
       label = " "..label.." ",
       focusable = true,
+      tooltip = tooltip,
+      callback = callback,
    }
    return setmetatable(self, { __index = AbsCursesButton })
 end
 
 function AbsCursesButton:draw(drawable, x, y, focus)
    drawable:attrset(colors.button)
-   drawable:mvaddstr(y, x, self.label)
+   drawable:mvaddstr(y, x+1, self.label)
+   local left, right = " ", " "
    if focus then
-      local left, right = ">", "<"
-      drawable:mvaddstr(y, x-1, left)
-      drawable:mvaddstr(y, x+string.len(self.label), right)
+      left, right = ">", "<"
    end
+   drawable:attrset(colors.title)
+   drawable:mvaddstr(y, x, left)
+   drawable:mvaddstr(y, x+string.len(self.label)+1, right)
 end
 
 function AbsCursesButton:process_key(key)
    if (key == keys.ENTER or key == keys.SPACE) and self.enabled then
-      self.runCallback()
-   elseif key == curses.KEY_LEFT or key == curses.KEY_RIGHT then
+      run_callback(self)
+   elseif key == keys.LEFT or key == keys.RIGHT then
       return actions.FOCUS_ON_BUTTONS
-   elseif key == keys.TAB or key == curses.KEY_DOWN then
+   elseif key == keys.TAB or key == keys.DOWN then
       return actions.NEXT
-   elseif key == curses.KEY_UP then
+   elseif key == keys.UP then
       return actions.PREVIOUS
    end
    return actions.PASSTHROUGH
 end
 
-function AbsCursesButtonBox.new(labels)
+function AbsCursesButtonBox.new(labels, tooltips, callbacks)
+   local buttons = {}
+   for i, label in ipairs(labels) do
+      table.insert(buttons, AbsCursesButton.new(label, tooltips and tooltips[i], callbacks and callbacks[i]))
+   end
    local self = {
       height = 1,
-      labels = labels,
+      buttons = buttons,
       focusable = true,
+      subfocus = 1,
    }
    return setmetatable(self, { __index = AbsCursesButtonBox })
 end
 
 function AbsCursesButtonBox:draw(drawable, x, y, focus)
-   for _, label in ipairs(self.labels) do
-      drawable:mvaddstr(y, x, " "..label.." ", colors.button)
-      x = x + 7
+   for i, button in ipairs(self.buttons) do
+      button:draw(drawable, x, y, focus and i == self.subfocus)
+      x = x + utf8.len(button.label) + 3
    end
-   if focus then
-      -- TODO subfocus
-      local left, right = ">", "<"
-      drawable.addstr(y, x-1, left)
-      drawable.addstr(y, x+string.len(self.label), right)
+end
+
+function AbsCursesButtonBox:process_key(key)
+   if key == keys.LEFT then
+      if self.subfocus > 1 then
+         self.subfocus = self.subfocus - 1
+         return actions.HANDLED
+      end
+   elseif key == keys.RIGHT then
+      if self.subfocus < #self.buttons then
+         self.subfocus = self.subfocus + 1
+         return actions.HANDLED
+      end
    end
+   return self.buttons[self.subfocus]:process_key(key)
+end
+
+local function create_widget(self, type_name, class, id, ...)
+   local item = {
+      id = id,
+      type = type_name,
+      widget = class.new(...),
+   }
+   table.insert(self.widgets, item)
 end
 
 function Screen:add_label(id, label)
-   local item = {
-      id = id,
-      type = 'LABEL',
-      widget = AbsCursesLabel.new(label),
-   }
-   table.insert(self.widgets, item)
+   create_widget(self, 'LABEL', AbsCursesLabel, id, label)
 end
 
 function Screen:add_button(id, label, tooltip, callback)
-   local item = {
-      id = id,
-      type = 'BUTTON',
-      widget = AbsCursesButton.new(label),
-   }
-   table.insert(self.widgets, item)
+   create_widget(self, 'BUTTON', AbsCursesButton, id, label, tooltip, callback)
 end
 
-function Screen:create_button_box(id, labels, tooltip, callback)
-   local item = {
-      id = id,
-      type = 'BUTTON_BOX',
-      widget = AbsCursesButtonBox.new(labels),
-   }
-   table.insert(self.widgets, item)
+function Screen:create_button_box(id, labels, tooltips, callbacks)
+   create_widget(self, 'BUTTON_BOX', AbsCursesButtonBox, id, labels, tooltips, callbacks)
 end
 
 function Screen:create_combobox(id, labels, default_value, tooltip, callback)
-   local item = {
-      id = id,
-      type = 'COMBOBOX',
-      labels = labels,
-      widget = AbsCursesComboBox.new(labels),
-   }
-   table.insert(self.widgets, item)
+   create_widget(self, 'COMBOBOX', AbsCursesComboBox, id, labels, default_value, tooltip, callback)
 end
 
 function Screen:add_image(id, path, dimensions, tooltip)
@@ -185,56 +204,23 @@ function Screen:add_image(id, path, dimensions, tooltip)
 end
 
 function Screen:add_text_input(id, label, visibility, default_value, tooltip, callback)
-   local item = {
-      id = id,
-      type = 'TEXT_INPUT',
-      widget = AbsCursesTextInput.new(label, visibility),
-   }
-   table.insert(self.widgets, item)
+   create_widget(self, 'TEXT_INPUT', AbsCursesTextInput, id, label, visibility, default_value, tooltip, callback)
 end
 
 function Screen:add_textbox(id, default_value, tooltip, callback)
-   local item = {
-      id = id,
-      type = 'TEXTBOX',
-      widget = AbsCursesTextBox.new(),
-   }
-   table.insert(self.widgets, item)
+   create_widget(self, 'TEXTBOX', AbsCursesTextBox, id, default_value, tooltip, callback)
 end
 
 function Screen:create_checklist(id, list, default_value, tooltip, callback)
-   if #list < 4 then
-      local item = {
-         id = id,
-         type = 'CHECKLIST',
-         widget = AbsCursesCheckList.new(list),
-      }
-   else
-      local item = {
-         id = id,
-         type = 'GRID',
-         widget = AbsCursesGrid.new(list),
-      }
-   end
-   table.insert(self.widgets, item)
+   create_widget(self, 'CHECKLIST', AbsCursesCheckList, id, list, default_value, tooltip, callback)
 end
 
 function Screen:create_radiolist(id, list, default_value, tooltip, callback)
-   local item = {
-      id = id,
-      type = 'RADIOLIST',
-      widget = AbsCursesRadioList.new(list),
-   }
-   table.insert(self.widgets, item)
+   create_widget(self, 'RADIOLIST', AbsCursesRadioList, id, list, default_value, tooltip, callback)
 end
 
 function Screen:create_list(id, list, tooltip, callback)
-   local item = {
-      id = id,
-      type = 'LIST',
-      widget = AbsCursesList.new(list),
-   }
-   table.insert(self.widgets, item)
+   create_widget(self, 'LIST', AbsCursesList, id, list, tooltip, callback)
 end
 
 function Screen:show_message_box(id, message, buttons)
@@ -279,8 +265,6 @@ function Screen:set_value(id, value, index)
 
          elseif item.type == 'TEXTBOX' then
 
-         elseif item.type == 'GRID' then
-
          elseif item.type == 'CHECKLIST' or item.type == 'RADIOLIST' then
 
          elseif item.type == 'LIST' then
@@ -306,8 +290,6 @@ function Screen:get_value(id, index)
          elseif item.type == 'TEXT_INPUT' then
 
          elseif item.type == 'TEXTBOX' then
-
-         elseif item.type == 'GRID' then
 
          elseif item.type == 'CHECKLIST' then
 
@@ -354,19 +336,23 @@ function Screen:run()
    self.pad = curses.newpad(max_x-2 + 100, max_y-4 + 100)
    self.pad:wbkgd(attr_code(colors.default))
    stdscr:sub(max_y-1, max_x, 0, 0):box(0, 0)
+   stdscr:attrset(colors.default)
+   stdscr:mvaddstr(max_y-3, 2, "Tab: move focus   Enter: select")
    stdscr:refresh()
    local function move_focus(direction)
-      local widget = self.widgets[self.focus]
-      while true do
-         --widget.inside = False
-         self.focus = self.focus + direction
-         if self.focus == -1 or self.focus == string.len(self.widgets) then
-            return actions.FOCUS_ON_BUTTONS
-         end
-         --widget = self.__setupFocusAndCurrent(direction)
-         if self.widgets[self.focus].enabled then
-            return actions.HANDLED
-         end
+      local widget = self.widgets[self.focus].widget
+      --widget.inside = False
+      local gap = direction
+      while self.focus > 0 and self.focus < #self.widgets and not self.widgets[self.focus + gap].widget.focusable do
+         gap = gap + direction
+      end
+      self.focus = self.focus + gap
+      if self.focus == -1 or self.focus > #self.widgets then
+         return actions.FOCUS_ON_BUTTONS
+      end
+      --widget = self.__setupFocusAndCurrent(direction)
+      if self.widgets[self.focus].widget.enabled then
+         return actions.HANDLED
       end
    end
    local function process_key(key, widget)
@@ -374,13 +360,13 @@ function Screen:run()
       if motion == actions.PASSTHROUGH or motion == actions.HANDLED then
          return motion
       elseif motion == actions.FOCUS_ON_BUTTONS then
-         self.focus = #self.widgets
+         self.focus = #self.widgets + 1
          return motion
       end
       if motion == actions.PREVIOUS then
-         self.move_focus(-1)
+         move_focus(-1)
       elseif motion == actions.NEXT then
-         self.move_focus(1)
+         move_focus(1)
       end
    end
    for i, item in ipairs(self.widgets) do
@@ -390,23 +376,22 @@ function Screen:run()
       end
    end
    while true do
-      --stdscr:move(max_y-1,max_x-1)
       self.pad:attrset(colors.title)
       self.pad:mvaddstr(0, 0, self.title)
-      self.pad:prefresh(0, 0, 1, 1, max_y-5, max_x-2)
       local y = 3
       for i, item in ipairs(self.widgets) do
-         --process_key(stdscr:getch(), item.widget)
          if i == self.focus then
             self.pad:attrset(colors.title)
             self.pad:mvaddstr(y-1, 1, ">")
-            self.pad:prefresh(0, 0, 1, 1, max_y-5, max_x-2)
+         else
+            self.pad:mvaddstr(y-1, 1, " ")
          end
-         item.widget:draw(stdscr, 4, y)
+         self.pad:prefresh(0, 0, 1, 1, max_y-5, max_x-2)
+         item.widget:draw(stdscr, 4, y, i == self.focus)
          y = y + item.widget.height + 1
       end
-      local action = self.process_key(stdscr:getch())
-      -- TODO process key
+      stdscr:move(max_y-1,max_x-1)
+      process_key(stdscr:getch(), self.widgets[self.focus].widget)
    end
    -- done_curses()
 end

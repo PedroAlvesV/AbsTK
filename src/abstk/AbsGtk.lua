@@ -7,6 +7,9 @@
 -- @see abstk
 -------------------------------------------------
 
+-- TODO remove grid
+-- TODO remove topbar in lists
+
 local AbsGtk = {}
 
 local lgi = require 'lgi'
