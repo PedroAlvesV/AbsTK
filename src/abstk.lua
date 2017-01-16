@@ -88,8 +88,8 @@ function abstk.new_screen(title, w, h)
       -- @param[opt] tooltip a tooltip to the buttons
       -- @param[opt] callback a callback function to the buttons
       -------------------------------------------------
-      create_button_box = function(self, id, labels, tooltip, callback)
-         obj:create_button_box(id, labels, tooltip, callback)
+      create_button_box = function(self, id, labels, tooltips, callbacks)
+         obj:create_button_box(id, labels, tooltips, callbacks)
       end,
       -------------------------------------------------
       -- Creates a dropdown menu and adds it to the screen widgets table.
