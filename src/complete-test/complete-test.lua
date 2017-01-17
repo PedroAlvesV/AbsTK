@@ -52,30 +52,22 @@ scr3:add_image('lua_img', 'imgs/lua.png')
 scr3:add_image('batman_img', 'imgs/batman.png', {512, 384})
 
 -- Fill the fourth screen
-scr4:add_label('label1', 'CheckBoxes (default construction)')
-scr4:create_checklist('chklist1', {'a', 'b', 'c'}, nil, nil, chk_callback)
-scr4:add_label('label2', 'CheckBoxes (constructed by passing values by default_value)')
-scr4:create_checklist('chklist2', {'7', '8', '9'}, {true, false, true}, nil, chk_callback)
-scr4:add_label('label3', 'CheckBoxes (constructed by passing values in the elements table)')
+scr4:create_checklist('chklist1', "CheckBoxes (default construction)", {'a', 'b', 'c'}, nil, nil, chk_callback)
+scr4:create_checklist('chklist2', "CheckBoxes (constructed by passing values by default_value)", {'7', '8', '9'}, {true, false, true}, nil, chk_callback)
 local checklist_values = {
    {'z', false},
    {'x', true},
    {'c', true},
 }
-scr4:create_checklist('chklist3', checklist_values, nil, nil, chk_callback)
-scr4:add_label('label4', 'RadioButtons (default construction)')
-scr4:create_radiolist('rdlist1', {'x', 'y', 'z'}, nil, nil, rd_callback)
-scr4:add_label('label5', 'RadioButtons (constructed by passing index by default_value)')
-scr4:create_radiolist('rdlist2', {'a', 's', 'd'}, 3, nil, rd_callback)
-scr4:add_label('label6', 'RadioButtons (constructed by passing booleans in the elements table)')
+scr4:create_checklist('chklist3', "CheckBoxes (constructed by passing values in the elements table)", checklist_values, nil, nil, chk_callback)
+scr4:create_radiolist('rdlist1', "RadioButtons (default construction)", {'x', 'y', 'z'}, nil, nil, rd_callback)
+scr4:create_radiolist('rdlist2', "RadioButtons (constructed by passing index by default_value)", {'a', 's', 'd'}, 3, nil, rd_callback)
 local radiolist_values = {
    {'q', false},
    {'w', true},
    {'e', false},
 }
-scr4:create_radiolist('rdlist3', radiolist_values, nil, nil, rd_callback)
-scr4:add_label('label7', 'CheckList (if greater than 3, turns into grid)')
-scr4:create_checklist('chklist4', {'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o'}, nil, nil, chk_callback)
+scr4:create_radiolist('rdlist3', "RadioButtons (constructed by passing booleans in the elements table)", radiolist_values, nil, nil, rd_callback)
 local list = {
    { "Item1", false },
    { "Item2", true },
@@ -87,10 +79,8 @@ local list = {
    { "Item8", false },
    { "Item9", false },
 }
-scr4:add_label('label8', 'List (constructed by passing booleans in the elements table)')
-scr4:create_list('chklist5', list , nil, list_callback)
-scr4:add_label('label9', 'List (constructed by passing just the labels)')
-scr4:create_list('chklist6', {"Item10", "Item11", "Item12"} , nil, list_callback)
+scr4:create_list('chklist5', "List (constructed by passing booleans in the elements table)", list , nil, list_callback)
+scr4:create_list('chklist6', "List (constructed by passing just the labels)", {"Item10", "Item11", "Item12"} , nil, list_callback)
 
 -- Fill the fifth screen
 scr5:add_text_input('input1', 'Username', nil, nil, txt_callback)
