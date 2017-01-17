@@ -7,7 +7,6 @@
 -- @see abstk
 -------------------------------------------------
 
--- TODO remove grid
 -- TODO remove topbar in lists
 
 local AbsGtk = {}
@@ -232,12 +231,12 @@ function Screen:add_textbox(id, default_value, tooltip, callback)
    table.insert(self.widgets, item)
 end
 
-function Screen:create_checklist(id, list, default_value, tooltip, callback)
+function Screen:create_checklist(id, title, list, default_value, tooltip, callback)
    local function make_buttons(make_button)
       local buttons = {}
       if type(list[1]) == "table" then
-         for i, entry in ipairs(list) do
-            local label, value = entry[1], entry[2]
+         for i, pair in ipairs(list) do
+            local label, value = pair[1], pair[2]
             table.insert(buttons, make_button(i, label, value))
          end
       else
@@ -257,63 +256,36 @@ function Screen:create_checklist(id, list, default_value, tooltip, callback)
          end
       end
    end
-   local function create_grid(id, list, default_value, tooltip, callback)
-      local grid = Gtk.Grid.new{ id = 'grid' }
-      local x, y = 1, 1
-      local function make_button(i, label, value)
-         local checkbutton = Gtk.CheckButton { id = i, label = label }
-         checkbutton:set_active(value)
-         grid:attach(checkbutton, x, y, 1, 1)
-         y = y + 1
-         if y == 4 then
-            y = 1
-            x = x + 1
-         end
-         return checkbutton
-      end
-      make_buttons(make_button)
-      local item = {
-         id = id,
-         type = 'GRID',
-         widget = Gtk.Frame {
-            Gtk.Box {
-               id = 'box',
-               border_width = 10,
-               grid,
-            }
-         }
+   local title_widget = Gtk.Label { label = title }
+   title_widget:set_halign('START')
+   local item = {
+      id = id,
+      type = 'CHECKLIST',
+      widget = Gtk.Box {
+         title_widget,
+         orientation = 'VERTICAL',
+         border_width = 10,
       }
-      item.widget:set_tooltip_text(tooltip)
-      table.insert(self.widgets, item)
+   }
+   local function make_button(id, label, value)
+      local checkbutton = Gtk.CheckButton { id = id, label = label }
+      checkbutton:set_active(value)
+      item.widget:add(checkbutton)
+      return checkbutton
    end
-   if #list < 4 then
-      local item = {
-         id = id,
-         type = 'CHECKLIST',
-         widget = Gtk.Box {
-            orientation = 'VERTICAL',
-            border_width = 10,
-         }
-      }
-      local function make_button(id, label, value)
-         local checkbutton = Gtk.CheckButton { id = id, label = label }
-         checkbutton:set_active(value)
-         item.widget:add(checkbutton)
-         return checkbutton
-      end
-      make_buttons(make_button)
-      item.widget:set_tooltip_text(tooltip)
-      table.insert(self.widgets, item)
-   else
-      create_grid(id, list, default_value, tooltip, callback)
-   end
+   make_buttons(make_button)
+   item.widget:set_tooltip_text(tooltip)
+   table.insert(self.widgets, item)
 end
 
-function Screen:create_radiolist(id, list, default_value, tooltip, callback)
+function Screen:create_radiolist(id, title, list, default_value, tooltip, callback)
+   local title_widget = Gtk.Label { label = title }
+   title_widget:set_halign('START')
    local item = {
       id = id,
       type = 'RADIOLIST',
       widget = Gtk.Box {
+         title_widget,
          orientation = 'VERTICAL',
          border_width = 10,
       }
@@ -334,8 +306,8 @@ function Screen:create_radiolist(id, list, default_value, tooltip, callback)
    local function make_buttons()
       local buttons = {}
       if type(list[1]) == "table" then
-         for i, entry in ipairs(list) do
-            local label, value = entry[1], entry[2]
+         for i, pair in ipairs(list) do
+            local label, value = pair[1], pair[2]
             table.insert(buttons, make_button(i, label, value))
          end
       else
@@ -358,7 +330,7 @@ function Screen:create_radiolist(id, list, default_value, tooltip, callback)
    table.insert(self.widgets, item)
 end
 
-function Screen:create_list(id, list, tooltip, callback)
+function Screen:create_list(id, title, list, tooltip, callback)
    local function string_to_pair(list)
       local t = {}
       for _, label in ipairs(list) do
@@ -410,10 +382,17 @@ function Screen:create_list(id, list, tooltip, callback)
          callback(id, store[path][1], path_str+1)
       end
    end
+   local title_widget = Gtk.Label { label = title }
+   title_widget:set_halign('START')
    local item = {
       id = id,
       type = 'LIST',
-      widget = Gtk.Frame { scrolled_window }
+      widget = Gtk.Box {
+         title_widget,
+         orientation = 'VERTICAL',
+         border_width = 10,
+         scrolled_window
+      }
    }
    item.widget:set_tooltip_text(tooltip)
    table.insert(self.widgets, item)
@@ -492,14 +471,6 @@ function Screen:set_value(id, value, index)
             local textview = item.widget.child.scrolled_window.child.textview
             buffer:set_text(value, -1)
             textview:set_buffer(buffer)
-         elseif item.type == 'GRID' then
-            local grid = item.widget.child.box.child[1]
-            local i, j = index%3, math.ceil(index/3)
-            if index%3 == 0 then
-               i = 3
-            end
-            local button = Gtk.Grid.get_child_at(grid, i, j)
-            button:set_active(value)
          elseif item.type == 'CHECKLIST' or item.type == 'RADIOLIST' then
             local button = item.widget.child[index]
             button:set_active(value)
@@ -538,21 +509,15 @@ function Screen:get_value(id, index)
             local start_iter = Gtk.TextBuffer.get_start_iter(buffer)
             local end_iter = Gtk.TextBuffer.get_end_iter(buffer)
             return buffer:get_text(start_iter, end_iter)
-         elseif item.type == 'GRID' then
-            local grid = item.widget.child.box.child[1]
-            local i, j = index%3, math.ceil(index/3)
-            if index%3 == 0 then
-               i = 3
-            end
-            local button = Gtk.Grid.get_child_at(grid, j, i)
-            return button:get_label(), button:get_active()
          elseif item.type == 'CHECKLIST' then
-            local checkbutton = item.widget.child[index]
+            local checkbutton = item.widget:get_children()[index+1]
             return checkbutton:get_label(), checkbutton:get_active()
          elseif item.type == 'RADIOLIST' then
-            for _, button in ipairs(item.widget.child) do
-               if button:get_active() then
-                  return button:get_label()
+            for i, child in ipairs(item.widget:get_children()) do
+               if i > 1 then
+                  if child:get_active() then
+                     return child:get_label()
+                  end
                end
             end
          elseif item.type == 'LIST' then

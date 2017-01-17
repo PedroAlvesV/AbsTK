@@ -164,25 +164,26 @@ function abstk.new_screen(title, w, h)
       -- </p>
       --
       -- @param id the id to reference the widget later on
+      -- @param title the title of the group
       -- @param list an array with the labels or an array of tables holding paired 
       -- info.
       -- @param[opt] default_value a table containing the states of the boxes
       -- @param[opt] tooltip a tooltip to the list
       -- @param[opt] callback a callback function to the boxes
       --
-      -- @usage scr:create_checklist('style1', {'a', 'b', 'c'}, nil, tooltip, chk_callback)
+      -- @usage scr:create_checklist('style1', "Checklist 1:", {'a', 'b', 'c'}, nil, tooltip, chk_callback)
       --
-      -- scr:create_checklist('style2', {'7', '8', '9'}, {true, false, true}, tooltip, chk_callback)
+      -- scr:create_checklist('style2', "Checklist 2:", {'7', '8', '9'}, {true, false, true}, tooltip, chk_callback)
       --
       -- local check_table = {
       --   {'z', false},
       --   {'x', true},
       --   {'c', true},
       -- }
-      -- scr:create_checklist('style3', check_table, nil, tooltip, chk_callback)
+      -- scr:create_checklist('style3', "Checklist 3:", check_table, nil, tooltip, chk_callback)
       -------------------------------------------------
-      create_checklist = function(self, id, list, default_value, tooltip, callback)
-         obj:create_checklist(id, list, default_value, tooltip, callback)
+      create_checklist = function(self, id, title, list, default_value, tooltip, callback)
+         obj:create_checklist(id, title, list, default_value, tooltip, callback)
       end,
       -------------------------------------------------
       -- <p align="justify">
@@ -199,25 +200,26 @@ function abstk.new_screen(title, w, h)
       -- @see Screen:create_checklist
       --
       -- @param id the id to reference the widget later on
+      -- @param title the title of the group
       -- @param list an array with the labels or an array of tables holding paired 
       -- info.
       -- @param[opt] default_value a index to refer the active button
       -- @param[opt] tooltip a tooltip to the list
       -- @param[opt] callback a callback function to the boxes
       --
-      -- @usage scr:create_radiolist('style1', {'x', 'y', 'z'}, nil, tooltip, rd_callback)
+      -- @usage scr:create_radiolist('style1', "Radiolist 1:", {'x', 'y', 'z'}, nil, tooltip, rd_callback)
       --
-      -- scr:create_radiolist('style2', {'a', 's', 'd'}, 3, tooltip, rd_callback)
+      -- scr:create_radiolist('style2', "Radiolist 2:", {'a', 's', 'd'}, 3, tooltip, rd_callback)
       --
       -- local radiolist_values = {
       --   {'q', false},
       --   {'w', true},
       --   {'e', false},
       -- }
-      -- scr:create_radiolist('style3', radiolist_values, nil, tooltip, rd_callback)
+      -- scr:create_radiolist('style3', "Radiolist 3:", radiolist_values, nil, tooltip, rd_callback)
       -------------------------------------------------
-      create_radiolist = function(self, id, list, default_value, tooltip, callback)
-         obj:create_radiolist(id, list, default_value, tooltip, callback)
+      create_radiolist = function(self, id, title, list, default_value, tooltip, callback)
+         obj:create_radiolist(id, title, list, default_value, tooltip, callback)
       end,
       -------------------------------------------------
       -- <p align="justify">
@@ -252,8 +254,8 @@ function abstk.new_screen(title, w, h)
       --
       -- scr:create_list('style2', {"Item10", "Item11", "Item12"} , tooltip, list_callback)
       -------------------------------------------------
-      create_list = function(self, id, list, tooltip, callback)
-         obj:create_list(id, list, tooltip, callback)
+      create_list = function(self, id, title, list, tooltip, callback)
+         obj:create_list(id, title, list, tooltip, callback)
       end,
       -------------------------------------------------
       -- Creates and shows a message box. There are a few constants to determine 
