@@ -30,7 +30,7 @@ local actions = {
 }
 local keys = {
    TAB = 9,
-   ENTER = 10,
+   ENTER = 13,
    ESC = 27,
    SPACE = 32,
    UP = 65,
@@ -109,6 +109,7 @@ function AbsCursesButton.new(label, tooltip, callback)
       focusable = true,
       tooltip = tooltip,
       callback = callback,
+      enabled = true,
    }
    return setmetatable(self, { __index = AbsCursesButton })
 end
@@ -148,6 +149,7 @@ function AbsCursesButtonBox.new(labels, tooltips, callbacks)
       buttons = buttons,
       focusable = true,
       subfocus = 1,
+      enabled = true,
    }
    return setmetatable(self, { __index = AbsCursesButtonBox })
 end
@@ -172,6 +174,167 @@ function AbsCursesButtonBox:process_key(key)
       end
    end
    return self.buttons[self.subfocus]:process_key(key)
+end
+
+function AbsCursesCheckList.new(title, list, default_value, tooltip, callback)
+   local checklist = {}
+   if type(list[1]) == "table" then
+      for i, pair in ipairs(list) do
+         table.insert(checklist, {label = pair[1], state = pair[2]})
+      end
+   else
+      for i, label in ipairs(list) do
+         local value = false
+         if type(default_value) == "table" then
+            value = default_value[i] or false
+         end
+         table.insert(checklist, {label = label, state = value})
+      end
+   end
+   local self = {
+      height = #checklist+1,
+      checklist = checklist,
+      focusable = true,
+      subfocus = 1,
+      title = title,
+      tooltip = tooltip,
+      callback = callback,
+      enabled = true,
+   }
+   return setmetatable(self, { __index = AbsCursesCheckList })
+end
+
+function AbsCursesCheckList:draw(drawable, x, y, focus)
+   if focus then
+      drawable:attrset(colors.current)
+   else
+      drawable:attrset(colors.default)
+   end
+   drawable:mvaddstr(y, x, self.title)
+   y = y + 1
+   for i, button in ipairs(self.checklist) do
+      if focus then
+         if i == self.subfocus then
+            drawable:attrset(colors.subcurrent)
+         else
+            drawable:attrset(colors.current)
+         end
+      else
+         drawable:attrset(colors.default)
+      end
+      if button.state then
+         drawable:mvaddstr(y+i-1, x, "[*] "..button.label)
+      else
+         drawable:mvaddstr(y+i-1, x, "[ ] "..button.label)
+      end
+   end
+end
+
+function AbsCursesCheckList:process_key(key)
+   if (key == keys.ENTER or key == keys.SPACE) and self.enabled then
+      self.checklist[self.subfocus].state = not self.checklist[self.subfocus].state
+      run_callback(self)
+   elseif key == keys.LEFT or key == keys.RIGHT then
+      return actions.FOCUS_ON_BUTTONS
+   elseif key == keys.TAB then
+      return actions.NEXT
+   elseif key == keys.DOWN then
+      if self.subfocus < #self.checklist then
+         self.subfocus = self.subfocus + 1
+         return actions.HANDLED
+      elseif self.subfocus == #self.checklist then
+         return actions.NEXT
+      end
+   elseif key == keys.UP then
+      if self.subfocus > 1 then
+         self.subfocus = self.subfocus - 1
+         return actions.HANDLED
+      elseif self.subfocus == 1 then
+         return actions.PREVIOUS
+      end
+   end
+   return actions.PASSTHROUGH
+end
+
+function AbsCursesRadioList.new(title, list, default_value, tooltip, callback)
+   local radiolist = {}
+   if type(list[1]) == "table" then
+      for i, pair in ipairs(list) do
+         local value = pair[2]
+         if value then
+            default_value = i
+         end
+         table.insert(radiolist, pair[1])
+      end
+   else
+      for i, label in ipairs(list) do
+         table.insert(radiolist, label)
+      end
+   end
+   local self = {
+      height = #radiolist+1,
+      radiolist = radiolist,
+      focusable = true,
+      subfocus = 1,
+      title = title,
+      marked = default_value or 1,
+      tooltip = tooltip,
+      callback = callback,
+      enabled = true,
+   }
+   return setmetatable(self, { __index = AbsCursesRadioList })
+end
+
+function AbsCursesRadioList:draw(drawable, x, y, focus)
+   if focus then
+      drawable:attrset(colors.current)
+   else
+      drawable:attrset(colors.default)
+   end
+   drawable:mvaddstr(y, x, self.title)
+   y = y + 1
+   for i, button in ipairs(self.radiolist) do
+      if focus then
+         if i == self.subfocus then
+            drawable:attrset(colors.subcurrent)
+         else
+            drawable:attrset(colors.current)
+         end
+      else
+         drawable:attrset(colors.default)
+      end
+      if i == self.marked then
+         drawable:mvaddstr(y+i-1, x, "(*) "..button)
+      else
+         drawable:mvaddstr(y+i-1, x, "( ) "..button)
+      end
+   end
+end
+
+function AbsCursesRadioList:process_key(key)
+   if (key == keys.ENTER or key == keys.SPACE) and self.enabled then
+      self.marked = self.subfocus
+      run_callback(self)
+   elseif key == keys.LEFT or key == keys.RIGHT then
+      return actions.FOCUS_ON_BUTTONS
+   elseif key == keys.TAB then
+      return actions.NEXT
+   elseif key == keys.DOWN then
+      if self.subfocus < #self.radiolist then
+         self.subfocus = self.subfocus + 1
+         return actions.HANDLED
+      elseif self.subfocus == #self.radiolist then
+         return actions.NEXT
+      end
+   elseif key == keys.UP then
+      if self.subfocus > 1 then
+         self.subfocus = self.subfocus - 1
+         return actions.HANDLED
+      elseif self.subfocus == 1 then
+         return actions.PREVIOUS
+      end
+   end
+   return actions.PASSTHROUGH
 end
 
 local function create_widget(self, type_name, class, id, ...)
@@ -211,12 +374,12 @@ function Screen:add_textbox(id, default_value, tooltip, callback)
    create_widget(self, 'TEXTBOX', AbsCursesTextBox, id, default_value, tooltip, callback)
 end
 
-function Screen:create_checklist(id, list, default_value, tooltip, callback)
-   create_widget(self, 'CHECKLIST', AbsCursesCheckList, id, list, default_value, tooltip, callback)
+function Screen:create_checklist(id, title, list, default_value, tooltip, callback)
+   create_widget(self, 'CHECKLIST', AbsCursesCheckList, id, title, list, default_value, tooltip, callback)
 end
 
-function Screen:create_radiolist(id, list, default_value, tooltip, callback)
-   create_widget(self, 'RADIOLIST', AbsCursesRadioList, id, list, default_value, tooltip, callback)
+function Screen:create_radiolist(id, title, list, default_value, tooltip, callback)
+   create_widget(self, 'RADIOLIST', AbsCursesRadioList, id, title, list, default_value, tooltip, callback)
 end
 
 function Screen:create_list(id, list, tooltip, callback)
@@ -324,7 +487,8 @@ local function init_curses()
    colors.button = curses.color_pair(4)
    colors.widget = curses.color_pair(5)
    colors.widget_disabled = curses.color_pair(5) + curses.A_BOLD
-   colors.current = curses.color_pair(6) + curses.A_BOLD
+   colors.current = curses.color_pair(1) + curses.A_BOLD
+   colors.subcurrent = curses.color_pair(6) + curses.A_BOLD
    stdscr:clear()
    stdscr:wbkgd(attr_code(colors.default))
    stdscr:attrset(colors.default)
