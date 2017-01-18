@@ -337,6 +337,110 @@ function AbsCursesRadioList:process_key(key)
    return actions.PASSTHROUGH
 end
 
+function AbsCursesTextInput.new(label, visibility, default_value, tooltip, callback)
+   local self = {
+      height = 1,
+      focusable = true,
+      label = label,
+      visibility = visibility,
+      text = default_value,
+      cursor = 0,
+      tooltip = tooltip,
+      callback = callback,
+      enabled = true,
+   }
+   self.cursor = utf8.len(self.label) + utf8.len(self.text) + 6
+   return setmetatable(self, { __index = AbsCursesTextInput })
+end
+
+function AbsCursesTextInput:draw(drawable, x, y, focus)
+   drawable:attrset(colors.widget)
+   local gap = utf8.len(self.label) + 6
+   local iter = gap
+   while iter < max_x-5 do
+      drawable:mvaddstr(y, iter, " ")
+      iter = iter + 1
+   end
+   local placeholder = ""
+   if self.visibility then
+      placeholder = self.text or ""
+   else
+      for i=1, utf8.len(self.text or "") do
+         placeholder = placeholder.."*"
+      end
+   end
+   drawable:mvaddstr(y, gap, placeholder)
+   if focus then
+      drawable:attrset(colors.cursor)
+      local ch_pos_x = self.cursor-utf8.len(self.label)-utf8.len(self.text)-6
+      if self.visibility then
+         drawable:mvaddstr(y, self.cursor, string.sub(self.text, ch_pos_x, ch_pos_x))
+      else
+         drawable:mvaddstr(y, self.cursor, "*")
+      end
+      if self.cursor == self.cursor + (ch_pos_x * (-1)) then
+         drawable:mvaddstr(y, self.cursor, " ")
+      end
+      drawable:attrset(colors.subcurrent)
+   else
+      drawable:attrset(colors.default)
+   end
+   drawable:mvaddstr(y, x, self.label.." [")
+   drawable:mvaddstr(y, iter, "]")
+end
+
+function AbsCursesTextInput:process_key(key)
+   if key == keys.ENTER and self.enabled then
+      run_callback(self)
+   elseif key == keys.LEFT then
+      if self.cursor > utf8.len(self.label) + 6 then
+         self.cursor = self.cursor - 1
+      end
+      return actions.HANDLED
+   elseif key == keys.RIGHT then
+      if self.cursor < utf8.len(self.label) + utf8.len(self.text) + 6  then
+         self.cursor = self.cursor + 1
+      end
+      return actions.HANDLED
+   elseif key == keys.TAB or key == keys.DOWN then
+      return actions.NEXT
+   elseif key == keys.UP then
+      return actions.PREVIOUS
+   elseif key >= 32 and key <= 165 and key ~= 91 then
+      local pos_x = self.cursor-utf8.len(self.label)-utf8.len(self.text)-6
+      if key == 127 then -- backspace
+         if self.cursor > utf8.len(self.label) + 6 then
+            if self.cursor == utf8.len(self.label)+utf8.len(self.text)+6 then
+               self.text = string.sub(self.text, 1, utf8.len(self.text)-1)
+            else
+               self.text = string.sub(self.text, 1, pos_x-2)..string.sub(self.text, pos_x)
+            end
+            self.cursor = self.cursor - 1
+         end
+      elseif key == 51 or key == 126 then -- delete
+         if self.cursor < utf8.len(self.label) + utf8.len(self.text) + 6 then
+            if self.cursor == utf8.len(self.label)+utf8.len(self.text)+5 then
+               self.text = string.sub(self.text, 1, utf8.len(self.text)-1)
+            else
+               self.text = string.sub(self.text, 1, pos_x-1)..string.sub(self.text, pos_x+1)
+            end
+         end
+      else
+         if self.cursor == utf8.len(self.label)+utf8.len(self.text)+6 then
+            self.text = self.text..string.char(key)
+         else
+            self.text = string.sub(self.text, 1, pos_x-1)..string.char(key)..string.sub(self.text, pos_x)
+         end
+         self.cursor = self.cursor + 1
+      end
+   return actions.HANDLED
+   else
+--      print(key)
+      return actions.HANDLED
+   end
+   return actions.PASSTHROUGH
+end
+
 local function create_widget(self, type_name, class, id, ...)
    local item = {
       id = id,
@@ -481,6 +585,7 @@ local function init_curses()
    pcall(curses.init_pair, 4, curses.COLOR_BLACK, curses.COLOR_WHITE)
    pcall(curses.init_pair, 5, curses.COLOR_BLACK, curses.COLOR_CYAN)
    pcall(curses.init_pair, 6, curses.COLOR_CYAN, curses.COLOR_BLUE)
+   pcall(curses.init_pair, 7, curses.COLOR_CYAN, curses.COLOR_BLACK)
    colors.default = curses.color_pair(1)
    colors.disabled = curses.color_pair(2) + curses.A_BOLD
    colors.title = curses.color_pair(3) + curses.A_BOLD
@@ -489,6 +594,7 @@ local function init_curses()
    colors.widget_disabled = curses.color_pair(5) + curses.A_BOLD
    colors.current = curses.color_pair(1) + curses.A_BOLD
    colors.subcurrent = curses.color_pair(6) + curses.A_BOLD
+   colors.cursor = curses.color_pair(7) + curses.A_BOLD
    stdscr:clear()
    stdscr:wbkgd(attr_code(colors.default))
    stdscr:attrset(colors.default)
