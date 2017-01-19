@@ -231,6 +231,27 @@ function Screen:add_textbox(id, default_value, tooltip, callback)
    table.insert(self.widgets, item)
 end
 
+function Screen:add_checkbox(id, label, default_value, tooltip, callback)
+   local item = {
+      id = id,
+      type = 'CHECKBOX',
+      widget = Gtk.Box {
+         orientation = 'VERTICAL',
+         border_width = 10,
+      }
+   }
+   local checkbox = Gtk.CheckButton { id = "checkbox", label = label }
+   checkbox:set_active(default_value or false)
+   if callback then
+      checkbox.on_toggled = function(self)
+         callback(id, checkbox:get_active(), i)
+      end
+   end
+   item.widget:add(checkbox)
+   item.widget:set_tooltip_text(tooltip)
+   table.insert(self.widgets, item)
+end
+
 function Screen:create_checklist(id, title, list, default_value, tooltip, callback)
    local function make_buttons(make_button)
       local buttons = {}
@@ -471,6 +492,9 @@ function Screen:set_value(id, value, index)
             local textview = item.widget.child.scrolled_window.child.textview
             buffer:set_text(value, -1)
             textview:set_buffer(buffer)
+         elseif item.type == 'CHECKBOX' then
+            local checkbox = item.widget.child.checkbox
+            checkbox:set_active(value)
          elseif item.type == 'CHECKLIST' or item.type == 'RADIOLIST' then
             local button = item.widget.child[index]
             button:set_active(value)
@@ -509,6 +533,9 @@ function Screen:get_value(id, index)
             local start_iter = Gtk.TextBuffer.get_start_iter(buffer)
             local end_iter = Gtk.TextBuffer.get_end_iter(buffer)
             return buffer:get_text(start_iter, end_iter)
+         elseif item.type == 'CHECKBOX' then
+            local checkbox = item.widget.child.checkbox
+            return checkbox:get_label(), checkbox:get_active()
          elseif item.type == 'CHECKLIST' then
             local checkbutton = item.widget:get_children()[index+1]
             return checkbutton:get_label(), checkbutton:get_active()

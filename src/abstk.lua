@@ -153,6 +153,20 @@ function abstk.new_screen(title, w, h)
          obj:add_textbox(id, default_value, tooltip, callback)
       end,
       -------------------------------------------------
+      -- Creates a single checkbox and adds it to the screen widgets table.
+      --
+      -- @see Screen:create_checklist
+      --
+      -- @param id the id to reference the widget later on
+      -- @param label the label of the checkbox
+      -- @param[opt] default_value a boolean to determine the initial state of the checkbox
+      -- @param[opt] tooltip a tooltip to the checkbox
+      -- @param[opt] callback a callback function to the checkbox
+      -------------------------------------------------
+      add_checkbox = function(self, id, label, default_value, tooltip, callback)
+         obj:add_checkbox(id, label, default_value, tooltip, callback)
+      end,
+      -------------------------------------------------
       -- <p align="justify">
       -- Creates a checkboxes list and adds it to the screen widgets table. 
       -- There are 3 ways to call it via client. The first one is by passing 

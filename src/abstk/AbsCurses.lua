@@ -15,6 +15,7 @@ local AbsCursesButtonBox = {}
 local AbsCursesComboBox = {}
 local AbsCursesTextInput = {}
 local AbsCursesTextBox = {}
+local AbsCursesCheckBox = {}
 local AbsCursesCheckList = {}
 local AbsCursesRadioList = {}
 local AbsCursesList = {}
@@ -37,6 +38,7 @@ local keys = {
    DOWN = 66,
    RIGHT = 67,
    LEFT = 68,
+   BACKSPACE = 127,
 }
 local buttons = {
    PREVIOUS = 0,
@@ -176,11 +178,53 @@ function AbsCursesButtonBox:process_key(key)
    return self.buttons[self.subfocus]:process_key(key)
 end
 
+function AbsCursesCheckBox.new(label, default_value, tooltip, callback)
+   local self = {
+      height = 1,
+      label = label,
+      state = default_value or false,
+      focusable = true,
+      tooltip = tooltip,
+      callback = callback,
+      enabled = true,
+   }
+   return setmetatable(self, { __index = AbsCursesCheckBox })
+end
+
+function AbsCursesCheckBox:draw(drawable, x, y, focus)
+   if focus then
+      drawable:attrset(colors.subcurrent)
+   else
+      drawable:attrset(colors.default)
+   end
+   local mark = " "
+   if self.state then
+      mark = "*"
+   end
+   drawable:mvaddstr(y, x, "["..mark.."] "..self.label)
+end
+
+function AbsCursesCheckBox:process_key(key)
+   if (key == keys.ENTER or key == keys.SPACE) and self.enabled then
+      self.state = not self.state
+      run_callback(self)
+   elseif key == keys.LEFT or key == keys.RIGHT then
+      return actions.FOCUS_ON_BUTTONS
+   elseif key == keys.TAB then
+      return actions.NEXT
+   elseif key == keys.DOWN then
+      return actions.NEXT
+   elseif key == keys.UP then
+      return actions.PREVIOUS
+   end
+   return actions.PASSTHROUGH
+end
+
 function AbsCursesCheckList.new(title, list, default_value, tooltip, callback)
    local checklist = {}
    if type(list[1]) == "table" then
       for i, pair in ipairs(list) do
-         table.insert(checklist, {label = pair[1], state = pair[2]})
+         table.insert(checklist, AbsCursesCheckBox.new(pair[1], pair[2], tooltip, callback))
       end
    else
       for i, label in ipairs(list) do
@@ -188,7 +232,7 @@ function AbsCursesCheckList.new(title, list, default_value, tooltip, callback)
          if type(default_value) == "table" then
             value = default_value[i] or false
          end
-         table.insert(checklist, {label = label, state = value})
+         table.insert(checklist, AbsCursesCheckBox.new(label, value, tooltip, callback))
       end
    end
    local self = {
@@ -211,34 +255,13 @@ function AbsCursesCheckList:draw(drawable, x, y, focus)
       drawable:attrset(colors.default)
    end
    drawable:mvaddstr(y, x, self.title)
-   y = y + 1
-   for i, button in ipairs(self.checklist) do
-      if focus then
-         if i == self.subfocus then
-            drawable:attrset(colors.subcurrent)
-         else
-            drawable:attrset(colors.current)
-         end
-      else
-         drawable:attrset(colors.default)
-      end
-      if button.state then
-         drawable:mvaddstr(y+i-1, x, "[*] "..button.label)
-      else
-         drawable:mvaddstr(y+i-1, x, "[ ] "..button.label)
-      end
+   for i, checkbox in ipairs(self.checklist) do
+      checkbox:draw(drawable, x, y+i, focus and i == self.subfocus)
    end
 end
 
 function AbsCursesCheckList:process_key(key)
-   if (key == keys.ENTER or key == keys.SPACE) and self.enabled then
-      self.checklist[self.subfocus].state = not self.checklist[self.subfocus].state
-      run_callback(self)
-   elseif key == keys.LEFT or key == keys.RIGHT then
-      return actions.FOCUS_ON_BUTTONS
-   elseif key == keys.TAB then
-      return actions.NEXT
-   elseif key == keys.DOWN then
+   if key == keys.DOWN then
       if self.subfocus < #self.checklist then
          self.subfocus = self.subfocus + 1
          return actions.HANDLED
@@ -252,8 +275,9 @@ function AbsCursesCheckList:process_key(key)
       elseif self.subfocus == 1 then
          return actions.PREVIOUS
       end
+   else
+      return self.checklist[self.subfocus]:process_key(key)
    end
-   return actions.PASSTHROUGH
 end
 
 function AbsCursesRadioList.new(title, list, default_value, tooltip, callback)
@@ -408,7 +432,7 @@ function AbsCursesTextInput:process_key(key)
       return actions.PREVIOUS
    elseif key >= 32 and key <= 165 and key ~= 91 then
       local pos_x = self.cursor-utf8.len(self.label)-utf8.len(self.text)-6
-      if key == 127 then -- backspace
+      if key == keys.BACKSPACE then
          if self.cursor > utf8.len(self.label) + 6 then
             if self.cursor == utf8.len(self.label)+utf8.len(self.text)+6 then
                self.text = string.sub(self.text, 1, utf8.len(self.text)-1)
@@ -418,6 +442,7 @@ function AbsCursesTextInput:process_key(key)
             self.cursor = self.cursor - 1
          end
       elseif key == 51 or key == 126 then -- delete
+         print(" \""..string.char(key).."\"".." - "..key)
          if self.cursor < utf8.len(self.label) + utf8.len(self.text) + 6 then
             if self.cursor == utf8.len(self.label)+utf8.len(self.text)+5 then
                self.text = string.sub(self.text, 1, utf8.len(self.text)-1)
@@ -433,7 +458,7 @@ function AbsCursesTextInput:process_key(key)
          end
          self.cursor = self.cursor + 1
       end
-   return actions.HANDLED
+      return actions.HANDLED
    else
 --      print(key)
       return actions.HANDLED
@@ -476,6 +501,10 @@ end
 
 function Screen:add_textbox(id, default_value, tooltip, callback)
    create_widget(self, 'TEXTBOX', AbsCursesTextBox, id, default_value, tooltip, callback)
+end
+
+function Screen:add_checkbox(id, label, default_value, tooltip, callback)
+   create_widget(self, 'CHECKBOX', AbsCursesCheckBox, id, label, default_value, tooltip, callback)
 end
 
 function Screen:create_checklist(id, title, list, default_value, tooltip, callback)
@@ -532,6 +561,8 @@ function Screen:set_value(id, value, index)
 
          elseif item.type == 'TEXTBOX' then
 
+         elseif item.type == 'CHECKBOX' then
+
          elseif item.type == 'CHECKLIST' or item.type == 'RADIOLIST' then
 
          elseif item.type == 'LIST' then
@@ -557,6 +588,8 @@ function Screen:get_value(id, index)
          elseif item.type == 'TEXT_INPUT' then
 
          elseif item.type == 'TEXTBOX' then
+
+         elseif item.type == 'CHECKBOX' then
 
          elseif item.type == 'CHECKLIST' then
 
