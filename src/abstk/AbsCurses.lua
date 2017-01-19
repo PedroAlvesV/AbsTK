@@ -199,7 +199,7 @@ function AbsCursesCheckBox:draw(drawable, x, y, focus)
    end
    local mark = " "
    if self.state then
-      mark = "*"
+      mark = "x"
    end
    drawable:mvaddstr(y, x, "["..mark.."] "..self.label)
 end
@@ -327,11 +327,11 @@ function AbsCursesRadioList:draw(drawable, x, y, focus)
       else
          drawable:attrset(colors.default)
       end
+      local mark = " "
       if i == self.marked then
-         drawable:mvaddstr(y+i-1, x, "(*) "..button)
-      else
-         drawable:mvaddstr(y+i-1, x, "( ) "..button)
+         mark = "*"
       end
+      drawable:mvaddstr(y+i-1, x, "("..mark..") "..button)
    end
 end
 
@@ -442,7 +442,7 @@ function AbsCursesTextInput:process_key(key)
             self.cursor = self.cursor - 1
          end
       elseif key == 51 or key == 126 then -- delete
-         print(" \""..string.char(key).."\"".." - "..key)
+--         print(" \""..string.char(key).."\"".." - "..key)
          if self.cursor < utf8.len(self.label) + utf8.len(self.text) + 6 then
             if self.cursor == utf8.len(self.label)+utf8.len(self.text)+5 then
                self.text = string.sub(self.text, 1, utf8.len(self.text)-1)
@@ -547,26 +547,29 @@ end
 function Screen:set_value(id, value, index)
    for _, item in ipairs(self.widgets) do
       if item.id == id then
-         if item.type == 'LABEL' then
-
-         elseif item.type == 'BUTTON' then
-
+         if item.type == 'LABEL' or item.type == 'BUTTON' or item.type == 'CHECKBOX' then
+            if item.type == 'BUTTON' then
+               value = " "..value.." "
+            end
+            item.widget.label = value
          elseif item.type == 'BUTTON_BOX' then
-
+            item.widget.buttons[index].label = " "..value.." "
          elseif item.type == 'COMBOBOX' then
-
+            -- TODO
          elseif item.type == 'IMAGE' then
-
+            return nil
          elseif item.type == 'TEXT_INPUT' then
-
+            local entry = item.widget
+            entry.text = value
+            entry.cursor = utf8.len(entry.label) + utf8.len(entry.text) + 6
          elseif item.type == 'TEXTBOX' then
-
-         elseif item.type == 'CHECKBOX' then
-
-         elseif item.type == 'CHECKLIST' or item.type == 'RADIOLIST' then
-
+            -- TODO
+         elseif item.type == 'CHECKLIST' then
+            item.widget.checklist[index].label = value
+         elseif item.type == 'RADIOLIST' then
+            item.widget.radiolist[index] = value
          elseif item.type == 'LIST' then
-
+            -- TODO
          end
       end
    end
@@ -584,7 +587,7 @@ function Screen:get_value(id, index)
          elseif item.type == 'COMBOBOX' then
 
          elseif item.type == 'IMAGE' then
-
+            return nil
          elseif item.type == 'TEXT_INPUT' then
 
          elseif item.type == 'TEXTBOX' then
