@@ -495,9 +495,12 @@ function Screen:set_value(id, value, index)
          elseif item.type == 'CHECKBOX' then
             local checkbox = item.widget.child.checkbox
             checkbox:set_active(value)
-         elseif item.type == 'CHECKLIST' or item.type == 'RADIOLIST' then
-            local button = item.widget.child[index]
+         elseif item.type == 'CHECKLIST' then
+            local button = item.widget.child[index+1]
             button:set_active(value)
+         elseif item.type == 'RADIOLIST' then
+            local button = item.widget.child[value+1]
+            button:set_active(true)
          elseif item.type == 'LIST' then
             index = index - 1
             local store = item.widget.child.scrolled_window.child.view.model

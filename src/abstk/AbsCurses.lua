@@ -192,10 +192,30 @@ function AbsCursesCheckBox.new(label, default_value, tooltip, callback)
 end
 
 function AbsCursesCheckBox:draw(drawable, x, y, focus)
-   if focus then
-      drawable:attrset(colors.subcurrent)
-   else
+--   if type(focus) == 'table' then
+--      if focus[1] then
+--         drawable:attrset(colors.subcurrent)
+--      end
+--   else
+--      if focus then
+--         drawable:attrset(colors.current)
+--      else
+--         drawable:attrset(colors.default)
+--      end
+--   end
+   if not focus then
       drawable:attrset(colors.default)
+   else
+      if type(focus) == 'table' then
+         if focus[1] then
+            drawable:attrset(colors.current)
+         end
+         if focus[2] then
+            drawable:attrset(colors.subcurrent)
+         end
+      else
+         drawable:attrset(colors.subcurrent)
+      end
    end
    local mark = " "
    if self.state then
@@ -256,7 +276,15 @@ function AbsCursesCheckList:draw(drawable, x, y, focus)
    end
    drawable:mvaddstr(y, x, self.title)
    for i, checkbox in ipairs(self.checklist) do
-      checkbox:draw(drawable, x, y+i, focus and i == self.subfocus)
+      if focus then
+         if i == self.subfocus then
+            checkbox:draw(drawable, x, y+i, {true, true})
+         else
+            checkbox:draw(drawable, x, y+i, {true, false})
+         end
+      else
+         checkbox:draw(drawable, x, y+i, false)
+      end
    end
 end
 
@@ -564,10 +592,12 @@ function Screen:set_value(id, value, index)
             entry.cursor = utf8.len(entry.label) + utf8.len(entry.text) + 6
          elseif item.type == 'TEXTBOX' then
             -- TODO
+         elseif item.type == 'CHECKBOX' then
+            item.widget.state = value
          elseif item.type == 'CHECKLIST' then
-            item.widget.checklist[index].label = value
+            item.widget.checklist[index].state = value
          elseif item.type == 'RADIOLIST' then
-            item.widget.radiolist[index] = value
+            item.widget.marked = value
          elseif item.type == 'LIST' then
             -- TODO
          end
@@ -579,27 +609,30 @@ function Screen:get_value(id, index)
    for _, item in ipairs(self.widgets) do
       if item.id == id then
          if item.type == 'LABEL' then
-
-         elseif item.type == 'BUTTON' then
-
-         elseif item.type == 'BUTTON_BOX' then
-
+            return item.widget.label
+         elseif item.type == 'BUTTON' or item.type == 'BUTTON_BOX' then
+            local label = item.widget.label
+            if item.type == 'BUTTON_BOX' then
+               label = item.widget.buttons[index].label
+            end
+            label = label:gsub("^%s*(.-)%s*$", "%1") -- trim
+            return label
          elseif item.type == 'COMBOBOX' then
-
+            -- TODO
          elseif item.type == 'IMAGE' then
             return nil
          elseif item.type == 'TEXT_INPUT' then
-
+            return item.widget.text
          elseif item.type == 'TEXTBOX' then
-
+            -- TODO
          elseif item.type == 'CHECKBOX' then
-
+            return item.widget.label, item.widget.state
          elseif item.type == 'CHECKLIST' then
-
+            return item.widget.checklist[index].label, item.widget.checklist[index].state
          elseif item.type == 'RADIOLIST' then
-
+            return item.widget.radiolist[index], item.widget.marked == index
          elseif item.type == 'LIST' then
-
+            -- TODO
          end
       end
    end
