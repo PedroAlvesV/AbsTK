@@ -1,7 +1,19 @@
-local AbsCurses = {}
+-------------------------------------------------
+-- AbsCurses (text-mode) to AbsTK-Lua
+-- 
+-- @classmod AbsCurses
+-- @author Pedro Alves
+-- @license MIT
+-- @see abstk
+-------------------------------------------------
+
+-- fix bbox subfocus to disabled buttons
+-- fix bbox tooltips
 
 -- FOCUS_ON_BUTTONS não existe mais como widget
 -- Wizard trata botões e reaproveita button_box
+
+local AbsCurses = {}
 
 local curses = require 'curses' -- http://www.pjb.com.au/comp/lua/lcurses.html
 -- https://github.com/jballanc/playgo/blob/master/doc/curses-examples/lcurses-test.lua
@@ -117,7 +129,11 @@ function AbsCursesButton.new(label, tooltip, callback)
 end
 
 function AbsCursesButton:draw(drawable, x, y, focus)
-   drawable:attrset(colors.button)
+   if self.focusable then
+      drawable:attrset(colors.button)
+   else
+      drawable:attrset(colors.widget_disabled)
+   end
    drawable:mvaddstr(y, x+1, self.label)
    local left, right = " ", " "
    if focus then
@@ -166,12 +182,20 @@ end
 function AbsCursesButtonBox:process_key(key)
    if key == keys.LEFT then
       if self.subfocus > 1 then
-         self.subfocus = self.subfocus - 1
+         local i = 1
+         while not self.buttons[self.subfocus - i].focusable and i < #self.buttons do
+            i = i + 1
+         end
+         self.subfocus = self.subfocus - i
          return actions.HANDLED
       end
    elseif key == keys.RIGHT then
       if self.subfocus < #self.buttons then
-         self.subfocus = self.subfocus + 1
+         local i = 1
+         while not self.buttons[self.subfocus + i].focusable and i < #self.buttons do
+            i = i + 1
+         end
+         self.subfocus = self.subfocus + i
          return actions.HANDLED
       end
    end
@@ -192,19 +216,12 @@ function AbsCursesCheckBox.new(label, default_value, tooltip, callback)
 end
 
 function AbsCursesCheckBox:draw(drawable, x, y, focus)
---   if type(focus) == 'table' then
---      if focus[1] then
---         drawable:attrset(colors.subcurrent)
---      end
---   else
---      if focus then
---         drawable:attrset(colors.current)
---      else
---         drawable:attrset(colors.default)
---      end
---   end
    if not focus then
-      drawable:attrset(colors.default)
+      if self.focusable then
+         drawable:attrset(colors.default)
+      else
+         drawable:attrset(colors.widget_disabled)
+      end
    else
       if type(focus) == 'table' then
          if focus[1] then
@@ -272,7 +289,11 @@ function AbsCursesCheckList:draw(drawable, x, y, focus)
    if focus then
       drawable:attrset(colors.current)
    else
-      drawable:attrset(colors.default)
+      if self.focusable then
+         drawable:attrset(colors.default)
+      else
+         drawable:attrset(colors.widget_disabled)
+      end
    end
    drawable:mvaddstr(y, x, self.title)
    for i, checkbox in ipairs(self.checklist) do
@@ -341,7 +362,11 @@ function AbsCursesRadioList:draw(drawable, x, y, focus)
    if focus then
       drawable:attrset(colors.current)
    else
-      drawable:attrset(colors.default)
+      if self.focusable then
+         drawable:attrset(colors.default)
+      else
+         drawable:attrset(colors.widget_disabled)
+      end
    end
    drawable:mvaddstr(y, x, self.title)
    y = y + 1
@@ -406,7 +431,11 @@ function AbsCursesTextInput.new(label, visibility, default_value, tooltip, callb
 end
 
 function AbsCursesTextInput:draw(drawable, x, y, focus)
-   drawable:attrset(colors.widget)
+   if self.focusable then
+      drawable:attrset(colors.widget)
+   else
+      drawable:attrset(colors.widget_disabled)
+   end
    local gap = utf8.len(self.label) + 6
    local iter = gap
    while iter < max_x-5 do
@@ -567,7 +596,13 @@ end
 function Screen:set_enabled(id, bool, index)
    for _, item in ipairs(self.widgets) do
       if item.id == id then
-
+         local widget = item.widget
+         if item.type == 'BUTTON_BOX' then
+            widget = widget.buttons[index]
+         end
+         if item.type ~= 'LABEL' then
+            widget.focusable = bool
+         end
       end
    end
 end
@@ -678,6 +713,15 @@ function Screen:run()
    stdscr:attrset(colors.default)
    stdscr:mvaddstr(max_y-3, 2, "Tab: move focus   Enter: select")
    stdscr:refresh()
+   local function tooltip_bar()
+      stdscr:attrset(colors.widget)
+      local i = 0
+      while i < max_x-1 do
+         stdscr:mvaddstr(max_y-1, i, " ")
+         i = i + 1
+      end
+   end
+   tooltip_bar()
    local function move_focus(direction)
       local widget = self.widgets[self.focus].widget
       --widget.inside = False
@@ -720,6 +764,24 @@ function Screen:run()
       local y = 3
       for i, item in ipairs(self.widgets) do
          if i == self.focus then
+            if type(item.widget.tooltip) == 'string' then
+               local tooltip = item.widget.tooltip
+               if item.type == 'BUTTON_BOX' then
+                  local j = 1
+                  while j < item.widget.subfocus do
+                     j = j + 1
+                  end
+                  tooltip = item.widget.buttons[j].tooltip
+               end
+               --stdscr:mvaddstr(max_y-1, 0, item.type)
+               while utf8.len(tooltip) < max_x do
+                  tooltip = tooltip.." "
+               end
+               stdscr:attrset(colors.widget)
+               stdscr:mvaddstr(max_y-1, 0, tooltip)
+            else
+               tooltip_bar()
+            end
             self.pad:attrset(colors.title)
             self.pad:mvaddstr(y-1, 1, ">")
          else
