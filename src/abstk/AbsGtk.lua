@@ -205,7 +205,7 @@ function Screen:add_text_input(id, label, visibility, default_value, tooltip, ca
    table.insert(self.widgets, item)
 end
 
-function Screen:add_textbox(id, default_value, tooltip, callback)
+function Screen:add_textbox(id, title, default_value, tooltip, callback)
    local textview = Gtk.TextView { id = 'textview' }
    local buffer = Gtk.TextBuffer.new()
    buffer:set_text(default_value or "", -1)
@@ -222,12 +222,14 @@ function Screen:add_textbox(id, default_value, tooltip, callback)
       widget = Gtk.Box { 
          orientation = 'VERTICAL',
          border_width = 10,
-         Gtk.ScrolledWindow {
-            id = 'scrolled_window',
-            textview,
-         },
       }
    }
+   if title then
+      local title_widget = Gtk.Label { label = title }
+      title_widget:set_halign('START')
+      item.widget:add(title_widget)
+   end
+   item.widget:add(Gtk.ScrolledWindow {id = 'scrolled_window', textview})
    table.insert(self.widgets, item)
 end
 
