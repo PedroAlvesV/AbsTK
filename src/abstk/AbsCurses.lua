@@ -9,6 +9,7 @@
 
 -- fix bbox subfocus to disabled buttons
 -- fix bbox tooltips
+-- http://stackoverflow.com/questions/2515244/how-to-scroll-text-in-python-curses-subwindow
 
 -- FOCUS_ON_BUTTONS não existe mais como widget
 -- Wizard trata botões e reaproveita button_box
@@ -24,7 +25,6 @@ local Wizard = {}
 local AbsCursesLabel = {}
 local AbsCursesButton = {}
 local AbsCursesButtonBox = {}
-local AbsCursesComboBox = {}
 local AbsCursesTextInput = {}
 local AbsCursesTextBox = {}
 local AbsCursesCheckBox = {}
@@ -46,11 +46,11 @@ local keys = {
    ENTER = 13,
    ESC = 27,
    SPACE = 32,
-   UP = 65,
-   DOWN = 66,
-   RIGHT = 67,
-   LEFT = 68,
-   BACKSPACE = 127,
+   DOWN = 258,
+   UP = 259,
+   LEFT = 260,
+   RIGHT = 261,
+
 }
 local buttons = {
    PREVIOUS = 0,
@@ -129,7 +129,7 @@ function AbsCursesButton.new(label, tooltip, callback)
 end
 
 function AbsCursesButton:draw(drawable, x, y, focus)
-   if self.focusable then
+   if self.enabled then
       drawable:attrset(colors.button)
    else
       drawable:attrset(colors.widget_disabled)
@@ -183,7 +183,7 @@ function AbsCursesButtonBox:process_key(key)
    if key == keys.LEFT then
       if self.subfocus > 1 then
          local i = 1
-         while not self.buttons[self.subfocus - i].focusable and i < #self.buttons do
+         while not self.buttons[self.subfocus - i].enabled and i < #self.buttons do
             i = i + 1
          end
          self.subfocus = self.subfocus - i
@@ -192,7 +192,7 @@ function AbsCursesButtonBox:process_key(key)
    elseif key == keys.RIGHT then
       if self.subfocus < #self.buttons then
          local i = 1
-         while not self.buttons[self.subfocus + i].focusable and i < #self.buttons do
+         while not self.buttons[self.subfocus + i].enabled and i < #self.buttons do
             i = i + 1
          end
          self.subfocus = self.subfocus + i
@@ -217,7 +217,7 @@ end
 
 function AbsCursesCheckBox:draw(drawable, x, y, focus)
    if not focus then
-      if self.focusable then
+      if self.enabled then
          drawable:attrset(colors.default)
       else
          drawable:attrset(colors.widget_disabled)
@@ -289,7 +289,7 @@ function AbsCursesCheckList:draw(drawable, x, y, focus)
    if focus then
       drawable:attrset(colors.current)
    else
-      if self.focusable then
+      if self.enabled then
          drawable:attrset(colors.default)
       else
          drawable:attrset(colors.widget_disabled)
@@ -362,7 +362,7 @@ function AbsCursesRadioList:draw(drawable, x, y, focus)
    if focus then
       drawable:attrset(colors.current)
    else
-      if self.focusable then
+      if self.enabled then
          drawable:attrset(colors.default)
       else
          drawable:attrset(colors.widget_disabled)
@@ -431,7 +431,7 @@ function AbsCursesTextInput.new(label, visibility, default_value, tooltip, callb
 end
 
 function AbsCursesTextInput:draw(drawable, x, y, focus)
-   if self.focusable then
+   if self.enabled then
       drawable:attrset(colors.widget)
    else
       drawable:attrset(colors.widget_disabled)
@@ -487,9 +487,9 @@ function AbsCursesTextInput:process_key(key)
       return actions.NEXT
    elseif key == keys.UP then
       return actions.PREVIOUS
-   elseif key >= 32 and key <= 165 and key ~= 91 then
+   elseif key >= 32 and key <= 382 then
       local pos_x = self.cursor-utf8.len(self.label)-utf8.len(self.text)-6
-      if key == keys.BACKSPACE then
+      if key == curses.KEY_BACKSPACE then
          if self.cursor > utf8.len(self.label) + 6 then
             if self.cursor == utf8.len(self.label)+utf8.len(self.text)+6 then
                self.text = string.sub(self.text, 1, utf8.len(self.text)-1)
@@ -498,8 +498,7 @@ function AbsCursesTextInput:process_key(key)
             end
             self.cursor = self.cursor - 1
          end
-      elseif key == 51 or key == 126 then -- delete
---         print(" \""..string.char(key).."\"".." - "..key)
+      elseif key == curses.KEY_DC then
          if self.cursor < utf8.len(self.label) + utf8.len(self.text) + 6 then
             if self.cursor == utf8.len(self.label)+utf8.len(self.text)+5 then
                self.text = string.sub(self.text, 1, utf8.len(self.text)-1)
@@ -517,10 +516,48 @@ function AbsCursesTextInput:process_key(key)
       end
       return actions.HANDLED
    else
---      print(key)
       return actions.HANDLED
    end
    return actions.PASSTHROUGH
+end
+
+function AbsCursesTextBox.new(title, default_value, tooltip, callback)
+   local self = {
+      height = 12,
+      title = title,
+      text = default_value,
+      focusable = true,
+      cursor = {x = 0, y = 0},
+      tooltip = tooltip,
+      callback = callback,
+      enabled = true,
+   }
+   return setmetatable(self, { __index = AbsCursesTextBox })
+end
+
+function AbsCursesTextBox:draw(drawable, x, y, focus)
+   if self.enabled then
+      drawable:attrset(colors.widget)
+   else
+      drawable:attrset(colors.widget_disabled)
+   end
+   if focus then
+      drawable:attrset(colors.current)
+   else
+      drawable:attrset(colors.default)
+   end
+   if self.title then
+      drawable:mvaddstr(y, x, self.title)
+      y = y + 2
+   end
+   --self.pad = curses.newpad(self.height, max_x-8)
+   --self.pad:wbkgd(attr_code(colors.default))
+   print(x, y)
+   drawable:sub(self.height, max_x-8, y, x):box(0, 0)
+   --drawable:box(0, 0) -- for some reason, this line allows us to see the pad box
+end
+
+function AbsCursesTextBox:process_key(key)
 end
 
 local function create_widget(self, type_name, class, id, ...)
@@ -545,7 +582,7 @@ function Screen:create_button_box(id, labels, tooltips, callbacks)
 end
 
 function Screen:create_combobox(id, labels, default_value, tooltip, callback)
-   create_widget(self, 'COMBOBOX', AbsCursesComboBox, id, labels, default_value, tooltip, callback)
+   create_widget(self, 'LIST', AbsCursesList, id, labels, tooltip, callback)
 end
 
 function Screen:add_image(id, path, dimensions, tooltip)
@@ -556,8 +593,8 @@ function Screen:add_text_input(id, label, visibility, default_value, tooltip, ca
    create_widget(self, 'TEXT_INPUT', AbsCursesTextInput, id, label, visibility, default_value, tooltip, callback)
 end
 
-function Screen:add_textbox(id, default_value, tooltip, callback)
-   create_widget(self, 'TEXTBOX', AbsCursesTextBox, id, default_value, tooltip, callback)
+function Screen:add_textbox(id, title, default_value, tooltip, callback)
+   create_widget(self, 'TEXTBOX', AbsCursesTextBox, id, title, default_value, tooltip, callback)
 end
 
 function Screen:add_checkbox(id, label, default_value, tooltip, callback)
@@ -601,7 +638,7 @@ function Screen:set_enabled(id, bool, index)
             widget = widget.buttons[index]
          end
          if item.type ~= 'LABEL' then
-            widget.focusable = bool
+            widget.enabled = bool
          end
       end
    end
@@ -617,8 +654,6 @@ function Screen:set_value(id, value, index)
             item.widget.label = value
          elseif item.type == 'BUTTON_BOX' then
             item.widget.buttons[index].label = " "..value.." "
-         elseif item.type == 'COMBOBOX' then
-            -- TODO
          elseif item.type == 'IMAGE' then
             return nil
          elseif item.type == 'TEXT_INPUT' then
@@ -652,8 +687,6 @@ function Screen:get_value(id, index)
             end
             label = label:gsub("^%s*(.-)%s*$", "%1") -- trim
             return label
-         elseif item.type == 'COMBOBOX' then
-            -- TODO
          elseif item.type == 'IMAGE' then
             return nil
          elseif item.type == 'TEXT_INPUT' then
@@ -678,6 +711,7 @@ local function init_curses()
    curses.cbreak()
    curses.echo(false)
    curses.nl(false)
+   stdscr:keypad(true)
    max_y, max_x = stdscr:getmaxyx()
    max_x = math.min(max_x, 127)
    -- max_y = math.min(max_y, 24)
@@ -722,7 +756,7 @@ function Screen:run()
       end
    end
    tooltip_bar()
-   local function move_focus(direction)
+   local function move_focus(direction) -- must fix (3 labels/1 button bug)
       local widget = self.widgets[self.focus].widget
       --widget.inside = False
       local gap = direction
@@ -773,7 +807,6 @@ function Screen:run()
                   end
                   tooltip = item.widget.buttons[j].tooltip
                end
-               --stdscr:mvaddstr(max_y-1, 0, item.type)
                while utf8.len(tooltip) < max_x do
                   tooltip = tooltip.." "
                end
