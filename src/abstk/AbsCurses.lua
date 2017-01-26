@@ -9,6 +9,7 @@
 
 -- fix bbox subfocus to disabled buttons
 -- fix bbox tooltips
+-- turn textbox text an 2D array containing the characters
 -- http://stackoverflow.com/questions/2515244/how-to-scroll-text-in-python-curses-subwindow
 
 -- FOCUS_ON_BUTTONS não existe mais como widget
@@ -18,6 +19,8 @@ local AbsCurses = {}
 
 local curses = require 'curses' -- http://www.pjb.com.au/comp/lua/lcurses.html
 -- https://github.com/jballanc/playgo/blob/master/doc/curses-examples/lcurses-test.lua
+-- http://invisible-island.net/ncurses/man/ncurses.3x.html
+-- https://www.ibm.com/support/knowledgecenter/ssw_aix_61/com.ibm.aix.basetrf2/newpad.htm
 
 local Screen = {}
 local Wizard = {}
@@ -129,7 +132,7 @@ function AbsCursesButton.new(label, tooltip, callback)
 end
 
 function AbsCursesButton:draw(drawable, x, y, focus)
-   if self.enabled then
+   if self.focusable then
       drawable:attrset(colors.button)
    else
       drawable:attrset(colors.widget_disabled)
@@ -145,7 +148,7 @@ function AbsCursesButton:draw(drawable, x, y, focus)
 end
 
 function AbsCursesButton:process_key(key)
-   if (key == keys.ENTER or key == keys.SPACE) and self.enabled then
+   if (key == keys.ENTER or key == keys.SPACE) and self.focusable then
       run_callback(self)
    elseif key == keys.LEFT or key == keys.RIGHT then
       return actions.FOCUS_ON_BUTTONS
@@ -183,7 +186,7 @@ function AbsCursesButtonBox:process_key(key)
    if key == keys.LEFT then
       if self.subfocus > 1 then
          local i = 1
-         while not self.buttons[self.subfocus - i].enabled and i < #self.buttons do
+         while not self.buttons[self.subfocus - i].focusable and i < #self.buttons do
             i = i + 1
          end
          self.subfocus = self.subfocus - i
@@ -192,7 +195,7 @@ function AbsCursesButtonBox:process_key(key)
    elseif key == keys.RIGHT then
       if self.subfocus < #self.buttons then
          local i = 1
-         while not self.buttons[self.subfocus + i].enabled and i < #self.buttons do
+         while not self.buttons[self.subfocus + i].focusable and i < #self.buttons do
             i = i + 1
          end
          self.subfocus = self.subfocus + i
@@ -217,7 +220,7 @@ end
 
 function AbsCursesCheckBox:draw(drawable, x, y, focus)
    if not focus then
-      if self.enabled then
+      if self.focusable then
          drawable:attrset(colors.default)
       else
          drawable:attrset(colors.widget_disabled)
@@ -242,7 +245,7 @@ function AbsCursesCheckBox:draw(drawable, x, y, focus)
 end
 
 function AbsCursesCheckBox:process_key(key)
-   if (key == keys.ENTER or key == keys.SPACE) and self.enabled then
+   if (key == keys.ENTER or key == keys.SPACE) and self.focusable then
       self.state = not self.state
       run_callback(self)
    elseif key == keys.LEFT or key == keys.RIGHT then
@@ -289,7 +292,7 @@ function AbsCursesCheckList:draw(drawable, x, y, focus)
    if focus then
       drawable:attrset(colors.current)
    else
-      if self.enabled then
+      if self.focusable then
          drawable:attrset(colors.default)
       else
          drawable:attrset(colors.widget_disabled)
@@ -362,7 +365,7 @@ function AbsCursesRadioList:draw(drawable, x, y, focus)
    if focus then
       drawable:attrset(colors.current)
    else
-      if self.enabled then
+      if self.focusable then
          drawable:attrset(colors.default)
       else
          drawable:attrset(colors.widget_disabled)
@@ -389,7 +392,7 @@ function AbsCursesRadioList:draw(drawable, x, y, focus)
 end
 
 function AbsCursesRadioList:process_key(key)
-   if (key == keys.ENTER or key == keys.SPACE) and self.enabled then
+   if (key == keys.ENTER or key == keys.SPACE) and self.focusable then
       self.marked = self.subfocus
       run_callback(self)
    elseif key == keys.LEFT or key == keys.RIGHT then
@@ -431,7 +434,7 @@ function AbsCursesTextInput.new(label, visibility, default_value, tooltip, callb
 end
 
 function AbsCursesTextInput:draw(drawable, x, y, focus)
-   if self.enabled then
+   if self.focusable then
       drawable:attrset(colors.widget)
    else
       drawable:attrset(colors.widget_disabled)
@@ -471,7 +474,7 @@ function AbsCursesTextInput:draw(drawable, x, y, focus)
 end
 
 function AbsCursesTextInput:process_key(key)
-   if key == keys.ENTER and self.enabled then
+   if key == keys.ENTER and self.focusable then
       run_callback(self)
    elseif key == keys.LEFT then
       if self.cursor > utf8.len(self.label) + 6 then
@@ -523,41 +526,132 @@ end
 
 function AbsCursesTextBox.new(title, default_value, tooltip, callback)
    local self = {
-      height = 12,
+      height = 10,
+      width = 0,
       title = title,
-      text = default_value,
+      text = {},
       focusable = true,
-      cursor = {x = 0, y = 0},
+      inside = false,
+      cursor = {x = 1, y = 1},
       tooltip = tooltip,
       callback = callback,
       enabled = true,
    }
+   self.text = default_value
+--   if type(default_value) == 'string' then
+--      for i=1,self.width do
+--         self.text[i] = {}
+--         for j=1,self.height do
+--            self.text[i][j] = default_value:sub(i, j)
+--         end
+--      end
+--   end
    return setmetatable(self, { __index = AbsCursesTextBox })
 end
 
 function AbsCursesTextBox:draw(drawable, x, y, focus)
-   if self.enabled then
-      drawable:attrset(colors.widget)
-   else
-      drawable:attrset(colors.widget_disabled)
+   self.width = max_x-8
+   local function title_colors()
+      if focus then
+         return colors.current
+      else
+         return colors.default
+      end
    end
-   if focus then
-      drawable:attrset(colors.current)
-   else
-      drawable:attrset(colors.default)
+   local function box_colors()
+      if self.inside then
+         return colors.widget
+      else
+         return colors.default
+      end
    end
    if self.title then
+      drawable:attrset(title_colors())
       drawable:mvaddstr(y, x, self.title)
-      y = y + 2
+      y = y + 1
    end
-   --self.pad = curses.newpad(self.height, max_x-8)
-   --self.pad:wbkgd(attr_code(colors.default))
-   print(x, y)
-   drawable:sub(self.height, max_x-8, y, x):box(0, 0)
-   --drawable:box(0, 0) -- for some reason, this line allows us to see the pad box
+   local pad = curses.newpad(self.height+2, self.width-2)
+   pad:wbkgd(attr_code(box_colors()))
+--   for i=1, self.width do
+--      for j=1, self.height do
+--         pad:mvaddstr(j, i, self.text[i][j])
+--      end
+--   end
+   pad:mvaddstr(1,1,self.text)
+   if self.inside then
+      pad:attrset(colors.cursor)
+      local ch_pos = self.cursor.x
+      if self.cursor.y > 1 then
+         local iter = 0
+         while iter < self.cursor.y do
+            ch_pos = ch_pos + iter
+            iter = iter + 1
+         end
+      end
+      print(self.cursor.x, self.cursor.y)
+      if ch_pos > utf8.len(self.text) then
+         pad:mvaddstr(self.cursor.y, self.cursor.x, " ")
+      else
+         pad:mvaddstr(self.cursor.y, self.cursor.x, string.sub(self.text, ch_pos, ch_pos))
+      end
+   end
+   pad:attrset(colors.default)
+   pad:border(0,0)
+   pad:prefresh(0,0,y,x,y+self.height+2,self.width+4)
 end
 
 function AbsCursesTextBox:process_key(key)
+   if key == keys.ENTER then
+      self.inside = true
+      run_callback(self)
+      return actions.HANDLED
+   elseif key == keys.ESC then -- must fix delay
+      self.inside = false
+      return actions.HANDLED
+   elseif key == keys.TAB then
+      self.inside = false
+      return actions.NEXT
+   elseif key == keys.DOWN then
+      if self.inside then
+         if self.cursor.y < self.height then
+            self.cursor.y = self.cursor.y + 1
+         end
+         return actions.HANDLED
+      end
+      return actions.NEXT
+   elseif key == keys.UP then
+      if self.inside then
+         if self.cursor.y > 1 then
+            self.cursor.y = self.cursor.y - 1
+         end
+         return actions.HANDLED
+      end
+      return actions.PREVIOUS
+   elseif key == keys.LEFT then
+      if self.inside then
+         if self.cursor.x == 1 then
+            if self.cursor.y > 1 then
+               self.cursor.x = self.width-4
+               self.cursor.y = self.cursor.y - 1
+            end
+         else
+            self.cursor.x = self.cursor.x - 1
+         end
+      end
+      return actions.HANDLED
+   elseif key == keys.RIGHT then
+      if self.inside then
+         if self.cursor.x == self.width-4 then
+            if self.cursor.y < self.height then
+               self.cursor.x = 1
+               self.cursor.y = self.cursor.y + 1
+            end
+         else
+            self.cursor.x = self.cursor.x + 1
+         end
+      end
+      return actions.HANDLED
+   end
 end
 
 local function create_widget(self, type_name, class, id, ...)
@@ -638,7 +732,7 @@ function Screen:set_enabled(id, bool, index)
             widget = widget.buttons[index]
          end
          if item.type ~= 'LABEL' then
-            widget.enabled = bool
+            widget.focusable = bool
          end
       end
    end
@@ -697,10 +791,16 @@ function Screen:get_value(id, index)
             return item.widget.label, item.widget.state
          elseif item.type == 'CHECKLIST' then
             return item.widget.checklist[index].label, item.widget.checklist[index].state
-         elseif item.type == 'RADIOLIST' then
-            return item.widget.radiolist[index], item.widget.marked == index
-         elseif item.type == 'LIST' then
-            -- TODO
+         elseif item.type == 'RADIOLIST' or item.type == 'LIST' then
+            local list = item.widget.list
+            if item.type == 'RADIOLIST' then
+               list = item.widget.radiolist
+            end
+            for i, button in ipairs(list) do
+               if i == item.widget.marked then
+                  return button
+               end
+            end
          end
       end
    end
@@ -758,7 +858,6 @@ function Screen:run()
    tooltip_bar()
    local function move_focus(direction) -- must fix (3 labels/1 button bug)
       local widget = self.widgets[self.focus].widget
-      --widget.inside = False
       local gap = direction
       while self.focus > 0 and self.focus < #self.widgets and not self.widgets[self.focus + gap].widget.focusable do
          gap = gap + direction
@@ -767,7 +866,6 @@ function Screen:run()
       if self.focus == -1 or self.focus > #self.widgets then
          return actions.FOCUS_ON_BUTTONS
       end
-      --widget = self.__setupFocusAndCurrent(direction)
       if self.widgets[self.focus].widget.enabled then
          return actions.HANDLED
       end
