@@ -145,12 +145,13 @@ function abstk.new_screen(title, w, h)
       -- Creates a textbox field and adds it to the screen widgets table.
       --
       -- @param id the id to reference the widget later on
+      -- @param[opt] title a title to the field
       -- @param[opt] default_value a pre-written text
       -- @param[opt] tooltip a tooltip to the textbox field
       -- @param[opt] callback a callback function to the field
       -------------------------------------------------
-      add_textbox = function(self, id, default_value, tooltip, callback)
-         obj:add_textbox(id, default_value, tooltip, callback)
+      add_textbox = function(self, id, title, default_value, tooltip, callback)
+         obj:add_textbox(id, title, default_value, tooltip, callback)
       end,
       -------------------------------------------------
       -- Creates a single checkbox and adds it to the screen widgets table.
@@ -315,11 +316,26 @@ function abstk.new_screen(title, w, h)
       -- * `RadioList - boolean (state of button)`
       -- * `List - boolean (state of button)`
       --
+      -- Note that, since RadioButtons can only be active one at the time per group,
+      -- the value parameter passed is the index representing which one must be set active.
+      --
       -- @param id the id of the required widget
       -- @param value the value that will be assigned to the widget. 
       -- @param[opt] index an index to target the child of the widget. Must be 
-      -- passed to refer to set ButtonBoxes, ComboBoxes, 
-      -- CheckLists, RadioLists and Lists.
+      -- passed to refer to set ButtonBoxes, ComboBoxes, CheckLists and Lists.
+      --
+      -- @usage scr:set_value('label', "New Label"
+      -- scr:set_value('button', "New Button Label")
+      -- scr:set_value('button_box', "New Button Label", 2)
+      -- TODO combobox example
+      -- scr:set_value('image', 'imgs/image.png')
+      -- scr:set_value('text_input', "New Text")
+      -- scr:set_value('password_input', "New Password")
+      -- scr:set_value('textbox', "New Text")
+      -- scr:set_value('checkbox', true)
+      -- scr:set_value('checklist', true, 1)
+      -- scr:set_value('radiolist', 2)
+      -- scr:set_value('list', true, 3)
       -------------------------------------------------
       set_value = function(self, id, value, index)
          obj:set_value(id, value, index)
