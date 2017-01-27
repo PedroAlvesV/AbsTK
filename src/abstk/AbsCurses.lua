@@ -53,7 +53,10 @@ local keys = {
    UP = 259,
    LEFT = 260,
    RIGHT = 261,
-
+   HOME = 262,
+   END = 360,
+   PAGE_DOWN = 338,
+   PAGE_UP = 339,
 }
 local buttons = {
    PREVIOUS = 0,
@@ -474,6 +477,8 @@ function AbsCursesTextInput:draw(drawable, x, y, focus)
 end
 
 function AbsCursesTextInput:process_key(key)
+   local first_position = utf8.len(self.label) + 6
+   local last_position = first_position + utf8.len(self.text)
    if key == keys.ENTER and self.focusable then
       run_callback(self)
    elseif key == keys.LEFT then
@@ -482,7 +487,7 @@ function AbsCursesTextInput:process_key(key)
       end
       return actions.HANDLED
    elseif key == keys.RIGHT then
-      if self.cursor < utf8.len(self.label) + utf8.len(self.text) + 6  then
+      if self.cursor < last_position  then
          self.cursor = self.cursor + 1
       end
       return actions.HANDLED
@@ -493,8 +498,8 @@ function AbsCursesTextInput:process_key(key)
    elseif key >= 32 and key <= 382 then
       local pos_x = self.cursor-utf8.len(self.label)-utf8.len(self.text)-6
       if key == curses.KEY_BACKSPACE then
-         if self.cursor > utf8.len(self.label) + 6 then
-            if self.cursor == utf8.len(self.label)+utf8.len(self.text)+6 then
+         if self.cursor > first_position then
+            if self.cursor == last_position then
                self.text = string.sub(self.text, 1, utf8.len(self.text)-1)
             else
                self.text = string.sub(self.text, 1, pos_x-2)..string.sub(self.text, pos_x)
@@ -502,15 +507,19 @@ function AbsCursesTextInput:process_key(key)
             self.cursor = self.cursor - 1
          end
       elseif key == curses.KEY_DC then
-         if self.cursor < utf8.len(self.label) + utf8.len(self.text) + 6 then
-            if self.cursor == utf8.len(self.label)+utf8.len(self.text)+5 then
+         if self.cursor < last_position then
+            if self.cursor == last_position - 1 then
                self.text = string.sub(self.text, 1, utf8.len(self.text)-1)
             else
                self.text = string.sub(self.text, 1, pos_x-1)..string.sub(self.text, pos_x+1)
             end
          end
+      elseif key == keys.HOME then
+         self.cursor = first_position
+      elseif key == keys.END then
+         self.cursor = last_position
       else
-         if self.cursor == utf8.len(self.label)+utf8.len(self.text)+6 then
+         if self.cursor == last_position then
             self.text = self.text..string.char(key)
          else
             self.text = string.sub(self.text, 1, pos_x-1)..string.char(key)..string.sub(self.text, pos_x)
@@ -528,24 +537,17 @@ function AbsCursesTextBox.new(title, default_value, tooltip, callback)
    local self = {
       height = 10,
       width = 0,
+      view_pos = 1,
       title = title,
-      text = {},
       focusable = true,
       inside = false,
-      cursor = {x = 1, y = 1},
       tooltip = tooltip,
       callback = callback,
       enabled = true,
    }
-   self.text = default_value
---   if type(default_value) == 'string' then
---      for i=1,self.width do
---         self.text[i] = {}
---         for j=1,self.height do
---            self.text[i][j] = default_value:sub(i, j)
---         end
---      end
---   end
+   self.text, self.text_height = default_value:gsub("\n", "\n ")
+   self.hidden_text = {}
+   self.text_height = self.text_height + 1
    return setmetatable(self, { __index = AbsCursesTextBox })
 end
 
@@ -572,32 +574,10 @@ function AbsCursesTextBox:draw(drawable, x, y, focus)
    end
    local pad = curses.newpad(self.height+2, self.width-2)
    pad:wbkgd(attr_code(box_colors()))
---   for i=1, self.width do
---      for j=1, self.height do
---         pad:mvaddstr(j, i, self.text[i][j])
---      end
---   end
-   pad:mvaddstr(1,1,self.text)
-   if self.inside then
-      pad:attrset(colors.cursor)
-      local ch_pos = self.cursor.x
-      if self.cursor.y > 1 then
-         local iter = 0
-         while iter < self.cursor.y do
-            ch_pos = ch_pos + iter
-            iter = iter + 1
-         end
-      end
-      print(self.cursor.x, self.cursor.y)
-      if ch_pos > utf8.len(self.text) then
-         pad:mvaddstr(self.cursor.y, self.cursor.x, " ")
-      else
-         pad:mvaddstr(self.cursor.y, self.cursor.x, string.sub(self.text, ch_pos, ch_pos))
-      end
-   end
+   pad:mvaddstr(1, 1, self.text)
    pad:attrset(colors.default)
    pad:border(0,0)
-   pad:prefresh(0,0,y,x,y+self.height+2,self.width+4)
+   pad:prefresh(0, 0, y, x, y+self.height+2, self.width+4)
 end
 
 function AbsCursesTextBox:process_key(key)
@@ -611,46 +591,30 @@ function AbsCursesTextBox:process_key(key)
    elseif key == keys.TAB then
       self.inside = false
       return actions.NEXT
-   elseif key == keys.DOWN then
-      if self.inside then
-         if self.cursor.y < self.height then
-            self.cursor.y = self.cursor.y + 1
+   elseif key == keys.DOWN or key == keys.PAGE_DOWN then
+      if self.inside and self.text_height > self.height then
+         if self.view_pos < self.text_height then
+            local _, index = self.text:find("\n ")
+            table.insert(self.hidden_text, self.text:sub(1, index))
+            self.text = self.text:gsub(self.hidden_text[#self.hidden_text], "")
+            self.view_pos = self.view_pos - 1
          end
          return actions.HANDLED
       end
+      self.inside = false
       return actions.NEXT
-   elseif key == keys.UP then
-      if self.inside then
-         if self.cursor.y > 1 then
-            self.cursor.y = self.cursor.y - 1
+   elseif key == keys.UP or key == keys.PAGE_UP then
+      if self.inside and self.text_height > self.height then
+         if self.view_pos < 1 then
+            self.text = table.remove(self.hidden_text)..self.text
+            self.view_pos = self.view_pos + 1
          end
          return actions.HANDLED
       end
+      self.inside = false
       return actions.PREVIOUS
-   elseif key == keys.LEFT then
-      if self.inside then
-         if self.cursor.x == 1 then
-            if self.cursor.y > 1 then
-               self.cursor.x = self.width-4
-               self.cursor.y = self.cursor.y - 1
-            end
-         else
-            self.cursor.x = self.cursor.x - 1
-         end
-      end
-      return actions.HANDLED
-   elseif key == keys.RIGHT then
-      if self.inside then
-         if self.cursor.x == self.width-4 then
-            if self.cursor.y < self.height then
-               self.cursor.x = 1
-               self.cursor.y = self.cursor.y + 1
-            end
-         else
-            self.cursor.x = self.cursor.x + 1
-         end
-      end
-      return actions.HANDLED
+   else
+      print(key)
    end
 end
 
