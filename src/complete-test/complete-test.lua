@@ -3,7 +3,7 @@ local abstk = require 'abstk'
 abstk.set_mode(...)
 
 -- Create wizard
-local wizard = abstk.new_wizard("AbsTK Complete Test", 400, 300)
+local wizard = abstk.new_wizard("AbsTK Complete Test", 800, 600)
 
 -- Create screens
 local scr1 = abstk.new_screen("Labels Module")
@@ -48,8 +48,8 @@ scr2:add_label('label3', 'ComboBox')
 scr2:create_combobox('cbox', {'Label1', 'Label2', 'Label3'}, nil, cbb_callback)
 
 -- Fill the third screen
-scr3:add_image('lua_img', 'imgs/lua.png')
-scr3:add_image('batman_img', 'imgs/batman.png', {512, 384})
+scr3:add_image('lua_img', 'images/lua.png')
+scr3:add_image('batman_img', 'images/batman.png', {512, 384})
 
 -- Fill the fourth screen
 scr4:create_checklist('chklist1', "CheckBoxes (default construction)", {'a', 'b', 'c'}, nil, nil, chk_callback)
@@ -87,7 +87,7 @@ scr5:add_text_input('input1', 'Username', nil, nil, txt_callback)
 scr5:add_password('input2', 'Password', nil, nil, txt_callback)
 scr5:add_text_input('input3', nil, nil, nil, txt_callback)
 scr5:add_label('label', 'TextBox')
-scr5:add_textbox('box', nil, nil, txt_callback)
+scr5:add_textbox('box', nil, nil, nil, txt_callback)
 
 -- Add all screens to wizard
 wizard:add_page('screen1', scr1, 'INTRO')
