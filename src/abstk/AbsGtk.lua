@@ -77,7 +77,6 @@ function Screen:add_button(id, label, tooltip, callback)
       type = 'BUTTON',
       widget = Gtk.Box {
          orientation = 'HORIZONTAL',
-         border_width = 10,
          button,
       }
    }
@@ -89,7 +88,6 @@ function Screen:create_button_box(id, labels, tooltip, callback)
       local bbox = Gtk.ButtonBox {
          id = 'bbox',
          orientation = orientation,
-         border_width = 5,
          layout_style = layout,
          spacing = spacing,
       }
@@ -110,7 +108,6 @@ function Screen:create_button_box(id, labels, tooltip, callback)
       type = 'BUTTON_BOX',
       widget = Gtk.Box {
          orientation = 'VERTICAL',
-         border_width = 10,
          create_bbox('HORIZONTAL', 20, 'START'),
       }
    }
@@ -131,7 +128,6 @@ function Screen:create_combobox(id, labels, default_value, tooltip, callback)
    local box = Gtk.Box {
       id = 'box',
       orientation = 'VERTICAL',
-      border_width = 10,
       combobox,
    }
    local item = {
@@ -185,13 +181,11 @@ function Screen:add_text_input(id, label, visibility, default_value, tooltip, ca
    if not label then
       widget = Gtk.Box {
          orientation = 'VERTICAL',
-         border_width = 5,
          entry,
       }
    else
       widget = Gtk.Box {
          orientation = 'HORIZONTAL',
-         border_width = 5,
          spacing = 10,
          Gtk.Label { label = label },
          entry,
@@ -211,6 +205,7 @@ function Screen:add_textbox(id, title, default_value, tooltip, callback)
    buffer:set_text(default_value or "", -1)
    textview:set_tooltip_text(tooltip)
    textview:set_buffer(buffer)
+   textview:set_editable(false)
    if callback then
       buffer.on_changed = function(self)
          callback(id, buffer:get_text(buffer:get_start_iter(), buffer:get_end_iter()))
@@ -221,7 +216,6 @@ function Screen:add_textbox(id, title, default_value, tooltip, callback)
       type = 'TEXTBOX',
       widget = Gtk.Box { 
          orientation = 'VERTICAL',
-         border_width = 10,
       }
    }
    if title then
@@ -239,7 +233,6 @@ function Screen:add_checkbox(id, label, default_value, tooltip, callback)
       type = 'CHECKBOX',
       widget = Gtk.Box {
          orientation = 'VERTICAL',
-         border_width = 10,
       }
    }
    local checkbox = Gtk.CheckButton { id = "checkbox", label = label }
@@ -287,7 +280,6 @@ function Screen:create_checklist(id, title, list, default_value, tooltip, callba
       widget = Gtk.Box {
          title_widget,
          orientation = 'VERTICAL',
-         border_width = 10,
       }
    }
    local function make_button(id, label, value)
@@ -310,7 +302,6 @@ function Screen:create_radiolist(id, title, list, default_value, tooltip, callba
       widget = Gtk.Box {
          title_widget,
          orientation = 'VERTICAL',
-         border_width = 10,
       }
    }
    local firstradio
@@ -413,7 +404,6 @@ function Screen:create_list(id, title, list, tooltip, callback)
       widget = Gtk.Box {
          title_widget,
          orientation = 'VERTICAL',
-         border_width = 10,
          scrolled_window
       }
    }
@@ -562,6 +552,17 @@ function Screen:get_value(id, index)
    end
 end
 
+local function create_vbox(widgets)
+   local vbox = Gtk.VBox{
+      border_width = 10,
+      spacing = 10,
+   }
+   for _, item in ipairs(widgets) do
+      vbox:pack_start(item.widget, false, false, 0)
+   end
+   return vbox
+end
+
 function Screen:run()
    self.window = Gtk.Window {
       title = self.title,
@@ -569,26 +570,27 @@ function Screen:run()
       default_height = self.h,
       on_destroy = Gtk.main_quit
    }
-   local vbox = Gtk.VBox()
-   for _, item in ipairs(self.widgets) do
-      vbox:pack_start(item.widget, false, false, 0)
-   end
+   local vbox = create_vbox(self.widgets)
    self.window:add(vbox)
    self.window:show_all()
    Gtk.main()
 end
 
 function Wizard:add_page(id, screen, page_type)
-   local vbox = Gtk.VBox()
-   for _, item in ipairs(screen.widgets) do
-      vbox:pack_start(item.widget, false, false, 0)
-   end
+   local vbox = create_vbox(screen.widgets)
    local page = {
       id = id,
       title = screen.title,
       complete = true,
-      content = vbox,
+      content = Gtk.ScrolledWindow{vbox},
    }
+   
+   -- work arround bug where scrolled window BG goes black
+   -- http://stackoverflow.com/questions/27592603
+   -- https://git.gnome.org/browse/california/commit/?id=3442b3
+   local bg_color = self.assistant:get_toplevel():get_style_context():get_background_color(Gtk.StateFlags.NORMAL)
+   page.content:override_background_color(Gtk.StateFlags.NORMAL, bg_color)
+   
    table.insert(self.pages, page)
    Gtk.Assistant.append_page(self.assistant, page.content)
    Gtk.Assistant.set_page_title(self.assistant, page.content, screen.title)
