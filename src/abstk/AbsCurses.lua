@@ -545,7 +545,10 @@ function AbsCursesTextBox.new(title, default_value, tooltip, callback)
       callback = callback,
       enabled = true,
    }
-   self.text, self.text_height = default_value:gsub("\n", "\n ")
+   self.text, self.text_height = "", 0
+   if default_value then
+      self.text, self.text_height = default_value:gsub("\n", "\n ")
+   end
    self.hidden_text = {}
    self.text_height = self.text_height + 1
    return setmetatable(self, { __index = AbsCursesTextBox })
@@ -593,6 +596,7 @@ function AbsCursesTextBox:process_key(key)
       return actions.NEXT
    elseif key == keys.DOWN or key == keys.PAGE_DOWN then
       if self.inside and self.text_height > self.height then
+--         print(self.view_pos)
          if self.view_pos < self.text_height then
             local _, index = self.text:find("\n ")
             table.insert(self.hidden_text, self.text:sub(1, index))
@@ -613,9 +617,8 @@ function AbsCursesTextBox:process_key(key)
       end
       self.inside = false
       return actions.PREVIOUS
-   else
-      print(key)
    end
+   return actions.PASSTHROUGH
 end
 
 local function create_widget(self, type_name, class, id, ...)
