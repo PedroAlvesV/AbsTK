@@ -78,6 +78,18 @@ local function attr_code(attr)
    return code
 end
 
+local function draw_scrollbar(drawable, x, y, h, percent)
+   local i = 1
+   while i <= h do
+      drawable:mvaddstr(y+i, x, " ")
+      i = i + 1
+   end
+   drawable:attrset(colors.button)
+   drawable:mvaddstr(y+1, x, '^')
+   drawable:mvaddstr(y+1+percent, x, '*')
+   drawable:mvaddstr(y+h, x, 'v')
+end
+
 local function run_callback(self)
    if self.callback then
       self.callback()
@@ -482,7 +494,7 @@ function AbsCursesTextInput:process_key(key)
    if key == keys.ENTER and self.focusable then
       run_callback(self)
    elseif key == keys.LEFT then
-      if self.cursor > utf8.len(self.label) + 6 then
+      if self.cursor > first_position then
          self.cursor = self.cursor - 1
       end
       return actions.HANDLED
@@ -506,18 +518,22 @@ function AbsCursesTextInput:process_key(key)
             end
             self.cursor = self.cursor - 1
          end
+         return actions.HANDLED
       elseif key == curses.KEY_DC then
          if self.cursor < last_position then
             if self.cursor == last_position - 1 then
                self.text = string.sub(self.text, 1, utf8.len(self.text)-1)
             else
                self.text = string.sub(self.text, 1, pos_x-1)..string.sub(self.text, pos_x+1)
-            end
+            end   
          end
+         return actions.HANDLED
       elseif key == keys.HOME then
          self.cursor = first_position
+         return actions.HANDLED
       elseif key == keys.END then
          self.cursor = last_position
+         return actions.HANDLED
       else
          if self.cursor == last_position then
             self.text = self.text..string.char(key)
@@ -525,6 +541,7 @@ function AbsCursesTextInput:process_key(key)
             self.text = string.sub(self.text, 1, pos_x-1)..string.char(key)..string.sub(self.text, pos_x)
          end
          self.cursor = self.cursor + 1
+         return actions.HANDLED
       end
       return actions.HANDLED
    else
@@ -581,11 +598,14 @@ function AbsCursesTextBox:draw(drawable, x, y, focus)
    pad:attrset(colors.default)
    pad:border(0,0)
    pad:prefresh(0, 0, y, x, y+self.height+2, self.width+4)
+   if self.inside then
+      draw_scrollbar(drawable, self.width, y, self.height, (self.view_pos*(-1))+2)
+   end
 end
 
 function AbsCursesTextBox:process_key(key)
    if key == keys.ENTER then
-      self.inside = true
+      self.inside = not self.inside
       run_callback(self)
       return actions.HANDLED
    elseif key == keys.ESC then -- must fix delay
@@ -596,8 +616,8 @@ function AbsCursesTextBox:process_key(key)
       return actions.NEXT
    elseif key == keys.DOWN or key == keys.PAGE_DOWN then
       if self.inside and self.text_height > self.height then
---         print(self.view_pos)
-         if self.view_pos < self.text_height then
+--         print(" "..#self.hidden_text+1, self.height, self.text_height)
+         if #self.hidden_text+1 + self.height <= self.text_height then
             local _, index = self.text:find("\n ")
             table.insert(self.hidden_text, self.text:sub(1, index))
             self.text = self.text:gsub(self.hidden_text[#self.hidden_text], "")
