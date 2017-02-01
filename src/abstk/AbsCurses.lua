@@ -65,12 +65,6 @@ local buttons = {
    LAST = 2,
 }
 
-local function str_attr(str, attr)
-   local ch = curses.new_chstr(#str)
-   ch:set_str(0, str, attr)
-   return ch
-end
-
 local function attr_code(attr)
    local ch = curses.new_chstr(1)
    ch:set_str(0, " ", attr)
@@ -78,16 +72,24 @@ local function attr_code(attr)
    return code
 end
 
-local function draw_scrollbar(drawable, x, y, h, percent)
+local function draw_scrollbar(drawable, x, y, h, line)
    local i = 1
-   while i <= h do
+   while i < 10 do
       drawable:mvaddstr(y+i, x, " ")
       i = i + 1
    end
+   local bar_h = line + 1
+   if h < 18 then
+      if line > (h - line - 9) then
+         bar_h = 9 - (h - line - 9)
+      end
+   else
+      -- TODO
+   end
    drawable:attrset(colors.button)
    drawable:mvaddstr(y+1, x, '^')
-   drawable:mvaddstr(y+1+percent, x, '*')
-   drawable:mvaddstr(y+h, x, 'v')
+   drawable:mvaddstr(y+bar_h, x, '*')
+   drawable:mvaddstr(y+10, x, 'v')
 end
 
 local function run_callback(self)
@@ -599,7 +601,7 @@ function AbsCursesTextBox:draw(drawable, x, y, focus)
    pad:border(0,0)
    pad:prefresh(0, 0, y, x, y+self.height+2, self.width+4)
    if self.inside then
-      draw_scrollbar(drawable, self.width, y, self.height, (self.view_pos*(-1))+2)
+      draw_scrollbar(drawable, self.width, y, self.text_height, (self.view_pos*(-1))+2)
    end
 end
 
