@@ -20,6 +20,7 @@ local curses = require 'curses' -- http://www.pjb.com.au/comp/lua/lcurses.html
 -- https://github.com/jballanc/playgo/blob/master/doc/curses-examples/lcurses-test.lua
 -- http://invisible-island.net/ncurses/man/ncurses.3x.html
 -- https://www.ibm.com/support/knowledgecenter/ssw_aix_61/com.ibm.aix.basetrf2/newpad.htm
+local util = require 'abstk.util'
 
 local Screen = {}
 local Wizard = {}
@@ -277,20 +278,10 @@ function AbsCursesCheckBox:process_key(key)
 end
 
 function AbsCursesCheckList.new(title, list, default_value, tooltip, callback)
-   local checklist = {}
-   if type(list[1]) == "table" then
-      for i, pair in ipairs(list) do
-         table.insert(checklist, AbsCursesCheckBox.new(pair[1], pair[2], tooltip, callback))
-      end
-   else
-      for i, label in ipairs(list) do
-         local value = false
-         if type(default_value) == "table" then
-            value = default_value[i] or false
-         end
-         table.insert(checklist, AbsCursesCheckBox.new(label, value, tooltip, callback))
-      end
+   local function make_item(i, label, value)
+      return AbsCursesCheckBox.new(label, value, tooltip, callback)
    end
+   local checklist = util.make_list_items(make_item, list, default_value)
    local self = {
       height = #checklist+1,
       checklist = checklist,
@@ -349,20 +340,13 @@ function AbsCursesCheckList:process_key(key)
 end
 
 function AbsCursesRadioList.new(title, list, default_value, tooltip, callback)
-   local radiolist = {}
-   if type(list[1]) == "table" then
-      for i, pair in ipairs(list) do
-         local value = pair[2]
-         if value then
-            default_value = i
-         end
-         table.insert(radiolist, pair[1])
+   local function make_item(i, label, value)
+      if value then
+         default_value = i
       end
-   else
-      for i, label in ipairs(list) do
-         table.insert(radiolist, label)
-      end
+      return label
    end
+   local radiolist = util.make_list_items(make_item, list, default_value)
    local self = {
       height = #radiolist+1,
       radiolist = radiolist,

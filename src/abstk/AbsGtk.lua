@@ -13,6 +13,7 @@ local AbsGtk = {}
 
 local lgi = require 'lgi'
 local Gtk = lgi.require('Gtk')
+local util = require 'abstk.util'
 
 local Screen = {}
 local Wizard = {}
@@ -248,30 +249,6 @@ function Screen:add_checkbox(id, label, default_value, tooltip, callback)
 end
 
 function Screen:create_checklist(id, title, list, default_value, tooltip, callback)
-   local function make_buttons(make_button)
-      local buttons = {}
-      if type(list[1]) == "table" then
-         for i, pair in ipairs(list) do
-            local label, value = pair[1], pair[2]
-            table.insert(buttons, make_button(i, label, value))
-         end
-      else
-         for i, label in ipairs(list) do
-            local value = false
-            if type(default_value) == "table" then
-               value = default_value[i] or false
-            end
-            table.insert(buttons, make_button(i, label, value))
-         end
-      end
-      for i, button in ipairs(buttons) do
-         if callback then
-            button.on_toggled = function(self)
-               callback(id, button:get_active(), i)
-            end
-         end
-      end
-   end
    local title_widget = Gtk.Label { label = title }
    title_widget:set_halign('START')
    local item = {
@@ -282,13 +259,18 @@ function Screen:create_checklist(id, title, list, default_value, tooltip, callba
          orientation = 'VERTICAL',
       }
    }
-   local function make_button(id, label, value)
-      local checkbutton = Gtk.CheckButton { id = id, label = label }
+   local function make_item(i, label, value)
+      local checkbutton = Gtk.CheckButton { id = i, label = label }
       checkbutton:set_active(value)
       item.widget:add(checkbutton)
+      if callback then
+         checkbutton.on_toggled = function(self)
+            callback(id, checkbutton:get_active(), i)
+         end
+      end
       return checkbutton
    end
-   make_buttons(make_button)
+   util.make_list_items(make_item, list, default_value)
    item.widget:set_tooltip_text(tooltip)
    table.insert(self.widgets, item)
 end
@@ -305,7 +287,7 @@ function Screen:create_radiolist(id, title, list, default_value, tooltip, callba
       }
    }
    local firstradio
-   local function make_button(i, label, value)
+   local function make_item(i, label, value)
       local radiobutton
       if i == 1 then
          radiobutton = Gtk.RadioButton.new_with_label(nil, label)
@@ -314,33 +296,18 @@ function Screen:create_radiolist(id, title, list, default_value, tooltip, callba
          radiobutton = Gtk.RadioButton.new_with_label(Gtk.RadioButton.get_group(firstradio), label)
       end
       radiobutton:set_active(value)
-      item.widget:add(radiobutton)
-      return radiobutton
-   end
-   local function make_buttons()
-      local buttons = {}
-      if type(list[1]) == "table" then
-         for i, pair in ipairs(list) do
-            local label, value = pair[1], pair[2]
-            table.insert(buttons, make_button(i, label, value))
-         end
-      else
-         for i, field in ipairs(list) do
-            table.insert(buttons, make_button(i, field, (i == default_value) ))
-         end
-      end
-      for i, button in ipairs(buttons) do
-         if callback then
-            button.on_toggled = function(self)
-               if button:get_active() then
-                  callback(id, button:get_label(), i)
-               end
+      if callback then
+         radiobutton.on_toggled = function(self)
+            if radiobutton:get_active() then
+               callback(id, radiobutton:get_label(), i)
             end
          end
       end
+      item.widget:add(radiobutton)
+      return radiobutton
    end
+   util.make_list_items(make_item, list, default_value)
    item.widget:set_tooltip_text(tooltip)
-   make_buttons()
    table.insert(self.widgets, item)
 end
 
@@ -584,13 +551,13 @@ function Wizard:add_page(id, screen, page_type)
       complete = true,
       content = Gtk.ScrolledWindow{vbox},
    }
-   
+
    -- work arround bug where scrolled window BG goes black
    -- http://stackoverflow.com/questions/27592603
    -- https://git.gnome.org/browse/california/commit/?id=3442b3
    local bg_color = self.assistant:get_toplevel():get_style_context():get_background_color(Gtk.StateFlags.NORMAL)
    page.content:override_background_color(Gtk.StateFlags.NORMAL, bg_color)
-   
+
    table.insert(self.pages, page)
    Gtk.Assistant.append_page(self.assistant, page.content)
    Gtk.Assistant.set_page_title(self.assistant, page.content, screen.title)

@@ -170,19 +170,21 @@ function abstk.new_screen(title, w, h)
       -------------------------------------------------
       -- <p align="justify">
       -- Creates a checkboxes list and adds it to the screen widgets table. 
-      -- There are 3 ways to call it via client. The first one is by passing 
-      -- just an array with the labels as the 'list' parameter. The second one 
+      -- There are 4 ways to call it via client. The first one is by passing 
+      -- just an array with the labels as the `list` parameter. The second one 
       -- is similar, but you pass, also, an array of booleans, as 
-      -- 'default_value', representing the states of those buttons. The third 
+      -- `default_value`, representing the states of those buttons. The third 
       -- one is an alternative to the second, since it's better readable: you 
       -- pass an array of tables. Each table represents a box and its state.
+      -- Also, there's a fourth way of doing that. `default_value` can be just a
+      -- single index to mark an item.
       -- </p>
       --
       -- @param id the id to reference the widget later on
       -- @param title the title of the group
       -- @param list an array with the labels or an array of tables holding paired 
       -- info.
-      -- @param[opt] default_value a table containing the states of the boxes
+      -- @param[opt] default_value a table containing the states of the boxes or the index to a single item
       -- @param[opt] tooltip a tooltip to the list
       -- @param[opt] callback a callback function to the boxes
       --
@@ -196,6 +198,7 @@ function abstk.new_screen(title, w, h)
       --   {'c', true},
       -- }
       -- scr:create_checklist('style3', "Checklist 3:", check_table, nil, tooltip, chk_callback)
+      -- scr:create_checklist('style4', "Checklist 4:", {'x', 'y', 'z'}, 3, tooltip, chk_callback)
       -------------------------------------------------
       create_checklist = function(self, id, title, list, default_value, tooltip, callback)
          obj:create_checklist(id, title, list, default_value, tooltip, callback)
