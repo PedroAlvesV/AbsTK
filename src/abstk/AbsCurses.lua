@@ -7,6 +7,8 @@
 -- @see abstk
 -------------------------------------------------
 
+-- lists will be long checklists
+-- fix pad glitch where there can be only a single textbox widget
 -- fix bbox subfocus to disabled buttons
 -- fix bbox tooltips
 -- http://stackoverflow.com/questions/2515244/how-to-scroll-text-in-python-curses-subwindow
@@ -19,7 +21,9 @@ local AbsCurses = {}
 local curses = require 'curses' -- http://www.pjb.com.au/comp/lua/lcurses.html
 -- https://github.com/jballanc/playgo/blob/master/doc/curses-examples/lcurses-test.lua
 -- http://invisible-island.net/ncurses/man/ncurses.3x.html
+-- https://lcurses.github.io/lcurses/modules/curses.html
 -- https://www.ibm.com/support/knowledgecenter/ssw_aix_61/com.ibm.aix.basetrf2/newpad.htm
+
 local util = require 'abstk.util'
 
 local Screen = {}
@@ -32,7 +36,7 @@ local AbsCursesTextInput = {}
 local AbsCursesTextBox = {}
 local AbsCursesCheckBox = {}
 local AbsCursesCheckList = {}
-local AbsCursesRadioList = {}
+local AbsCursesSelector = {}
 local AbsCursesList = {}
 
 local max_x, max_y
@@ -72,23 +76,19 @@ local function attr_code(attr)
    return code
 end
 
-local function draw_scrollbar(drawable, x, y, h, line)
-   local i = 1
-   while i < 10 do
+local function draw_scrollbar(drawable, x, y, h_box, h_data, current_line)
+   for i=1, h_box do
       drawable:mvaddstr(y+i, x, " ")
-      i = i + 1
    end
-   local bar_h = line + 1
-   if h < 18 then
-      if line > (h - line - 9) then
-         bar_h = 9 - (h - line - 9)
-      end
-   else
-      -- TODO
-   end
+   local h_scroll = h_box - 2
+   local n_scroll = h_data - h_box + 1  
+   local bar_h = math.ceil( (h_scroll / n_scroll) )
+   local bar_y = math.ceil( (h_scroll / n_scroll) * current_line )
    drawable:attrset(colors.button)
    drawable:mvaddstr(y+1, x, '^')
-   drawable:mvaddstr(y+bar_h, x, '*')
+   for i=0, bar_h-1 do
+      drawable:mvaddstr(y+bar_y-i+1, x, ' ')
+   end
    drawable:mvaddstr(y+10, x, 'v')
 end
 
@@ -339,17 +339,17 @@ function AbsCursesCheckList:process_key(key)
    end
 end
 
-function AbsCursesRadioList.new(title, list, default_value, tooltip, callback)
+function AbsCursesSelector.new(title, list, default_value, tooltip, callback)
    local function make_item(i, label, value)
       if value then
          default_value = i
       end
       return label
    end
-   local radiolist = util.make_list_items(make_item, list, default_value)
+   local items = util.make_list_items(make_item, list, default_value)
    local self = {
-      height = #radiolist+1,
-      radiolist = radiolist,
+      height = #items+1,
+      list = items,
       focusable = true,
       subfocus = 1,
       title = title,
@@ -358,10 +358,10 @@ function AbsCursesRadioList.new(title, list, default_value, tooltip, callback)
       callback = callback,
       enabled = true,
    }
-   return setmetatable(self, { __index = AbsCursesRadioList })
+   return setmetatable(self, { __index = AbsCursesSelector })
 end
 
-function AbsCursesRadioList:draw(drawable, x, y, focus)
+function AbsCursesSelector:draw(drawable, x, y, focus)
    if focus then
       drawable:attrset(colors.current)
    else
@@ -373,7 +373,7 @@ function AbsCursesRadioList:draw(drawable, x, y, focus)
    end
    drawable:mvaddstr(y, x, self.title)
    y = y + 1
-   for i, button in ipairs(self.radiolist) do
+   for i, button in ipairs(self.list) do
       if focus then
          if i == self.subfocus then
             drawable:attrset(colors.subcurrent)
@@ -391,7 +391,7 @@ function AbsCursesRadioList:draw(drawable, x, y, focus)
    end
 end
 
-function AbsCursesRadioList:process_key(key)
+function AbsCursesSelector:process_key(key)
    if (key == keys.ENTER or key == keys.SPACE) and self.focusable then
       self.marked = self.subfocus
       run_callback(self)
@@ -400,10 +400,10 @@ function AbsCursesRadioList:process_key(key)
    elseif key == keys.TAB then
       return actions.NEXT
    elseif key == keys.DOWN then
-      if self.subfocus < #self.radiolist then
+      if self.subfocus < #self.list then
          self.subfocus = self.subfocus + 1
          return actions.HANDLED
-      elseif self.subfocus == #self.radiolist then
+      elseif self.subfocus == #self.list then
          return actions.NEXT
       end
    elseif key == keys.UP then
@@ -587,7 +587,7 @@ function AbsCursesTextBox:draw(drawable, x, y, focus)
    pad:border(0,0)
    pad:prefresh(0, 0, y, x, y+self.height+2, self.width+4)
    if self.inside then
-      draw_scrollbar(drawable, self.width, y, #self.text, self.view_pos)
+      draw_scrollbar(drawable, self.width, y, self.height, #self.text, self.view_pos)
    end
 end
 
@@ -669,8 +669,8 @@ function Screen:create_checklist(id, title, list, default_value, tooltip, callba
    create_widget(self, 'CHECKLIST', AbsCursesCheckList, id, title, list, default_value, tooltip, callback)
 end
 
-function Screen:create_radiolist(id, title, list, default_value, tooltip, callback)
-   create_widget(self, 'RADIOLIST', AbsCursesRadioList, id, title, list, default_value, tooltip, callback)
+function Screen:create_selector(id, title, list, default_value, tooltip, callback)
+   create_widget(self, 'SELECTOR', AbsCursesSelector, id, title, list, default_value, tooltip, callback)
 end
 
 function Screen:create_list(id, list, tooltip, callback)
@@ -730,7 +730,7 @@ function Screen:set_value(id, value, index)
             item.widget.state = value
          elseif item.type == 'CHECKLIST' then
             item.widget.checklist[index].state = value
-         elseif item.type == 'RADIOLIST' then
+         elseif item.type == 'SELECTOR' then
             item.widget.marked = value
          elseif item.type == 'LIST' then
             -- TODO
@@ -761,10 +761,10 @@ function Screen:get_value(id, index)
             return item.widget.label, item.widget.state
          elseif item.type == 'CHECKLIST' then
             return item.widget.checklist[index].label, item.widget.checklist[index].state
-         elseif item.type == 'RADIOLIST' or item.type == 'LIST' then
+         elseif item.type == 'SELECTOR' or item.type == 'LIST' then
             local list = item.widget.list
-            if item.type == 'RADIOLIST' then
-               list = item.widget.radiolist
+            if item.type == 'SELECTOR' then
+               list = item.widget.list
             end
             for i, button in ipairs(list) do
                if i == item.widget.marked then

@@ -6,6 +6,8 @@
 -- @license MIT
 -------------------------------------------------
 
+-- lists will be long checklists
+
 local abstk = {}
 
 local AbsGtk = require 'abstk.AbsGtk'
@@ -205,14 +207,14 @@ function abstk.new_screen(title, w, h)
       end,
       -------------------------------------------------
       -- <p align="justify">
-      -- Creates a radiobuttons list and adds it to the screen widgets table. Its 
-      -- calling is very similar to checkboxes. There are 3 ways to do so. The 
-      -- first one is by passing just an array with the labels as the 'list' 
-      -- parameter. The second one is different from it's equivalent in 
-      -- checkboxes, because radiobuttons can only be active one at the time. So, 
-      -- the second way asks for a number — the index, more precisely —, as 
-      -- 'default_value', to activate that button. The third one is actually 
-      -- equal to it's equivalent in checkboxes.
+      -- Creates a list where just one item can be selected at a time and adds
+      -- it to the screen widgets table. Its calling is very similar to checkboxes. 
+      -- There are 3 ways to do so. The first one is by passing just an array with 
+      -- the labels as the 'list' parameter. The second one is different from it's 
+      -- equivalent in checkboxes, because radiobuttons can only be active one at the 
+      -- time. So, the second way asks for a number — the index, more precisely —, as 
+      -- 'default_value', to activate that button. The third one is actually equal to
+      -- it's equivalent in checkboxes.
       -- </p>
       --
       -- @see Screen:create_checklist
@@ -225,55 +227,19 @@ function abstk.new_screen(title, w, h)
       -- @param[opt] tooltip a tooltip to the list
       -- @param[opt] callback a callback function to the boxes
       --
-      -- @usage scr:create_radiolist('style1', "Radiolist 1:", {'x', 'y', 'z'}, nil, tooltip, rd_callback)
+      -- @usage scr:create_selector('style1', "Selector 1:", {'x', 'y', 'z'}, nil, tooltip, slct_callback)
       --
-      -- scr:create_radiolist('style2', "Radiolist 2:", {'a', 's', 'd'}, 3, tooltip, rd_callback)
+      -- scr:create_selector('style2', "Selector 2:", {'a', 's', 'd'}, 3, tooltip, slct_callback)
       --
-      -- local radiolist_values = {
+      -- local selector_values = {
       --   {'q', false},
       --   {'w', true},
       --   {'e', false},
       -- }
-      -- scr:create_radiolist('style3', "Radiolist 3:", radiolist_values, nil, tooltip, rd_callback)
+      -- scr:create_selector('style3', "Selector 3:", selector_values, nil, tooltip, slct_callback)
       -------------------------------------------------
-      create_radiolist = function(self, id, title, list, default_value, tooltip, callback)
-         obj:create_radiolist(id, title, list, default_value, tooltip, callback)
-      end,
-      -------------------------------------------------
-      -- <p align="justify">
-      -- Creates a list with checkbuttons attached and adds it to the screen 
-      -- widgets table. There are two ways of calling it: it may explicit the state 
-      -- of every single row or let all the checkbuttons unchecked. The first one 
-      -- is actually identical to checkboxes 3th construction. The second one 
-      -- consists in passing an array of the labels.
-      -- </p>
-      --
-      -- @see Screen:create_checklist
-      --
-      -- @param id the id to reference the widget later on
-      -- @param list an array with the labels or an array of tables holding paired 
-      -- info.
-      -- @param[opt] default_value a table containing the states of the boxes
-      -- @param[opt] tooltip a tooltip to the list
-      -- @param[opt] callback a callback function to the boxes
-      --
-      -- @usage local list = {
-      --   { "Item1", false },
-      --   { "Item2", true },
-      --   { "Item3", false },
-      --   { "Item4", false },
-      --   { "Item5", false },
-      --   { "Item6", false },
-      --   { "Item7", false },
-      --   { "Item8", false },
-      --   { "Item9", false },
-      -- }
-      -- scr:create_list('style1', list , tooltip, list_callback)
-      --
-      -- scr:create_list('style2', {"Item10", "Item11", "Item12"} , tooltip, list_callback)
-      -------------------------------------------------
-      create_list = function(self, id, title, list, tooltip, callback)
-         obj:create_list(id, title, list, tooltip, callback)
+      create_selector = function(self, id, title, list, default_value, tooltip, callback)
+         obj:create_selector(id, title, list, default_value, tooltip, callback)
       end,
       -------------------------------------------------
       -- Creates and shows a message box. There are a few constants to determine 
@@ -316,10 +282,10 @@ function abstk.new_screen(title, w, h)
       -- * `Text Input - string (text to be insert)`
       -- * `TextBox - string (text to be insert)`
       -- * `CheckList - boolean (state of button)`
-      -- * `RadioList - boolean (state of button)`
+      -- * `Selector - boolean (state of button)`
       -- * `List - boolean (state of button)`
       --
-      -- Note that, since RadioButtons can only be active one at the time per group,
+      -- Note that, since Selector items can only be active one at the time per group,
       -- the value parameter passed is the index representing which one must be set active.
       --
       -- @param id the id of the required widget
@@ -337,7 +303,7 @@ function abstk.new_screen(title, w, h)
       -- scr:set_value('textbox', "New Text")
       -- scr:set_value('checkbox', true)
       -- scr:set_value('checklist', true, 1)
-      -- scr:set_value('radiolist', 2)
+      -- scr:set_value('selector', 2)
       -- scr:set_value('list', true, 3)
       -------------------------------------------------
       set_value = function(self, id, value, index)
@@ -358,7 +324,7 @@ function abstk.new_screen(title, w, h)
       -- * `Text input - a string (current text)`
       -- * `Textbox - a string (current text)`
       -- * `Checklist - a string and a boolean (label and state of button)`
-      -- * `Radiolist - a string and a boolean (label and state of button)`
+      -- * `Selector - a string and a boolean (label and state of button)`
       -- * `List - a string and a boolean (label and state of button)`
       -------------------------------------------------
       get_value = function(self, id, index)

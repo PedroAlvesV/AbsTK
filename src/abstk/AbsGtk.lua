@@ -7,7 +7,9 @@
 -- @see abstk
 -------------------------------------------------
 
--- TODO remove topbar in lists
+-- lists will be long checklists
+-- remove topbar in long checklists
+-- radiolist will be renamed to selector
 
 local AbsGtk = {}
 
@@ -275,40 +277,50 @@ function Screen:create_checklist(id, title, list, default_value, tooltip, callba
    table.insert(self.widgets, item)
 end
 
-function Screen:create_radiolist(id, title, list, default_value, tooltip, callback)
-   local title_widget = Gtk.Label { label = title }
-   title_widget:set_halign('START')
-   local item = {
-      id = id,
-      type = 'RADIOLIST',
-      widget = Gtk.Box {
-         title_widget,
-         orientation = 'VERTICAL',
+function Screen:create_selector(id, title, list, default_value, tooltip, callback)
+   local function create_short_selector()
+      local title_widget = Gtk.Label { label = title }
+      title_widget:set_halign('START')
+      local item = {
+         id = id,
+         type = 'RADIOLIST',
+         widget = Gtk.Box {
+            title_widget,
+            orientation = 'VERTICAL',
+         }
       }
-   }
-   local firstradio
-   local function make_item(i, label, value)
-      local radiobutton
-      if i == 1 then
-         radiobutton = Gtk.RadioButton.new_with_label(nil, label)
-         firstradio = radiobutton
-      else
-         radiobutton = Gtk.RadioButton.new_with_label(Gtk.RadioButton.get_group(firstradio), label)
-      end
-      radiobutton:set_active(value)
-      if callback then
-         radiobutton.on_toggled = function(self)
-            if radiobutton:get_active() then
-               callback(id, radiobutton:get_label(), i)
+      local firstradio
+      local function make_item(i, label, value)
+         local radiobutton
+         if i == 1 then
+            radiobutton = Gtk.RadioButton.new_with_label(nil, label)
+            firstradio = radiobutton
+         else
+            radiobutton = Gtk.RadioButton.new_with_label(Gtk.RadioButton.get_group(firstradio), label)
+         end
+         radiobutton:set_active(value)
+         if callback then
+            radiobutton.on_toggled = function(self)
+               if radiobutton:get_active() then
+                  callback(id, radiobutton:get_label(), i)
+               end
             end
          end
+         item.widget:add(radiobutton)
+         return radiobutton
       end
-      item.widget:add(radiobutton)
-      return radiobutton
+      util.make_list_items(make_item, list, default_value)
+      item.widget:set_tooltip_text(tooltip)
+      table.insert(self.widgets, item)
    end
-   util.make_list_items(make_item, list, default_value)
-   item.widget:set_tooltip_text(tooltip)
-   table.insert(self.widgets, item)
+   local function create_long_selector()
+      -- TODO
+   end
+   if #list < 6 then
+      create_short_selector()
+   else
+      create_long_selector()
+   end
 end
 
 function Screen:create_list(id, title, list, tooltip, callback)
