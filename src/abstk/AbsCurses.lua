@@ -9,7 +9,6 @@
 
 -- fix bbox subfocus to disabled buttons
 -- fix bbox tooltips
--- turn textbox text an 2D array containing the characters
 -- http://stackoverflow.com/questions/2515244/how-to-scroll-text-in-python-curses-subwindow
 
 -- FOCUS_ON_BUTTONS não existe mais como widget
@@ -566,10 +565,11 @@ function AbsCursesTextBox.new(title, default_value, tooltip, callback)
    }
    self.text, self.text_height = "", 0
    if default_value then
-      self.text, self.text_height = default_value:gsub("\n", "\n ")
+      self.text = {}
+      for line in default_value:gmatch("[^\n]*") do
+         table.insert(self.text, line)
+      end
    end
-   self.hidden_text = {}
-   self.text_height = self.text_height + 1
    return setmetatable(self, { __index = AbsCursesTextBox })
 end
 
@@ -596,12 +596,14 @@ function AbsCursesTextBox:draw(drawable, x, y, focus)
    end
    local pad = curses.newpad(self.height+2, self.width-2)
    pad:wbkgd(attr_code(box_colors()))
-   pad:mvaddstr(1, 1, self.text)
+   for i=self.view_pos, self.view_pos + self.height - 1 do
+      pad:mvaddstr(i-self.view_pos+1, 1, self.text[i] or "")
+   end
    pad:attrset(colors.default)
    pad:border(0,0)
    pad:prefresh(0, 0, y, x, y+self.height+2, self.width+4)
    if self.inside then
-      draw_scrollbar(drawable, self.width, y, self.text_height, (self.view_pos*(-1))+2)
+      draw_scrollbar(drawable, self.width, y, #self.text, self.view_pos)
    end
 end
 
@@ -617,23 +619,18 @@ function AbsCursesTextBox:process_key(key)
       self.inside = false
       return actions.NEXT
    elseif key == keys.DOWN or key == keys.PAGE_DOWN then
-      if self.inside and self.text_height > self.height then
---         print(" "..#self.hidden_text+1, self.height, self.text_height)
-         if #self.hidden_text+1 + self.height <= self.text_height then
-            local _, index = self.text:find("\n ")
-            table.insert(self.hidden_text, self.text:sub(1, index))
-            self.text = self.text:gsub(self.hidden_text[#self.hidden_text], "")
-            self.view_pos = self.view_pos - 1
+      if self.inside and #self.text > self.height then
+         if self.view_pos <= #self.text - self.height then
+            self.view_pos = self.view_pos + 1
          end
          return actions.HANDLED
       end
       self.inside = false
       return actions.NEXT
    elseif key == keys.UP or key == keys.PAGE_UP then
-      if self.inside and self.text_height > self.height then
-         if self.view_pos < 1 then
-            self.text = table.remove(self.hidden_text)..self.text
-            self.view_pos = self.view_pos + 1
+      if self.inside and #self.text > self.height then
+         if self.view_pos > 1 then
+            self.view_pos = self.view_pos - 1
          end
          return actions.HANDLED
       end
@@ -830,7 +827,7 @@ end
 
 function Screen:run()
    local stdscr = init_curses()
-   self.pad = curses.newpad(max_x-2 + 100, max_y-4 + 100)
+   self.pad = curses.newpad(max_x-2 + 100, max_y-4 + 100) -- FIX CALCULATE SIZE BASED ON WIDGETS HEIGHT
    self.pad:wbkgd(attr_code(colors.default))
    stdscr:sub(max_y-1, max_x, 0, 0):box(0, 0)
    stdscr:attrset(colors.default)
