@@ -9,7 +9,6 @@
 
 -- lists will be long checklists
 -- remove topbar in long checklists
--- radiolist will be renamed to selector
 
 local AbsGtk = {}
 
@@ -314,7 +313,42 @@ function Screen:create_selector(id, title, list, default_value, tooltip, callbac
       table.insert(self.widgets, item)
    end
    local function create_long_selector()
-      -- TODO
+      local selector = Gtk.ListBox {id = 'selector'}
+      for _, label in ipairs(list) do
+         local item = Gtk.Label {label = label}
+         item:set_halign('START')
+         selector:insert(item, -1)
+      end
+      if default_value then
+         local row = selector:get_row_at_index(default_value-1)
+         selector:select_row(row)
+      end
+      function selector.on_row_selected(_, row)
+         local row_label = row:get_child()
+         local row_text = row_label:get_label()
+         if callback then
+            callback(id, row_text)
+         end
+      end
+      local scrolled_window = Gtk.ScrolledWindow {
+         id = 'scrolled_window',
+         hscrollbar_policy = 'NEVER',
+         hexpand = true,
+         selector,
+      }
+      local title_widget = Gtk.Label { label = title }
+      title_widget:set_halign('START')
+      local item = {
+         id = id,
+         type = 'SELECTOR',
+         widget = Gtk.Box {
+            title_widget,
+            scrolled_window,
+            orientation = 'VERTICAL',
+         }
+      }
+      item.widget:set_tooltip_text(tooltip)
+      table.insert(self.widgets, item)
    end
    if #list < 6 then
       create_short_selector()
@@ -344,7 +378,6 @@ function Screen:create_list(id, title, list, tooltip, callback)
    end
    local scrolled_window = Gtk.ScrolledWindow {
       id = 'scrolled_window',
-      shadow_type = 'ETCHED_IN',
       hscrollbar_policy = 'NEVER',
       hexpand = true,
       Gtk.TreeView {
@@ -472,6 +505,10 @@ function Screen:set_value(id, value, index)
          elseif item.type == 'RADIOLIST' then
             local button = item.widget.child[value+1]
             button:set_active(true)
+         elseif item.type == 'SELECTOR' then
+            local selector = item.widget.child.scrolled_window.child.selector
+            local row = selector:get_row_at_index(value-1)
+            selector:select_row(row)
          elseif item.type == 'LIST' then
             index = index - 1
             local store = item.widget.child.scrolled_window.child.view.model
@@ -521,6 +558,11 @@ function Screen:get_value(id, index)
                   end
                end
             end
+         elseif item.type == 'SELECTOR' then
+            local selector = item.widget.child.scrolled_window.child.selector
+            local selected_row = selector:get_selected_row()
+            local row_label = selected_row:get_child()
+            return row_label:get_label()
          elseif item.type == 'LIST' then
             index = index - 1
             local store = item.widget.child.scrolled_window.child.view.model
