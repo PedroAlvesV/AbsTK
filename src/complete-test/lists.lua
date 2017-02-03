@@ -25,16 +25,16 @@ local checklist_values = {
 
 scr:create_checklist('chklist3', "CheckBoxes (constructed by passing values in the elements table)", checklist_values, nil, nil, chk_callback)
 
-scr:create_radiolist('rdlist1', "RadioButtons (default construction)", {'x', 'y', 'z'}, nil, nil, rd_callback)
+scr:create_selector('rdlist1', "RadioButtons (default construction)", {'x', 'y', 'z'}, nil, nil, rd_callback)
 
-scr:create_radiolist('rdlist2', "RadioButtons (constructed by passing index by default_value)", {'a', 's', 'd'}, 3, nil, rd_callback)
+scr:create_selector('rdlist2', "RadioButtons (constructed by passing index by default_value)", {'a', 's', 'd'}, 3, nil, rd_callback)
 
 local radiolist_values = {
    {'q', false},
    {'w', true},
    {'e', false},
 }
-scr:create_radiolist('rdlist3', "RadioButtons (constructed by passing booleans in the elements table)", radiolist_values, nil, nil, rd_callback)
+scr:create_selector('rdlist3', "RadioButtons (constructed by passing booleans in the elements table)", radiolist_values, nil, nil, rd_callback)
 
 local list = {
    { "Item1", false },
