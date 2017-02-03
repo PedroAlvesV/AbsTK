@@ -586,7 +586,7 @@ function AbsCursesTextBox:draw(drawable, x, y, focus)
    pad:attrset(colors.default)
    pad:border(0,0)
    pad:prefresh(0, 0, y, x, y+self.height+2, self.width+4)
-   if self.inside then
+   if self.inside and #self.text > self.height then
       draw_scrollbar(drawable, self.width, y, self.height, #self.text, self.view_pos)
    end
 end
@@ -602,7 +602,7 @@ function AbsCursesTextBox:process_key(key)
    elseif key == keys.TAB then
       self.inside = false
       return actions.NEXT
-   elseif key == keys.DOWN or key == keys.PAGE_DOWN then
+   elseif key == keys.DOWN then
       if self.inside and #self.text > self.height then
          if self.view_pos <= #self.text - self.height then
             self.view_pos = self.view_pos + 1
@@ -611,7 +611,7 @@ function AbsCursesTextBox:process_key(key)
       end
       self.inside = false
       return actions.NEXT
-   elseif key == keys.UP or key == keys.PAGE_UP then
+   elseif key == keys.UP then
       if self.inside and #self.text > self.height then
          if self.view_pos > 1 then
             self.view_pos = self.view_pos - 1
@@ -620,6 +620,40 @@ function AbsCursesTextBox:process_key(key)
       end
       self.inside = false
       return actions.PREVIOUS
+   elseif key == keys.PAGE_DOWN then
+      if self.inside and #self.text > self.height then
+         if self.view_pos <= #self.text - self.height then
+            local temp_vpos = self.view_pos + 5
+            if temp_vpos > #self.text - self.height then
+               self.view_pos = #self.text - self.height + 1
+            else
+               self.view_pos = temp_vpos
+            end
+         end
+         return actions.HANDLED
+      end
+   elseif key == keys.PAGE_UP then
+      if self.inside and #self.text > self.height then
+         if self.view_pos > 1 then
+            local temp_vpos = self.view_pos - 5
+            if temp_vpos < 1 then
+               self.view_pos = 1
+            else
+               self.view_pos = temp_vpos
+            end
+         end
+         return actions.HANDLED
+      end
+   elseif key == keys.HOME then
+      if self.inside then
+         self.view_pos = 1
+         return actions.HANDLED
+      end
+   elseif key == keys.END then
+      if self.inside then
+         self.view_pos = #self.text - self.height + 1
+         return actions.HANDLED
+      end
    end
    return actions.PASSTHROUGH
 end
