@@ -385,7 +385,7 @@ function Screen:create_list(id, title, list, tooltip, callback)
          model = store,
          Gtk.TreeViewColumn {
             id = 'column1',
-            fixed_width = 40,
+            fixed_width = 30,
             {
                Gtk.CellRendererToggle { id = 'checkbutton' },
                { active = columns.CHECKBUTTON },
@@ -401,6 +401,7 @@ function Screen:create_list(id, title, list, tooltip, callback)
          },
       },
    }
+   scrolled_window.child.view:set_headers_visible(false)
    function scrolled_window.child.checkbutton:on_toggled(path_str)
       local path = Gtk.TreePath.new_from_string(path_str)
       store[path][columns.CHECKBUTTON] = not store[path][columns.CHECKBUTTON]
