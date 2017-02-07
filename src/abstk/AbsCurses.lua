@@ -89,7 +89,7 @@ local function draw_scrollbar(drawable, x, y, h_box, h_data, current_line)
    for i=0, bar_h-1 do
       drawable:mvaddstr(y+bar_y-i+1, x, ' ')
    end
-   drawable:mvaddstr(y+10, x, 'v')
+   drawable:mvaddstr(y+h_box, x, 'v')
 end
 
 local function run_callback(self)
@@ -352,16 +352,23 @@ function AbsCursesSelector.new(title, list, default_value, tooltip, callback)
       list = items,
       focusable = true,
       subfocus = 1,
+      view_pos = 1,
+      visible = 5,
       title = title,
       marked = default_value or 1,
       tooltip = tooltip,
       callback = callback,
       enabled = true,
    }
+   if self.height > 5 then
+      self.height = 6
+      self.scrollable = true
+   end
    return setmetatable(self, { __index = AbsCursesSelector })
 end
 
 function AbsCursesSelector:draw(drawable, x, y, focus)
+   self.width = max_x-8
    if focus then
       drawable:attrset(colors.current)
    else
@@ -373,7 +380,7 @@ function AbsCursesSelector:draw(drawable, x, y, focus)
    end
    drawable:mvaddstr(y, x, self.title)
    y = y + 1
-   for i, button in ipairs(self.list) do
+   for i=self.view_pos, #self.list do
       if focus then
          if i == self.subfocus then
             drawable:attrset(colors.subcurrent)
@@ -387,7 +394,12 @@ function AbsCursesSelector:draw(drawable, x, y, focus)
       if i == self.marked then
          mark = "*"
       end
-      drawable:mvaddstr(y+i-1, x, "("..mark..") "..button)
+      if i < self.view_pos + self.visible then
+         drawable:mvaddstr(y+i-self.view_pos, x, "("..mark..") "..self.list[i])
+      end
+   end
+   if #self.list > self.visible then
+      draw_scrollbar(drawable, self.width, y-1, self.visible, #self.list, self.view_pos)
    end
 end
 
@@ -402,6 +414,9 @@ function AbsCursesSelector:process_key(key)
    elseif key == keys.DOWN then
       if self.subfocus < #self.list then
          self.subfocus = self.subfocus + 1
+         if self.scrollable and self.subfocus - self.view_pos + 1 == self.visible + 1 then
+            self.view_pos = self.view_pos + 1
+         end
          return actions.HANDLED
       elseif self.subfocus == #self.list then
          return actions.NEXT
@@ -409,6 +424,9 @@ function AbsCursesSelector:process_key(key)
    elseif key == keys.UP then
       if self.subfocus > 1 then
          self.subfocus = self.subfocus - 1
+         if self.scrollable and self.subfocus == self.view_pos - 1 then
+            self.view_pos = self.view_pos - 1
+         end
          return actions.HANDLED
       elseif self.subfocus == 1 then
          return actions.PREVIOUS
@@ -421,9 +439,9 @@ function AbsCursesTextInput.new(label, visibility, default_value, tooltip, callb
    local self = {
       height = 1,
       focusable = true,
-      label = label,
+      label = label or "",
       visibility = visibility,
-      text = default_value,
+      text = default_value or "",
       cursor = 0,
       tooltip = tooltip,
       callback = callback,
@@ -759,7 +777,11 @@ function Screen:set_value(id, value, index)
             entry.text = value
             entry.cursor = utf8.len(entry.label) + utf8.len(entry.text) + 6
          elseif item.type == 'TEXTBOX' then
-            -- TODO
+            local textbox = item.widget
+            textbox.text = {}
+            for line in value:gmatch("[^\n]*") do
+               table.insert(textbox.text, line)
+            end
          elseif item.type == 'CHECKBOX' then
             item.widget.state = value
          elseif item.type == 'CHECKLIST' then
@@ -790,7 +812,12 @@ function Screen:get_value(id, index)
          elseif item.type == 'TEXT_INPUT' then
             return item.widget.text
          elseif item.type == 'TEXTBOX' then
-            -- TODO
+            local textbox = item.widget
+            local text = ""
+            for _, line in ipairs(textbox.text) do
+               text = text..line.."\n"
+            end
+            return text
          elseif item.type == 'CHECKBOX' then
             return item.widget.label, item.widget.state
          elseif item.type == 'CHECKLIST' then
@@ -922,10 +949,10 @@ function Screen:run()
          else
             self.pad:mvaddstr(y-1, 1, " ")
          end
-         self.pad:prefresh(0, 0, 1, 1, max_y-5, max_x-2)
          item.widget:draw(stdscr, 4, y, i == self.focus)
          y = y + item.widget.height + 1
       end
+      self.pad:prefresh(0, 0, 1, 1, max_y-5, max_x-2)
       stdscr:move(max_y-1,max_x-1)
       process_key(stdscr:getch(), self.widgets[self.focus].widget)
    end
