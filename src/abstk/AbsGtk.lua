@@ -309,14 +309,17 @@ function Screen:create_selector(id, title, list, default_value, tooltip, callbac
          return radiobutton
       end
       util.make_list_items(make_item, list, default_value)
-      item.widget:set_tooltip_text(tooltip)
-      table.insert(self.widgets, item)
+      return item
    end
    local function create_long_selector()
       local selector = Gtk.ListBox {id = 'selector'}
-      for _, label in ipairs(list) do
-         local item = Gtk.Label {label = label}
+      local function make_item(i, label, value)
+         local item = Gtk.Label {id = i, label = label}
          item:set_halign('START')
+         return item
+      end
+      local items = util.make_list_items(make_item, list, default_value)
+      for _, item in ipairs(items) do
          selector:insert(item, -1)
       end
       if default_value then
@@ -347,14 +350,16 @@ function Screen:create_selector(id, title, list, default_value, tooltip, callbac
             orientation = 'VERTICAL',
          }
       }
-      item.widget:set_tooltip_text(tooltip)
-      table.insert(self.widgets, item)
+      return item
    end
+   local item
    if #list < 6 then
-      create_short_selector()
+      item = create_short_selector()
    else
-      create_long_selector()
+      item = create_long_selector()
    end
+   item.widget:set_tooltip_text(tooltip)
+   table.insert(self.widgets, item)
 end
 
 function Screen:create_list(id, title, list, tooltip, callback)
