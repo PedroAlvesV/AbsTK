@@ -116,7 +116,7 @@ function Screen:create_button_box(id, labels, tooltip, callback)
    table.insert(self.widgets, item)
 end
 
-function Screen:create_combobox(id, labels, default_value, tooltip, callback)
+function Screen:create_combobox(id, title, labels, default_value, tooltip, callback)
    local combobox = Gtk.ComboBoxText { id = 'combobox' }
    for i, label in ipairs(labels) do
       combobox:append(i, label)
@@ -127,6 +127,8 @@ function Screen:create_combobox(id, labels, default_value, tooltip, callback)
          callback(id, labels[combobox:get_active()+1])
       end
    end
+   local title_widget = Gtk.Label { label = title }
+   title_widget:set_halign('START')
    local box = Gtk.Box {
       id = 'box',
       orientation = 'VERTICAL',
@@ -139,6 +141,7 @@ function Screen:create_combobox(id, labels, default_value, tooltip, callback)
       widget = Gtk.Box {
          orientation = 'VERTICAL',
          spacing = 10,
+         title_widget,
          box,
       }
    }
@@ -250,28 +253,102 @@ function Screen:add_checkbox(id, label, default_value, tooltip, callback)
 end
 
 function Screen:create_checklist(id, title, list, default_value, tooltip, callback)
-   local title_widget = Gtk.Label { label = title }
-   title_widget:set_halign('START')
-   local item = {
-      id = id,
-      type = 'CHECKLIST',
-      widget = Gtk.Box {
-         title_widget,
-         orientation = 'VERTICAL',
+   local function create_short_checklist()
+      local title_widget = Gtk.Label { label = title }
+      title_widget:set_halign('START')
+      local item = {
+         id = id,
+         type = 'CHECKLIST',
+         widget = Gtk.Box {
+            title_widget,
+            orientation = 'VERTICAL',
+         }
       }
-   }
-   local function make_item(i, label, value)
-      local checkbutton = Gtk.CheckButton { id = i, label = label }
-      checkbutton:set_active(value)
-      item.widget:add(checkbutton)
-      if callback then
-         checkbutton.on_toggled = function(self)
-            callback(id, checkbutton:get_active(), i)
+      local function make_item(i, label, value)
+         local checkbutton = Gtk.CheckButton { id = i, label = label }
+         checkbutton:set_active(value)
+         item.widget:add(checkbutton)
+         if callback then
+            checkbutton.on_toggled = function(self)
+               callback(id, checkbutton:get_active(), i)
+            end
+         end
+         return checkbutton
+      end
+      util.make_list_items(make_item, list, default_value)
+      return item
+   end
+   local function create_long_checklist()
+      local function string_to_pair(list)
+         local t = {}
+         for _, label in ipairs(list) do
+            table.insert(t, {label, false})
+         end
+         return t
+      end
+      if type(list[1]) == "string" then
+         list = string_to_pair(list)
+      end
+      local columns = { LABEL = 1, CHECKBUTTON = 2 }
+      local store = Gtk.ListStore.new {
+         [columns.LABEL] = lgi.GObject.Type.STRING,
+         [columns.CHECKBUTTON] = lgi.GObject.Type.BOOLEAN,
+      }
+      for i, item in ipairs(list) do
+         store:append(item)
+      end
+      local scrolled_window = Gtk.ScrolledWindow {
+         id = 'scrolled_window',
+         hscrollbar_policy = 'NEVER',
+         hexpand = true,
+         Gtk.TreeView {
+            id = 'view',
+            model = store,
+            Gtk.TreeViewColumn {
+               id = 'column1',
+               fixed_width = 30,
+               {
+                  Gtk.CellRendererToggle { id = 'checkbutton' },
+                  { active = columns.CHECKBUTTON },
+               },
+            },
+            Gtk.TreeViewColumn {
+               id = 'column2',
+               sort_column_id = columns.LABEL - 1,
+               {
+                  Gtk.CellRendererText { id = 'label' },
+                  { text = columns.LABEL },
+               },
+            },
+         },
+      }
+      scrolled_window.child.view:set_headers_visible(false)
+      function scrolled_window.child.checkbutton:on_toggled(path_str)
+         local path = Gtk.TreePath.new_from_string(path_str)
+         store[path][columns.CHECKBUTTON] = not store[path][columns.CHECKBUTTON]
+         if callback then
+            callback(id, store[path][1], path_str+1)
          end
       end
-      return checkbutton
+      local title_widget = Gtk.Label { label = title }
+      title_widget:set_halign('START')
+      local item = {
+         id = id,
+         type = 'LIST',
+         widget = Gtk.Box {
+            title_widget,
+            orientation = 'VERTICAL',
+            scrolled_window
+         }
+      }
+      return item
    end
-   util.make_list_items(make_item, list, default_value)
+   local item
+   if #list < 6 then
+      item = create_short_checklist()
+   else
+      item = create_long_checklist()
+   end
    item.widget:set_tooltip_text(tooltip)
    table.insert(self.widgets, item)
 end
@@ -550,12 +627,12 @@ function Screen:get_value(id, index)
             local start_iter = Gtk.TextBuffer.get_start_iter(buffer)
             local end_iter = Gtk.TextBuffer.get_end_iter(buffer)
             return buffer:get_text(start_iter, end_iter)
-         elseif item.type == 'CHECKBOX' then
-            local checkbox = item.widget.child.checkbox
-            return checkbox:get_label(), checkbox:get_active()
-         elseif item.type == 'CHECKLIST' then
-            local checkbutton = item.widget:get_children()[index+1]
-            return checkbutton:get_label(), checkbutton:get_active()
+         elseif item.type == 'CHECKBOX' or item.type == 'CHECKLIST' then
+            local check = item.widget.child.checkbox
+            if item.type == 'CHECKLIST' then
+               check = item.widget:get_children()[index+1]
+            end
+            return check:get_label(), check:get_active()
          elseif item.type == 'RADIOLIST' then
             for i, child in ipairs(item.widget:get_children()) do
                if i > 1 then
@@ -573,7 +650,7 @@ function Screen:get_value(id, index)
             index = index - 1
             local store = item.widget.child.scrolled_window.child.view.model
             local path = Gtk.TreePath.new_from_string(math.floor(index))
-            return store[path][2], store[path][1]
+            return store[path][1], store[path][2]
          end
       end
    end
