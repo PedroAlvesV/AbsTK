@@ -85,7 +85,7 @@ function Screen:add_button(id, label, tooltip, callback)
    table.insert(self.widgets, item)
 end
 
-function Screen:create_button_box(id, labels, tooltip, callback)
+function Screen:create_button_box(id, labels, tooltips, callbacks)
    local function create_bbox(orientation, spacing, layout)
       local bbox = Gtk.ButtonBox {
          id = 'bbox',
@@ -95,10 +95,10 @@ function Screen:create_button_box(id, labels, tooltip, callback)
       }
       for i, label in ipairs(labels) do
          local button = Gtk.Button { id = i, label = label }
-         button:set_tooltip_text(tooltip)
-         if callback then
+         button:set_tooltip_text(tooltips and tooltips[i])
+         if callbacks[i] then
             button.on_clicked = function(self)
-               callback(id, label, i)
+               callbacks[i](id, label, i)
             end
          end
          bbox:add(button)
