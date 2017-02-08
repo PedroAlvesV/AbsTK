@@ -7,8 +7,7 @@
 -- @see abstk
 -------------------------------------------------
 
--- lists will be long checklists
--- fix pad glitch where there can be only a single textbox widget
+-- fix textbox pad glitch
 -- fix bbox subfocus to disabled buttons
 -- fix bbox tooltips
 -- http://stackoverflow.com/questions/2515244/how-to-scroll-text-in-python-curses-subwindow
@@ -37,7 +36,6 @@ local AbsCursesTextBox = {}
 local AbsCursesCheckBox = {}
 local AbsCursesCheckList = {}
 local AbsCursesSelector = {}
-local AbsCursesList = {}
 
 local max_x, max_y
 local colors = {}
@@ -222,219 +220,6 @@ function AbsCursesButtonBox:process_key(key)
    return self.buttons[self.subfocus]:process_key(key)
 end
 
-function AbsCursesCheckBox.new(label, default_value, tooltip, callback)
-   local self = {
-      height = 1,
-      label = label,
-      state = default_value or false,
-      focusable = true,
-      tooltip = tooltip,
-      callback = callback,
-      enabled = true,
-   }
-   return setmetatable(self, { __index = AbsCursesCheckBox })
-end
-
-function AbsCursesCheckBox:draw(drawable, x, y, focus)
-   if not focus then
-      if self.focusable then
-         drawable:attrset(colors.default)
-      else
-         drawable:attrset(colors.widget_disabled)
-      end
-   else
-      if type(focus) == 'table' then
-         if focus[1] then
-            drawable:attrset(colors.current)
-         end
-         if focus[2] then
-            drawable:attrset(colors.subcurrent)
-         end
-      else
-         drawable:attrset(colors.subcurrent)
-      end
-   end
-   local mark = " "
-   if self.state then
-      mark = "x"
-   end
-   drawable:mvaddstr(y, x, "["..mark.."] "..self.label)
-end
-
-function AbsCursesCheckBox:process_key(key)
-   if (key == keys.ENTER or key == keys.SPACE) and self.focusable then
-      self.state = not self.state
-      run_callback(self)
-   elseif key == keys.LEFT or key == keys.RIGHT then
-      return actions.FOCUS_ON_BUTTONS
-   elseif key == keys.TAB then
-      return actions.NEXT
-   elseif key == keys.DOWN then
-      return actions.NEXT
-   elseif key == keys.UP then
-      return actions.PREVIOUS
-   end
-   return actions.PASSTHROUGH
-end
-
-function AbsCursesCheckList.new(title, list, default_value, tooltip, callback)
-   local function make_item(i, label, value)
-      return AbsCursesCheckBox.new(label, value, tooltip, callback)
-   end
-   local checklist = util.make_list_items(make_item, list, default_value)
-   local self = {
-      height = #checklist+1,
-      checklist = checklist,
-      focusable = true,
-      subfocus = 1,
-      title = title,
-      tooltip = tooltip,
-      callback = callback,
-      enabled = true,
-   }
-   return setmetatable(self, { __index = AbsCursesCheckList })
-end
-
-function AbsCursesCheckList:draw(drawable, x, y, focus)
-   if focus then
-      drawable:attrset(colors.current)
-   else
-      if self.focusable then
-         drawable:attrset(colors.default)
-      else
-         drawable:attrset(colors.widget_disabled)
-      end
-   end
-   drawable:mvaddstr(y, x, self.title)
-   for i, checkbox in ipairs(self.checklist) do
-      if focus then
-         if i == self.subfocus then
-            checkbox:draw(drawable, x, y+i, {true, true})
-         else
-            checkbox:draw(drawable, x, y+i, {true, false})
-         end
-      else
-         checkbox:draw(drawable, x, y+i, false)
-      end
-   end
-end
-
-function AbsCursesCheckList:process_key(key)
-   if key == keys.DOWN then
-      if self.subfocus < #self.checklist then
-         self.subfocus = self.subfocus + 1
-         return actions.HANDLED
-      elseif self.subfocus == #self.checklist then
-         return actions.NEXT
-      end
-   elseif key == keys.UP then
-      if self.subfocus > 1 then
-         self.subfocus = self.subfocus - 1
-         return actions.HANDLED
-      elseif self.subfocus == 1 then
-         return actions.PREVIOUS
-      end
-   else
-      return self.checklist[self.subfocus]:process_key(key)
-   end
-end
-
-function AbsCursesSelector.new(title, list, default_value, tooltip, callback)
-   local function make_item(i, label, value)
-      if value then
-         default_value = i
-      end
-      return label
-   end
-   local items = util.make_list_items(make_item, list, default_value)
-   local self = {
-      height = #items+1,
-      list = items,
-      focusable = true,
-      subfocus = 1,
-      view_pos = 1,
-      visible = 5,
-      title = title,
-      marked = default_value or 1,
-      tooltip = tooltip,
-      callback = callback,
-      enabled = true,
-   }
-   if self.height > 5 then
-      self.height = 6
-      self.scrollable = true
-   end
-   return setmetatable(self, { __index = AbsCursesSelector })
-end
-
-function AbsCursesSelector:draw(drawable, x, y, focus)
-   self.width = max_x-8
-   if focus then
-      drawable:attrset(colors.current)
-   else
-      if self.focusable then
-         drawable:attrset(colors.default)
-      else
-         drawable:attrset(colors.widget_disabled)
-      end
-   end
-   drawable:mvaddstr(y, x, self.title)
-   y = y + 1
-   for i=self.view_pos, #self.list do
-      if focus then
-         if i == self.subfocus then
-            drawable:attrset(colors.subcurrent)
-         else
-            drawable:attrset(colors.current)
-         end
-      else
-         drawable:attrset(colors.default)
-      end
-      local mark = " "
-      if i == self.marked then
-         mark = "*"
-      end
-      if i < self.view_pos + self.visible then
-         drawable:mvaddstr(y+i-self.view_pos, x, "("..mark..") "..self.list[i])
-      end
-   end
-   if #self.list > self.visible then
-      draw_scrollbar(drawable, self.width, y-1, self.visible, #self.list, self.view_pos)
-   end
-end
-
-function AbsCursesSelector:process_key(key)
-   if (key == keys.ENTER or key == keys.SPACE) and self.focusable then
-      self.marked = self.subfocus
-      run_callback(self)
-   elseif key == keys.LEFT or key == keys.RIGHT then
-      return actions.FOCUS_ON_BUTTONS
-   elseif key == keys.TAB then
-      return actions.NEXT
-   elseif key == keys.DOWN then
-      if self.subfocus < #self.list then
-         self.subfocus = self.subfocus + 1
-         if self.scrollable and self.subfocus - self.view_pos + 1 == self.visible + 1 then
-            self.view_pos = self.view_pos + 1
-         end
-         return actions.HANDLED
-      elseif self.subfocus == #self.list then
-         return actions.NEXT
-      end
-   elseif key == keys.UP then
-      if self.subfocus > 1 then
-         self.subfocus = self.subfocus - 1
-         if self.scrollable and self.subfocus == self.view_pos - 1 then
-            self.view_pos = self.view_pos - 1
-         end
-         return actions.HANDLED
-      elseif self.subfocus == 1 then
-         return actions.PREVIOUS
-      end
-   end
-   return actions.PASSTHROUGH
-end
-
 function AbsCursesTextInput.new(label, visibility, default_value, tooltip, callback)
    local self = {
       height = 1,
@@ -487,7 +272,11 @@ function AbsCursesTextInput:draw(drawable, x, y, focus)
    else
       drawable:attrset(colors.default)
    end
-   drawable:mvaddstr(y, x, self.label.." [")
+   local title = self.label.." ".."["
+   if self.label == "" then
+      title = "["
+   end
+   drawable:mvaddstr(y, x, title)
    drawable:mvaddstr(y, iter, "]")
 end
 
@@ -580,16 +369,14 @@ function AbsCursesTextBox:draw(drawable, x, y, focus)
    local function title_colors()
       if focus then
          return colors.current
-      else
-         return colors.default
       end
+      return colors.default
    end
    local function box_colors()
       if self.inside then
          return colors.widget
-      else
-         return colors.default
       end
+      return colors.default
    end
    if self.title then
       drawable:attrset(title_colors())
@@ -603,9 +390,9 @@ function AbsCursesTextBox:draw(drawable, x, y, focus)
    end
    pad:attrset(colors.default)
    pad:border(0,0)
-   pad:prefresh(0, 0, y, x, y+self.height+2, self.width+4)
+   pad:prefresh(0, 0, y, x, y+self.height+2, self.width+4)   
    if self.inside and #self.text > self.height then
-      draw_scrollbar(drawable, self.width, y, self.height, #self.text, self.view_pos)
+      draw_scrollbar(drawable, self.width, y-1, self.height, #self.text, self.view_pos)
    end
 end
 
@@ -676,6 +463,237 @@ function AbsCursesTextBox:process_key(key)
    return actions.PASSTHROUGH
 end
 
+function AbsCursesCheckBox.new(label, default_value, tooltip, callback)
+   local self = {
+      height = 1,
+      label = label,
+      state = default_value or false,
+      focusable = true,
+      tooltip = tooltip,
+      callback = callback,
+      enabled = true,
+   }
+   return setmetatable(self, { __index = AbsCursesCheckBox })
+end
+
+function AbsCursesCheckBox:draw(drawable, x, y, focus)
+   if not focus then
+      if self.focusable then
+         drawable:attrset(colors.default)
+      else
+         drawable:attrset(colors.widget_disabled)
+      end
+   else
+      if type(focus) == 'table' then
+         if focus[1] then
+            drawable:attrset(colors.current)
+         end
+         if focus[2] then
+            drawable:attrset(colors.subcurrent)
+         end
+      else
+         drawable:attrset(colors.subcurrent)
+      end
+   end
+   local mark = " "
+   if self.state then
+      mark = "x"
+   end
+   drawable:mvaddstr(y, x, "["..mark.."] "..self.label)
+end
+
+function AbsCursesCheckBox:process_key(key)
+   if (key == keys.ENTER or key == keys.SPACE) and self.focusable then
+      self.state = not self.state
+      run_callback(self)
+   elseif key == keys.LEFT or key == keys.RIGHT then
+      return actions.FOCUS_ON_BUTTONS
+   elseif key == keys.TAB then
+      return actions.NEXT
+   elseif key == keys.DOWN then
+      return actions.NEXT
+   elseif key == keys.UP then
+      return actions.PREVIOUS
+   end
+   return actions.PASSTHROUGH
+end
+
+function AbsCursesCheckList.new(title, list, default_value, tooltip, callback)
+   local function make_item(i, label, value)
+      return AbsCursesCheckBox.new(label, value, tooltip, callback)
+   end
+   local checklist = util.make_list_items(make_item, list, default_value)
+   local self = {
+      height = #checklist+1,
+      checklist = checklist,
+      focusable = true,
+      subfocus = 1,
+      view_pos = 1,
+      visible = 5,
+      title = title,
+      tooltip = tooltip,
+      callback = callback,
+      enabled = true,
+   }
+   if self.height > self.visible then
+      self.height = self.visible + 1
+      self.scrollable = true
+   end
+   return setmetatable(self, { __index = AbsCursesCheckList })
+end
+
+function AbsCursesCheckList:draw(drawable, x, y, focus)
+   self.width = max_x-8
+   if focus then
+      drawable:attrset(colors.current)
+   else
+      if self.focusable then
+         drawable:attrset(colors.default)
+      else
+         drawable:attrset(colors.widget_disabled)
+      end
+   end
+   drawable:mvaddstr(y, x, self.title)
+   for i=self.view_pos, #self.checklist do
+      local attr = false
+      if focus then
+         if i == self.subfocus then
+            attr = {true, true}
+         else
+            attr = {true, false}
+         end
+      end
+      if i < self.view_pos + self.visible then
+         self.checklist[i]:draw(drawable, x, y+i-self.view_pos+1, attr)
+      end
+   end
+   if #self.checklist > self.visible then
+      draw_scrollbar(drawable, self.width, y, self.visible, #self.checklist, self.view_pos)
+   end
+end
+
+function AbsCursesCheckList:process_key(key)
+   if key == keys.DOWN then
+      if self.subfocus < #self.checklist then
+         self.subfocus = self.subfocus + 1
+         if self.scrollable and self.subfocus - self.view_pos + 1 == self.visible + 1 then
+            self.view_pos = self.view_pos + 1
+         end
+         return actions.HANDLED
+      elseif self.subfocus == #self.checklist then
+         return actions.NEXT
+      end
+   elseif key == keys.UP then
+      if self.subfocus > 1 then
+         self.subfocus = self.subfocus - 1
+         if self.scrollable and self.subfocus == self.view_pos - 1 then
+            self.view_pos = self.view_pos - 1
+         end
+         return actions.HANDLED
+      elseif self.subfocus == 1 then
+         return actions.PREVIOUS
+      end
+   else
+      return self.checklist[self.subfocus]:process_key(key)
+   end
+end
+
+function AbsCursesSelector.new(title, list, default_value, tooltip, callback)
+   local function make_item(i, label, value)
+      if value then
+         default_value = i
+      end
+      return label
+   end
+   local items = util.make_list_items(make_item, list, default_value)
+   local self = {
+      height = #items+1,
+      list = items,
+      focusable = true,
+      subfocus = 1,
+      view_pos = 1,
+      visible = 5,
+      title = title,
+      marked = default_value or 1,
+      tooltip = tooltip,
+      callback = callback,
+      enabled = true,
+   }
+   if self.height > self.visible then
+      self.height = self.visible + 1
+      self.scrollable = true
+   end
+   return setmetatable(self, { __index = AbsCursesSelector })
+end
+
+function AbsCursesSelector:draw(drawable, x, y, focus)
+   self.width = max_x-8
+   if focus then
+      drawable:attrset(colors.current)
+   else
+      if self.focusable then
+         drawable:attrset(colors.default)
+      else
+         drawable:attrset(colors.widget_disabled)
+      end
+   end
+   drawable:mvaddstr(y, x, self.title)
+   y = y + 1
+   for i=self.view_pos, #self.list do
+      if focus then
+         if i == self.subfocus then
+            drawable:attrset(colors.subcurrent)
+         else
+            drawable:attrset(colors.current)
+         end
+      else
+         drawable:attrset(colors.default)
+      end
+      local mark = " "
+      if i == self.marked then
+         mark = "*"
+      end
+      if i < self.view_pos + self.visible then
+         drawable:mvaddstr(y+i-self.view_pos, x, "("..mark..") "..self.list[i])
+      end
+   end
+   if #self.list > self.visible then
+      draw_scrollbar(drawable, self.width, y-1, self.visible, #self.list, self.view_pos)
+   end
+end
+
+function AbsCursesSelector:process_key(key)
+   if (key == keys.ENTER or key == keys.SPACE) and self.focusable then
+      self.marked = self.subfocus
+      run_callback(self)
+   elseif key == keys.LEFT or key == keys.RIGHT then
+      return actions.FOCUS_ON_BUTTONS
+   elseif key == keys.TAB then
+      return actions.NEXT
+   elseif key == keys.DOWN then
+      if self.subfocus < #self.list then
+         self.subfocus = self.subfocus + 1
+         if self.scrollable and self.subfocus - self.view_pos + 1 == self.visible + 1 then
+            self.view_pos = self.view_pos + 1
+         end
+         return actions.HANDLED
+      elseif self.subfocus == #self.list then
+         return actions.NEXT
+      end
+   elseif key == keys.UP then
+      if self.subfocus > 1 then
+         self.subfocus = self.subfocus - 1
+         if self.scrollable and self.subfocus == self.view_pos - 1 then
+            self.view_pos = self.view_pos - 1
+         end
+         return actions.HANDLED
+      elseif self.subfocus == 1 then
+         return actions.PREVIOUS
+      end
+   end
+   return actions.PASSTHROUGH
+end
+
 local function create_widget(self, type_name, class, id, ...)
    local item = {
       id = id,
@@ -697,8 +715,8 @@ function Screen:create_button_box(id, labels, tooltips, callbacks)
    create_widget(self, 'BUTTON_BOX', AbsCursesButtonBox, id, labels, tooltips, callbacks)
 end
 
-function Screen:create_combobox(id, labels, default_value, tooltip, callback)
-   create_widget(self, 'LIST', AbsCursesList, id, labels, tooltip, callback)
+function Screen:create_combobox(id, title, labels, default_value, tooltip, callback)
+   create_widget(self, 'SELECTOR', AbsCursesSelector, id, title, labels, default_value, tooltip, callback)
 end
 
 function Screen:add_image(id, path, dimensions, tooltip)
@@ -723,10 +741,6 @@ end
 
 function Screen:create_selector(id, title, list, default_value, tooltip, callback)
    create_widget(self, 'SELECTOR', AbsCursesSelector, id, title, list, default_value, tooltip, callback)
-end
-
-function Screen:create_list(id, list, tooltip, callback)
-   create_widget(self, 'LIST', AbsCursesList, id, list, tooltip, callback)
 end
 
 function Screen:show_message_box(id, message, buttons)
@@ -788,8 +802,6 @@ function Screen:set_value(id, value, index)
             item.widget.checklist[index].state = value
          elseif item.type == 'SELECTOR' then
             item.widget.marked = value
-         elseif item.type == 'LIST' then
-            -- TODO
          end
       end
    end
@@ -822,11 +834,8 @@ function Screen:get_value(id, index)
             return item.widget.label, item.widget.state
          elseif item.type == 'CHECKLIST' then
             return item.widget.checklist[index].label, item.widget.checklist[index].state
-         elseif item.type == 'SELECTOR' or item.type == 'LIST' then
+         elseif item.type == 'SELECTOR' then
             local list = item.widget.list
-            if item.type == 'SELECTOR' then
-               list = item.widget.list
-            end
             for i, button in ipairs(list) do
                if i == item.widget.marked then
                   return button
@@ -949,10 +958,10 @@ function Screen:run()
          else
             self.pad:mvaddstr(y-1, 1, " ")
          end
-         item.widget:draw(stdscr, 4, y, i == self.focus)
+         item.widget:draw(self.pad, 3, y-1, i == self.focus)
+         self.pad:prefresh(0, 0, 1, 1, max_y-5, max_x-2)
          y = y + item.widget.height + 1
       end
-      self.pad:prefresh(0, 0, 1, 1, max_y-5, max_x-2)
       stdscr:move(max_y-1,max_x-1)
       process_key(stdscr:getch(), self.widgets[self.focus].widget)
    end
