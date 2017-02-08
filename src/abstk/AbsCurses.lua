@@ -896,7 +896,7 @@ function Screen:run()
       end
    end
    tooltip_bar()
-   local function move_focus(direction) -- must fix (3 labels/1 button bug)
+   local function move_focus(direction) -- must fix (unfocusable/focusable bug)
       local widget = self.widgets[self.focus].widget
       local gap = direction
       while self.focus > 0 and self.focus < #self.widgets and not self.widgets[self.focus + gap].widget.focusable do
@@ -933,6 +933,7 @@ function Screen:run()
    while true do
       self.pad:attrset(colors.title)
       self.pad:mvaddstr(0, 0, self.title)
+      self.pad:prefresh(0, 0, 1, 1, max_y-5, max_x-2)
       local y = 3
       for i, item in ipairs(self.widgets) do
          if i == self.focus then
