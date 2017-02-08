@@ -224,7 +224,7 @@ function AbsCursesTextInput.new(label, visibility, default_value, tooltip, callb
    local self = {
       height = 1,
       focusable = true,
-      label = label or "",
+      label = label or " ",
       visibility = visibility,
       text = default_value or "",
       cursor = 0,
@@ -232,7 +232,7 @@ function AbsCursesTextInput.new(label, visibility, default_value, tooltip, callb
       callback = callback,
       enabled = true,
    }
-   self.cursor = utf8.len(self.label) + utf8.len(self.text) + 6
+   self.cursor = utf8.len(self.label) + utf8.len(self.text) + 5
    return setmetatable(self, { __index = AbsCursesTextInput })
 end
 
@@ -242,7 +242,7 @@ function AbsCursesTextInput:draw(drawable, x, y, focus)
    else
       drawable:attrset(colors.widget_disabled)
    end
-   local gap = utf8.len(self.label) + 6
+   local gap = utf8.len(self.label) + 5
    local iter = gap
    while iter < max_x-5 do
       drawable:mvaddstr(y, iter, " ")
@@ -259,13 +259,13 @@ function AbsCursesTextInput:draw(drawable, x, y, focus)
    drawable:mvaddstr(y, gap, placeholder)
    if focus then
       drawable:attrset(colors.cursor)
-      local ch_pos_x = self.cursor-utf8.len(self.label)-utf8.len(self.text)-6
+      local ch_pos_x = self.cursor-utf8.len(self.label)-utf8.len(self.text)-5
       if self.visibility then
          drawable:mvaddstr(y, self.cursor, string.sub(self.text, ch_pos_x, ch_pos_x))
       else
          drawable:mvaddstr(y, self.cursor, "*")
       end
-      if self.cursor == self.cursor + (ch_pos_x * (-1)) then
+      if ch_pos_x == 0 then
          drawable:mvaddstr(y, self.cursor, " ")
       end
       drawable:attrset(colors.subcurrent)
@@ -281,7 +281,7 @@ function AbsCursesTextInput:draw(drawable, x, y, focus)
 end
 
 function AbsCursesTextInput:process_key(key)
-   local first_position = utf8.len(self.label) + 6
+   local first_position = utf8.len(self.label) + 5
    local last_position = first_position + utf8.len(self.text)
    if key == keys.ENTER and self.focusable then
       run_callback(self)
@@ -300,7 +300,7 @@ function AbsCursesTextInput:process_key(key)
    elseif key == keys.UP then
       return actions.PREVIOUS
    elseif key >= 32 and key <= 382 then
-      local pos_x = self.cursor-utf8.len(self.label)-utf8.len(self.text)-6
+      local pos_x = self.cursor-utf8.len(self.label)-utf8.len(self.text)-5
       if key == curses.KEY_BACKSPACE then
          if self.cursor > first_position then
             if self.cursor == last_position then
