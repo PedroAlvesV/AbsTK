@@ -102,8 +102,8 @@ function abstk.new_screen(title, w, h)
       -- @param[opt] tooltip a tooltip to the combobox
       -- @param[opt] callback a callback function to the row
       -------------------------------------------------
-      create_combobox = function(self, id, labels, default_value, tooltip, callback)
-         obj:create_combobox(id, labels, default_value, tooltip, callback)
+      create_combobox = function(self, id, title, labels, default_value, tooltip, callback)
+         obj:create_combobox(id, title, labels, default_value, tooltip, callback)
       end,
       -------------------------------------------------
       -- Creates an image widget and adds it to the screen widgets table.
