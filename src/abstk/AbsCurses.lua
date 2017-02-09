@@ -777,7 +777,7 @@ end
 function Screen:set_value(id, value, index)
    for _, item in ipairs(self.widgets) do
       if item.id == id then
-         if item.type == 'LABEL' or item.type == 'BUTTON' or item.type == 'CHECKBOX' then
+         if item.type == 'LABEL' or item.type == 'BUTTON' then
             if item.type == 'BUTTON' then
                value = " "..value.." "
             end
@@ -935,7 +935,12 @@ function Screen:run()
       self.pad:mvaddstr(0, 0, self.title)
       self.pad:prefresh(0, 0, 1, 1, max_y-5, max_x-2)
       local y = 3
+--      local total_height = 2
       for i, item in ipairs(self.widgets) do
+--         total_height = total_height + item.widget.height + 1
+--         if total_height > max_y-5 then
+--            -- TODO
+--         end
          if i == self.focus then
             if type(item.widget.tooltip) == 'string' then
                local tooltip = item.widget.tooltip
