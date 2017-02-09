@@ -6,8 +6,6 @@
 -- @license MIT
 -------------------------------------------------
 
--- lists will be long checklists
-
 local abstk = {}
 
 local AbsGtk = require 'abstk.AbsGtk'
@@ -250,7 +248,7 @@ function abstk.new_screen(title, w, h)
       -- * `CLOSE` - a Close button
       -- * `CANCEL` - a Cancel button
       -- * `YES_NO` - Yes and No buttons
-      -- * `OK_CANCEL` - OK and Cancel buttons<p>
+      -- * `OK_CANCEL` - OK and Cancel buttons
       --
       -- @param id the id to reference the object later on
       -- @param message the message that will be written over the new window
@@ -296,7 +294,7 @@ function abstk.new_screen(title, w, h)
       -- @usage scr:set_value('label', "New Label"
       -- scr:set_value('button', "New Button Label")
       -- scr:set_value('button_box', "New Button Label", 2)
-      -- TODO combobox example
+      -- scr:set_value('combobox', 2)
       -- scr:set_value('image', 'imgs/image.png')
       -- scr:set_value('text_input', "New Text")
       -- scr:set_value('password_input', "New Password")
@@ -392,7 +390,7 @@ function abstk.new_wizard(title, w, h)
       -- @param id the id to reference the screen later on
       -- @param screen the screen that will be added
       -- @param[opt] page_type a constant that determines which buttonset is 
-      -- going to be used.
+      -- going to be used
       -------------------------------------------------
       add_page = function(self, id, screen, page_type)
          obj:add_page(id, screen, page_type)
