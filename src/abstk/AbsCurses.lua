@@ -37,7 +37,7 @@ local AbsCursesCheckBox = {}
 local AbsCursesCheckList = {}
 local AbsCursesSelector = {}
 
-local max_x, max_y
+local scr_w, scr_h
 local colors = {}
 local actions = {
    PASSTHROUGH = 0,
@@ -85,7 +85,7 @@ local function draw_scrollbar(drawable, x, y, h_box, h_data, current_line)
    drawable:attrset(colors.button)
    drawable:mvaddstr(y+1, x, '^')
    for i=0, bar_h-1 do
-      drawable:mvaddstr(y+bar_y-i+1, x, ' ')
+      drawable:mvaddstr(y+bar_y-i+1, x, " ")
    end
    drawable:mvaddstr(y+h_box, x, 'v')
 end
@@ -244,7 +244,7 @@ function AbsCursesTextInput:draw(drawable, x, y, focus)
    end
    local gap = utf8.len(self.label) + 5
    local iter = gap
-   while iter < max_x-5 do
+   while iter < scr_w-5 do
       drawable:mvaddstr(y, iter, " ")
       iter = iter + 1
    end
@@ -365,7 +365,7 @@ function AbsCursesTextBox.new(title, default_value, tooltip, callback)
 end
 
 function AbsCursesTextBox:draw(drawable, x, y, focus)
-   self.width = max_x-8
+   self.width = scr_w-8
    local function title_colors()
       if focus then
          return colors.current
@@ -392,7 +392,7 @@ function AbsCursesTextBox:draw(drawable, x, y, focus)
    pad:border(0,0)
    pad:prefresh(0, 0, y, x, y+self.height+2, self.width+4)   
    if self.inside and #self.text > self.height then
-      draw_scrollbar(drawable, self.width, y-1, self.height, #self.text, self.view_pos)
+      draw_scrollbar(drawable, self.width+3, y-1, self.height, #self.text, self.view_pos)
    end
 end
 
@@ -543,7 +543,7 @@ function AbsCursesCheckList.new(title, list, default_value, tooltip, callback)
 end
 
 function AbsCursesCheckList:draw(drawable, x, y, focus)
-   self.width = max_x-8
+   self.width = scr_w-8
    if focus then
       drawable:attrset(colors.current)
    else
@@ -568,7 +568,7 @@ function AbsCursesCheckList:draw(drawable, x, y, focus)
       end
    end
    if #self.checklist > self.visible then
-      draw_scrollbar(drawable, self.width, y, self.visible, #self.checklist, self.view_pos)
+      draw_scrollbar(drawable, self.width+3, y, self.visible, #self.checklist, self.view_pos)
    end
 end
 
@@ -627,7 +627,7 @@ function AbsCursesSelector.new(title, list, default_value, tooltip, callback)
 end
 
 function AbsCursesSelector:draw(drawable, x, y, focus)
-   self.width = max_x-8
+   self.width = scr_w-8
    if focus then
       drawable:attrset(colors.current)
    else
@@ -638,7 +638,6 @@ function AbsCursesSelector:draw(drawable, x, y, focus)
       end
    end
    drawable:mvaddstr(y, x, self.title)
-   y = y + 1
    for i=self.view_pos, #self.list do
       if focus then
          if i == self.subfocus then
@@ -654,11 +653,11 @@ function AbsCursesSelector:draw(drawable, x, y, focus)
          mark = "*"
       end
       if i < self.view_pos + self.visible then
-         drawable:mvaddstr(y+i-self.view_pos, x, "("..mark..") "..self.list[i])
+         drawable:mvaddstr(y+i-self.view_pos+1, x, "("..mark..") "..self.list[i])
       end
    end
    if #self.list > self.visible then
-      draw_scrollbar(drawable, self.width, y-1, self.visible, #self.list, self.view_pos)
+      draw_scrollbar(drawable, self.width+3, y, self.visible, #self.list, self.view_pos)
    end
 end
 
@@ -852,9 +851,9 @@ local function init_curses()
    curses.echo(false)
    curses.nl(false)
    stdscr:keypad(true)
-   max_y, max_x = stdscr:getmaxyx()
-   max_x = math.min(max_x, 127)
-   -- max_y = math.min(max_y, 24)
+   scr_h, scr_w = stdscr:getmaxyx()
+   scr_w = math.min(scr_w, 127)
+   -- scr_h = math.min(scr_h, 24)
    curses.start_color()
    curses.use_default_colors()
    pcall(curses.init_pair, 1, curses.COLOR_WHITE, curses.COLOR_BLUE)
@@ -881,31 +880,53 @@ end
 
 function Screen:run()
    local stdscr = init_curses()
-   self.pad = curses.newpad(max_x-2 + 100, max_y-4 + 100) -- FIX CALCULATE SIZE BASED ON WIDGETS HEIGHT
+   self.pad = curses.newpad(scr_w-2 + 100, scr_h-4 + 100) -- FIX CALCULATE SIZE BASED ON WIDGETS HEIGHT
    self.pad:wbkgd(attr_code(colors.default))
-   stdscr:sub(max_y-1, max_x, 0, 0):box(0, 0)
+   stdscr:sub(scr_h-1, scr_w, 0, 0):box(0, 0)
    stdscr:attrset(colors.default)
-   stdscr:mvaddstr(max_y-3, 2, "Tab: move focus   Enter: select")
+   stdscr:mvaddstr(scr_h-3, 2, "Tab: move focus   Enter: select")
    stdscr:refresh()
    local function tooltip_bar()
       stdscr:attrset(colors.widget)
       local i = 0
-      while i < max_x-1 do
-         stdscr:mvaddstr(max_y-1, i, " ")
+      while i < scr_w-1 do
+         stdscr:mvaddstr(scr_h-1, i, " ")
          i = i + 1
       end
    end
    tooltip_bar()
-   local function move_focus(direction) -- must fix (unfocusable/focusable bug)
-      local widget = self.widgets[self.focus].widget
-      local gap = direction
-      while self.focus > 0 and self.focus < #self.widgets and not self.widgets[self.focus + gap].widget.focusable do
-         gap = gap + direction
+   local scroll = {
+      view_pos = 1,
+      total_height = 0
+   }
+   for _, item in ipairs(self.widgets) do
+      scroll.total_height = scroll.total_height + item.widget.height + 1
+      if scroll.total_height >= scr_h - 5 and not scroll.last_item then
+         scroll.last_item = item.id
       end
-      self.focus = self.focus + gap
+   end
+   local function move_focus(direction)
+      local widget = self.widgets[self.focus].widget
+      local next_focus = self.focus + direction
+      while true do
+         if next_focus < 1 or next_focus > #self.widgets then
+            return actions.HANDLED
+         end
+         if self.widgets[next_focus].widget.focusable then
+            break
+         end
+         next_focus = next_focus + direction
+      end
+      self.focus = next_focus
       if self.focus == -1 or self.focus > #self.widgets then
          return actions.FOCUS_ON_BUTTONS
       end
+--      if self.widgets[self.focus].id == scroll.last_item then
+--         while scroll.view_pos <= widget.height do
+--            scroll.view_pos = scroll.view_pos + direction
+--         end
+----         scroll.last_item = self.widgets[self.focus+1].id
+--      end
       if self.widgets[self.focus].widget.enabled then
          return actions.HANDLED
       end
@@ -913,6 +934,19 @@ function Screen:run()
    local function process_key(key, widget)
       local motion = widget:process_key(key)
       if motion == actions.PASSTHROUGH or motion == actions.HANDLED then
+         local pad_height = scr_h-5
+         local last_pos = scroll.total_height - pad_height + 2
+         if scroll.total_height > pad_height then
+            if key == keys.PAGE_UP then
+               scroll.view_pos = math.max(1, scroll.view_pos - math.floor(pad_height/2))
+            elseif key == keys.PAGE_DOWN then
+               scroll.view_pos = math.min(last_pos, scroll.view_pos + math.floor(pad_height/2))
+            elseif key == keys.HOME then
+               scroll.view_pos = 1
+            elseif key == keys.END then
+               scroll.view_pos = last_pos
+            end
+         end
          return motion
       elseif motion == actions.FOCUS_ON_BUTTONS then
          self.focus = #self.widgets + 1
@@ -931,16 +965,14 @@ function Screen:run()
       end
    end
    while true do
-      self.pad:attrset(colors.title)
-      self.pad:mvaddstr(0, 0, self.title)
-      self.pad:prefresh(0, 0, 1, 1, max_y-5, max_x-2)
+      stdscr:attrset(colors.title)
+      stdscr:mvaddstr(1, 1, self.title)
       local y = 3
---      local total_height = 2
+      if scroll.total_height > scr_h-5 then
+         draw_scrollbar(stdscr, scr_w-2, y-2, scr_h-6, scroll.total_height, scroll.view_pos)
+      end
       for i, item in ipairs(self.widgets) do
---         total_height = total_height + item.widget.height + 1
---         if total_height > max_y-5 then
---            -- TODO
---         end
+         local arrow = " "
          if i == self.focus then
             if type(item.widget.tooltip) == 'string' then
                local tooltip = item.widget.tooltip
@@ -951,24 +983,24 @@ function Screen:run()
                   end
                   tooltip = item.widget.buttons[j].tooltip
                end
-               while utf8.len(tooltip) < max_x do
+               while utf8.len(tooltip) < scr_w do
                   tooltip = tooltip.." "
                end
                stdscr:attrset(colors.widget)
-               stdscr:mvaddstr(max_y-1, 0, tooltip)
+               stdscr:mvaddstr(scr_h-1, 0, tooltip)
             else
                tooltip_bar()
             end
-            self.pad:attrset(colors.title)
-            self.pad:mvaddstr(y-1, 1, ">")
-         else
-            self.pad:mvaddstr(y-1, 1, " ")
+            arrow = ">"
          end
-         item.widget:draw(self.pad, 3, y-1, i == self.focus)
-         self.pad:prefresh(0, 0, 1, 1, max_y-5, max_x-2)
+         self.pad:attrset(colors.title)
+         self.pad:mvaddstr(y-scroll.view_pos-1, 1, arrow)
+         item.widget:draw(self.pad, 3, y-scroll.view_pos-1, i == self.focus)
+         self.pad:prefresh(0, 0, 2, 1, scr_h-5, scr_w-2)
          y = y + item.widget.height + 1
       end
-      stdscr:move(max_y-1,max_x-1)
+      self.pad:clear()
+      stdscr:move(scr_h-1,scr_w-1)
       process_key(stdscr:getch(), self.widgets[self.focus].widget)
    end
    -- done_curses()
