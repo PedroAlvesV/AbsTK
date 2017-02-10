@@ -365,7 +365,7 @@ function AbsCursesTextBox.new(title, default_value, tooltip, callback)
 end
 
 function AbsCursesTextBox:draw(drawable, x, y, focus)
-   self.width = scr_w-8
+   self.width = scr_w-4
    local function title_colors()
       if focus then
          return colors.current
@@ -392,7 +392,7 @@ function AbsCursesTextBox:draw(drawable, x, y, focus)
    pad:border(0,0)
    pad:prefresh(0, 0, y, x, y+self.height+2, self.width+4)   
    if self.inside and #self.text > self.height then
-      draw_scrollbar(drawable, self.width+3, y-1, self.height, #self.text, self.view_pos)
+      draw_scrollbar(drawable, self.width-2, y-1, self.height, #self.text, self.view_pos)
    end
 end
 
