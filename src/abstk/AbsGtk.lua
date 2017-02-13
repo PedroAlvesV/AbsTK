@@ -7,9 +7,6 @@
 -- @see abstk
 -------------------------------------------------
 
--- lists will be long checklists
--- remove topbar in long checklists
-
 local AbsGtk = {}
 
 local lgi = require 'lgi'
