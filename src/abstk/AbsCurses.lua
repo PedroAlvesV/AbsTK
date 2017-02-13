@@ -9,8 +9,8 @@
 
 -- fix textbox pad glitch
 -- fix bbox subfocus to disabled buttons
--- fix bbox tooltips
--- http://stackoverflow.com/questions/2515244/how-to-scroll-text-in-python-curses-subwindow
+-- fix callbacks
+-- update test modules
 
 -- FOCUS_ON_BUTTONS não existe mais como widget
 -- Wizard trata botões e reaproveita button_box
@@ -90,9 +90,9 @@ local function draw_scrollbar(drawable, x, y, h_box, h_data, current_line)
    drawable:mvaddstr(y+h_box, x, 'v')
 end
 
-local function run_callback(self)
+local function run_callback(self, id, value)
    if self.callback then
-      self.callback()
+      self.callback(id, value)
    end
 end
 
@@ -237,6 +237,7 @@ function AbsCursesTextInput.new(label, visibility, default_value, tooltip, callb
 end
 
 function AbsCursesTextInput:draw(drawable, x, y, focus)
+   self.max_text = scr_w - utf8.len(self.label) - 11
    if self.focusable then
       drawable:attrset(colors.widget)
    else
@@ -283,6 +284,9 @@ end
 function AbsCursesTextInput:process_key(key)
    local first_position = utf8.len(self.label) + 5
    local last_position = first_position + utf8.len(self.text)
+   if utf8.len(self.text) > self.max_text then
+      last_position = last_position - 1
+   end
    if key == keys.ENTER and self.focusable then
       run_callback(self)
    elseif key == keys.LEFT then
@@ -291,7 +295,7 @@ function AbsCursesTextInput:process_key(key)
       end
       return actions.HANDLED
    elseif key == keys.RIGHT then
-      if self.cursor < last_position  then
+      if self.cursor < last_position then
          self.cursor = self.cursor + 1
       end
       return actions.HANDLED
@@ -299,6 +303,16 @@ function AbsCursesTextInput:process_key(key)
       return actions.NEXT
    elseif key == keys.UP then
       return actions.PREVIOUS
+   elseif key == keys.HOME then
+      self.cursor = first_position
+      return actions.HANDLED
+   elseif key == keys.END then
+      self.cursor = last_position
+      return actions.HANDLED
+   elseif key == keys.PAGE_UP then
+      return actions.PASSTHROUGH
+   elseif key == keys.PAGE_DOWN then
+      return actions.PASSTHROUGH
    elseif key >= 32 and key <= 382 then
       local pos_x = self.cursor-utf8.len(self.label)-utf8.len(self.text)-5
       if key == curses.KEY_BACKSPACE then
@@ -320,19 +334,23 @@ function AbsCursesTextInput:process_key(key)
             end   
          end
          return actions.HANDLED
-      elseif key == keys.HOME then
-         self.cursor = first_position
-         return actions.HANDLED
-      elseif key == keys.END then
-         self.cursor = last_position
-         return actions.HANDLED
       else
-         if self.cursor == last_position then
-            self.text = self.text..string.char(key)
-         else
-            self.text = string.sub(self.text, 1, pos_x-1)..string.char(key)..string.sub(self.text, pos_x)
+         local function add_char()
+            if self.cursor == last_position then
+               self.text = self.text..string.char(key)
+            else
+               self.text = string.sub(self.text, 1, pos_x-1)..string.char(key)..string.sub(self.text, pos_x)
+            end
          end
-         self.cursor = self.cursor + 1
+         if utf8.len(self.text) < self.max_text then
+            add_char()
+            self.cursor = self.cursor + 1
+         elseif utf8.len(self.text) == self.max_text then
+            add_char()
+         elseif utf8.len(self.text) > self.max_text then
+            self.text = self.text:sub(1, -2)..string.char(key)
+            self.cursor = last_position
+         end
          return actions.HANDLED
       end
       return actions.HANDLED
@@ -974,14 +992,14 @@ function Screen:run()
       for i, item in ipairs(self.widgets) do
          local arrow = " "
          if i == self.focus then
-            if type(item.widget.tooltip) == 'string' then
+            if type(item.widget.tooltip) == 'string' or item.type == 'BUTTON_BOX' then
                local tooltip = item.widget.tooltip
                if item.type == 'BUTTON_BOX' then
                   local j = 1
                   while j < item.widget.subfocus do
                      j = j + 1
                   end
-                  tooltip = item.widget.buttons[j].tooltip
+                  tooltip = item.widget.buttons[j].tooltip or ""
                end
                while utf8.len(tooltip) < scr_w do
                   tooltip = tooltip.." "
