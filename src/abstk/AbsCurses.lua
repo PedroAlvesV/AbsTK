@@ -8,9 +8,8 @@
 -------------------------------------------------
 
 -- fix textbox pad glitch
--- fix bbox subfocus to disabled buttons
+-- fix bbox starting subfocus (when first button is disabled)
 -- fix callbacks
--- update test modules
 
 -- FOCUS_ON_BUTTONS não existe mais como widget
 -- Wizard trata botões e reaproveita button_box
@@ -198,24 +197,25 @@ function AbsCursesButtonBox:draw(drawable, x, y, focus)
 end
 
 function AbsCursesButtonBox:process_key(key)
+   local function move_focus(direction)
+      local button = self.buttons[self.subfocus]
+      local next_focus = self.subfocus + direction
+      while true do
+         if next_focus < 1 or next_focus > #self.buttons then
+            return actions.HANDLED
+         end
+         if self.buttons[next_focus].focusable then
+            break
+         end
+         next_focus = next_focus + direction
+      end
+      self.subfocus = next_focus
+      return actions.HANDLED
+   end
    if key == keys.LEFT then
-      if self.subfocus > 1 then
-         local i = 1
-         while not self.buttons[self.subfocus - i].focusable and i < #self.buttons do
-            i = i + 1
-         end
-         self.subfocus = self.subfocus - i
-         return actions.HANDLED
-      end
+      return move_focus(-1)
    elseif key == keys.RIGHT then
-      if self.subfocus < #self.buttons then
-         local i = 1
-         while not self.buttons[self.subfocus + i].focusable and i < #self.buttons do
-            i = i + 1
-         end
-         self.subfocus = self.subfocus + i
-         return actions.HANDLED
-      end
+      return move_focus(1)
    end
    return self.buttons[self.subfocus]:process_key(key)
 end
