@@ -393,6 +393,9 @@ function Screen:create_selector(id, title, list, default_value, tooltip, callbac
       local function make_item(i, label, value)
          local item = Gtk.Label {id = i, label = label}
          item:set_halign('START')
+         if not default_value and value then
+            default_value = i
+         end
          return item
       end
       local items = util.make_list_items(make_item, list, default_value)
