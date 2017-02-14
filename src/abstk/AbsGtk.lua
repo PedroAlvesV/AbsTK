@@ -402,10 +402,11 @@ function Screen:create_selector(id, title, list, default_value, tooltip, callbac
       for _, item in ipairs(items) do
          selector:insert(item, -1)
       end
-      if default_value then
-         local row = selector:get_row_at_index(default_value-1)
-         selector:select_row(row)
+      if not default_value then
+         default_value = 1
       end
+      local row = selector:get_row_at_index(default_value-1)
+      selector:select_row(row)
       function selector.on_row_selected(_, row)
          local row_label = row:get_child()
          local row_text = row_label:get_label()
