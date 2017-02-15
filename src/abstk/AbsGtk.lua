@@ -95,7 +95,7 @@ function Screen:create_button_box(id, labels, tooltips, callbacks)
          button:set_tooltip_text(tooltips and tooltips[i])
          if callbacks[i] then
             button.on_clicked = function(self)
-               callbacks[i](id, label, i)
+               callbacks[i](id, i, label)
             end
          end
          bbox:add(button)
@@ -121,7 +121,8 @@ function Screen:create_combobox(id, title, labels, default_value, tooltip, callb
    combobox:set_active((default_value or 1)-1)
    if callback then
       combobox.on_changed = function(self)
-         callback(id, labels[combobox:get_active()+1])
+         local index = math.floor(combobox:get_active()+1)
+         callback(id, index, labels[index])
       end
    end
    local title_widget = Gtk.Label { label = title }
@@ -172,13 +173,13 @@ function Screen:add_text_input(id, label, visibility, default_value, tooltip, ca
       hexpand = true,
    }
    entry:set_tooltip_text(tooltip)
+   entry:set_text(default_value or "")
+   entry:set_visibility(visibility)
    if callback then
       entry.on_changed = function(self)
          callback(id, entry:get_text())
       end
    end
-   entry:set_text(default_value or "")
-   entry:set_visibility(visibility)
    local widget
    if not label then
       widget = Gtk.Box {
@@ -201,18 +202,13 @@ function Screen:add_text_input(id, label, visibility, default_value, tooltip, ca
    table.insert(self.widgets, item)
 end
 
-function Screen:add_textbox(id, title, default_value, tooltip, callback)
+function Screen:add_textbox(id, title, default_value, tooltip)
    local textview = Gtk.TextView { id = 'textview' }
    local buffer = Gtk.TextBuffer.new()
    buffer:set_text(default_value or "", -1)
    textview:set_tooltip_text(tooltip)
    textview:set_buffer(buffer)
    textview:set_editable(false)
-   if callback then
-      buffer.on_changed = function(self)
-         callback(id, buffer:get_text(buffer:get_start_iter(), buffer:get_end_iter()))
-      end
-   end
    local item = {
       id = id,
       type = 'TEXTBOX',
@@ -241,7 +237,7 @@ function Screen:add_checkbox(id, label, default_value, tooltip, callback)
    checkbox:set_active(default_value or false)
    if callback then
       checkbox.on_toggled = function(self)
-         callback(id, checkbox:get_active(), i)
+         callback(id, checkbox:get_active(), label)
       end
    end
    item.widget:add(checkbox)
@@ -267,7 +263,7 @@ function Screen:create_checklist(id, title, list, default_value, tooltip, callba
          item.widget:add(checkbutton)
          if callback then
             checkbutton.on_toggled = function(self)
-               callback(id, checkbutton:get_active(), i)
+               callback(id, i, checkbutton:get_active(), label)
             end
          end
          return checkbutton
@@ -324,7 +320,7 @@ function Screen:create_checklist(id, title, list, default_value, tooltip, callba
          local path = Gtk.TreePath.new_from_string(path_str)
          store[path][columns.CHECKBUTTON] = not store[path][columns.CHECKBUTTON]
          if callback then
-            callback(id, store[path][1], path_str+1)
+            callback(id, math.floor(path_str+1), store[path][2], store[path][1])
          end
       end
       local title_widget = Gtk.Label { label = title }
@@ -375,7 +371,7 @@ function Screen:create_selector(id, title, list, default_value, tooltip, callbac
          if callback then
             radiobutton.on_toggled = function(self)
                if radiobutton:get_active() then
-                  callback(id, radiobutton:get_label(), i)
+                  callback(id, i, radiobutton:get_label())
                end
             end
          end
@@ -405,10 +401,10 @@ function Screen:create_selector(id, title, list, default_value, tooltip, callbac
       local row = selector:get_row_at_index(default_value-1)
       selector:select_row(row)
       function selector.on_row_selected(_, row)
-         local row_label = row:get_child()
-         local row_text = row_label:get_label()
+         local index = math.floor(row:get_index() + 1)
+         local row_text = row:get_child():get_label()
          if callback then
-            callback(id, row_text)
+            callback(id, index, row_text)
          end
       end
       local scrolled_window = Gtk.ScrolledWindow {
