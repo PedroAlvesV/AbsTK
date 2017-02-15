@@ -75,7 +75,9 @@ function abstk.new_screen(title, w, h)
       -- @param id the id to reference the widget later on
       -- @param label the label that will be written over the button
       -- @param[opt] tooltip a tooltip to the button
-      -- @param[opt] callback a callback function to the button
+      -- @param[opt] callback a callback function to the button. This callback 
+      -- function receives two arguments: the id (string) and the label of the
+      -- button (string).
       -------------------------------------------------
       add_button = function(self, id, label, tooltip, callback)
          obj:add_button(id, label, tooltip, callback)
@@ -86,7 +88,9 @@ function abstk.new_screen(title, w, h)
       -- @param id the id to reference the widget later on
       -- @param labels the labels that will be written over the buttons
       -- @param[opt] tooltip a tooltip to the buttons
-      -- @param[opt] callback a callback function to the buttons
+      -- @param[opt] callback a callback function to the buttons. This callback 
+      -- function receives three arguments: the id (string), the index of the
+      -- clicked button (number) and its label (string).
       -------------------------------------------------
       create_button_box = function(self, id, labels, tooltips, callbacks)
          obj:create_button_box(id, labels, tooltips, callbacks)
@@ -98,7 +102,9 @@ function abstk.new_screen(title, w, h)
       -- @param labels the labels that will be written on the entries
       -- @param[opt='1'] default_value the index of the entry selected at start
       -- @param[opt] tooltip a tooltip to the combobox
-      -- @param[opt] callback a callback function to the row
+      -- @param[opt] callback a callback function to the row. This callback 
+      -- function receives three arguments: the id (string), the index of the
+      -- clicked item (number) its label (string).
       -------------------------------------------------
       create_combobox = function(self, id, title, labels, default_value, tooltip, callback)
          obj:create_combobox(id, title, labels, default_value, tooltip, callback)
@@ -124,7 +130,9 @@ function abstk.new_screen(title, w, h)
       -- @param[opt] label a label that precedes the field
       -- @param[opt] default_value a placeholder
       -- @param[opt] tooltip a tooltip to the text input field
-      -- @param[opt] callback a callback function to the field
+      -- @param[opt] callback a callback function to the field. This callback 
+      -- function receives two arguments: the id (string) and the text that is
+      -- inside the field (string).
       -------------------------------------------------
       add_text_input = function(self, id, label, default_value, tooltip, callback)
          obj:add_text_input(id, label, true, default_value, tooltip, callback)
@@ -136,7 +144,9 @@ function abstk.new_screen(title, w, h)
       -- @param[opt] label a label that precedes the field
       -- @param[opt] default_value a placeholder
       -- @param[opt] tooltip a tooltip to the text input field
-      -- @param[opt] callback a callback function to the field
+      -- @param[opt] callback a callback function to the field. This callback 
+      -- function receives two arguments: the id (string) and the text that is
+      -- inside the field (string).
       -------------------------------------------------
       add_password = function(self, id, label, default_value, tooltip, callback)
          obj:add_text_input(id, label, false, default_value, tooltip, callback)
@@ -148,10 +158,9 @@ function abstk.new_screen(title, w, h)
       -- @param[opt] title a title to the field
       -- @param[opt] default_value a pre-written text
       -- @param[opt] tooltip a tooltip to the textbox field
-      -- @param[opt] callback a callback function to the field
       -------------------------------------------------
-      add_textbox = function(self, id, title, default_value, tooltip, callback)
-         obj:add_textbox(id, title, default_value, tooltip, callback)
+      add_textbox = function(self, id, title, default_value, tooltip)
+         obj:add_textbox(id, title, default_value, tooltip)
       end,
       -------------------------------------------------
       -- Creates a single checkbox and adds it to the screen widgets table.
@@ -162,7 +171,9 @@ function abstk.new_screen(title, w, h)
       -- @param label the label of the checkbox
       -- @param[opt] default_value a boolean to determine the initial state of the checkbox
       -- @param[opt] tooltip a tooltip to the checkbox
-      -- @param[opt] callback a callback function to the checkbox
+      -- @param[opt] callback a callback function to the checkbox. This callback 
+      -- function receives three arguments: the id (string), the state of the
+      -- box (boolean) and its label (string).
       -------------------------------------------------
       add_checkbox = function(self, id, label, default_value, tooltip, callback)
          obj:add_checkbox(id, label, default_value, tooltip, callback)
@@ -186,7 +197,9 @@ function abstk.new_screen(title, w, h)
       -- info.
       -- @param[opt] default_value a table containing the states of the boxes or the index to a single item
       -- @param[opt] tooltip a tooltip to the list
-      -- @param[opt] callback a callback function to the boxes
+      -- @param[opt] callback a callback function to the boxes. This callback 
+      -- function receives four arguments: the id (string), the index of the
+      -- clicked checkbox (number), its index (number) and its label (string).
       --
       -- @usage scr:create_checklist('style1', "Checklist 1:", {'a', 'b', 'c'}, nil, tooltip, chk_callback)
       --
@@ -209,10 +222,10 @@ function abstk.new_screen(title, w, h)
       -- it to the screen widgets table. Its calling is very similar to checkboxes. 
       -- There are 3 ways to do so. The first one is by passing just an array with 
       -- the labels as the 'list' parameter. The second one is different from it's 
-      -- equivalent in checkboxes, because radiobuttons can only be active one at the 
-      -- time. So, the second way asks for a number — the index, more precisely —, as 
-      -- 'default_value', to activate that button. The third one is actually equal to
-      -- it's equivalent in checkboxes.
+      -- equivalent in checkboxes, because selector items can only be active one at
+      -- the time. So, the second way asks for a number — the index, more precisely 
+      -- —, as 'default_value', to activate that button. The third one is actually 
+      -- equal to it's equivalent in checkboxes.
       -- </p>
       --
       -- @see Screen:create_checklist
@@ -223,7 +236,9 @@ function abstk.new_screen(title, w, h)
       -- info.
       -- @param[opt] default_value a index to refer the active button
       -- @param[opt] tooltip a tooltip to the list
-      -- @param[opt] callback a callback function to the boxes
+      -- @param[opt] callback a callback function to the list. This callback 
+      -- function receives three arguments: the id (string), the index of the
+      -- clicked item (number) and its label (string).
       --
       -- @usage scr:create_selector('style1', "Selector 1:", {'x', 'y', 'z'}, nil, tooltip, slct_callback)
       --
