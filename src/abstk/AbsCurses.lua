@@ -89,9 +89,9 @@ local function draw_scrollbar(drawable, x, y, h_box, h_data, current_line)
    drawable:mvaddstr(y+h_box, x, 'v')
 end
 
-local function run_callback(self, id, value)
+local function run_callback(self, ...)
    if self.callback then
-      self.callback(id, value)
+      self.callback(self.id, ...)
    end
 end
 
@@ -136,7 +136,7 @@ end
 function AbsCursesButton.new(label, tooltip, callback)
    local self = {
       height = 1,
-      label = " "..label.." ",
+      label = label,
       focusable = true,
       tooltip = tooltip,
       callback = callback,
@@ -151,19 +151,24 @@ function AbsCursesButton:draw(drawable, x, y, focus)
    else
       drawable:attrset(colors.widget_disabled)
    end
-   drawable:mvaddstr(y, x+1, self.label)
+   local label = " "..self.label.." "
+   drawable:mvaddstr(y, x+1, label)
    local left, right = " ", " "
    if focus then
       left, right = ">", "<"
    end
    drawable:attrset(colors.title)
    drawable:mvaddstr(y, x, left)
-   drawable:mvaddstr(y, x+string.len(self.label)+1, right)
+   drawable:mvaddstr(y, x+string.len(label)+1, right)
 end
 
-function AbsCursesButton:process_key(key)
-   if (key == keys.ENTER or key == keys.SPACE) and self.focusable then
-      run_callback(self)
+function AbsCursesButton:process_key(key, index)
+   if key == keys.ENTER or key == keys.SPACE then
+      if index then
+         run_callback(self, index, self.label)
+      else
+         run_callback(self, self.label)
+      end
    elseif key == keys.LEFT or key == keys.RIGHT then
       return actions.FOCUS_ON_BUTTONS
    elseif key == keys.TAB or key == keys.DOWN then
@@ -192,7 +197,7 @@ end
 function AbsCursesButtonBox:draw(drawable, x, y, focus)
    for i, button in ipairs(self.buttons) do
       button:draw(drawable, x, y, focus and i == self.subfocus)
-      x = x + utf8.len(button.label) + 3
+      x = x + utf8.len(button.label) + 5
    end
 end
 
@@ -217,7 +222,7 @@ function AbsCursesButtonBox:process_key(key)
    elseif key == keys.RIGHT then
       return move_focus(1)
    end
-   return self.buttons[self.subfocus]:process_key(key)
+   return self.buttons[self.subfocus]:process_key(key, self.subfocus)
 end
 
 function AbsCursesTextInput.new(label, visibility, default_value, tooltip, callback)
@@ -287,9 +292,7 @@ function AbsCursesTextInput:process_key(key)
    if utf8.len(self.text) > self.max_text then
       last_position = last_position - 1
    end
-   if key == keys.ENTER and self.focusable then
-      run_callback(self)
-   elseif key == keys.LEFT then
+   if key == keys.LEFT then
       if self.cursor > first_position then
          self.cursor = self.cursor - 1
       end
@@ -324,6 +327,7 @@ function AbsCursesTextInput:process_key(key)
             end
             self.cursor = self.cursor - 1
          end
+         run_callback(self, self.text)
          return actions.HANDLED
       elseif key == curses.KEY_DC then
          if self.cursor < last_position then
@@ -333,6 +337,7 @@ function AbsCursesTextInput:process_key(key)
                self.text = string.sub(self.text, 1, pos_x-1)..string.sub(self.text, pos_x+1)
             end   
          end
+         run_callback(self, self.text)
          return actions.HANDLED
       else
          local function add_char()
@@ -351,8 +356,10 @@ function AbsCursesTextInput:process_key(key)
             self.text = self.text:sub(1, -2)..string.char(key)
             self.cursor = last_position
          end
+         run_callback(self, self.text)
          return actions.HANDLED
       end
+      run_callback(self, self.text)
       return actions.HANDLED
    else
       return actions.HANDLED
@@ -362,7 +369,7 @@ end
 
 function AbsCursesTextBox.new(title, default_value, tooltip, callback)
    local self = {
-      height = 10,
+      height = 12,
       width = 0,
       view_pos = 1,
       title = title,
@@ -383,7 +390,7 @@ function AbsCursesTextBox.new(title, default_value, tooltip, callback)
 end
 
 function AbsCursesTextBox:draw(drawable, x, y, focus)
-   self.width = scr_w-4
+   self.width = scr_w-5
    local function title_colors()
       if focus then
          return colors.current
@@ -408,16 +415,15 @@ function AbsCursesTextBox:draw(drawable, x, y, focus)
    end
    pad:attrset(colors.default)
    pad:border(0,0)
-   pad:prefresh(0, 0, y, x, y+self.height+2, self.width+4)   
+   pad:copywin(drawable, 0, 0, y, x, y+self.height+1, self.width, false)
    if self.inside and #self.text > self.height then
-      draw_scrollbar(drawable, self.width-2, y-1, self.height, #self.text, self.view_pos)
+      draw_scrollbar(drawable, self.width, y, self.height, #self.text, self.view_pos)
    end
 end
 
 function AbsCursesTextBox:process_key(key)
    if key == keys.ENTER then
       self.inside = not self.inside
-      run_callback(self)
       return actions.HANDLED
    elseif key == keys.ESC then -- must fix delay
       self.inside = false
@@ -520,10 +526,14 @@ function AbsCursesCheckBox:draw(drawable, x, y, focus)
    drawable:mvaddstr(y, x, "["..mark.."] "..self.label)
 end
 
-function AbsCursesCheckBox:process_key(key)
-   if (key == keys.ENTER or key == keys.SPACE) and self.focusable then
+function AbsCursesCheckBox:process_key(key, index)
+   if key == keys.ENTER or key == keys.SPACE then
       self.state = not self.state
-      run_callback(self)
+      if index then
+         run_callback(self, index, self.state, self.label)
+      else
+         run_callback(self, self.state, self.label)
+      end
    elseif key == keys.LEFT or key == keys.RIGHT then
       return actions.FOCUS_ON_BUTTONS
    elseif key == keys.TAB then
@@ -612,7 +622,7 @@ function AbsCursesCheckList:process_key(key)
          return actions.PREVIOUS
       end
    else
-      return self.checklist[self.subfocus]:process_key(key)
+      return self.checklist[self.subfocus]:process_key(key, self.subfocus)
    end
 end
 
@@ -680,9 +690,11 @@ function AbsCursesSelector:draw(drawable, x, y, focus)
 end
 
 function AbsCursesSelector:process_key(key)
-   if (key == keys.ENTER or key == keys.SPACE) and self.focusable then
-      self.marked = self.subfocus
-      run_callback(self)
+   if key == keys.ENTER or key == keys.SPACE then
+      if self.marked ~= self.subfocus then
+         self.marked = self.subfocus
+         run_callback(self, self.marked, self.list[self.marked])
+      end
    elseif key == keys.LEFT or key == keys.RIGHT then
       return actions.FOCUS_ON_BUTTONS
    elseif key == keys.TAB then
@@ -717,7 +729,9 @@ local function create_widget(self, type_name, class, id, ...)
       type = type_name,
       widget = class.new(...),
    }
+   item.widget.id = id
    table.insert(self.widgets, item)
+   return item.widget
 end
 
 function Screen:add_label(id, label)
@@ -729,7 +743,10 @@ function Screen:add_button(id, label, tooltip, callback)
 end
 
 function Screen:create_button_box(id, labels, tooltips, callbacks)
-   create_widget(self, 'BUTTON_BOX', AbsCursesButtonBox, id, labels, tooltips, callbacks)
+   local widget = create_widget(self, 'BUTTON_BOX', AbsCursesButtonBox, id, labels, tooltips, callbacks)
+   for _, button in ipairs(widget.buttons) do
+      button.id = id
+   end
 end
 
 function Screen:create_combobox(id, title, labels, default_value, tooltip, callback)
@@ -753,7 +770,10 @@ function Screen:add_checkbox(id, label, default_value, tooltip, callback)
 end
 
 function Screen:create_checklist(id, title, list, default_value, tooltip, callback)
-   create_widget(self, 'CHECKLIST', AbsCursesCheckList, id, title, list, default_value, tooltip, callback)
+   local widget = create_widget(self, 'CHECKLIST', AbsCursesCheckList, id, title, list, default_value, tooltip, callback)
+   for _, checkbox in ipairs(widget.checklist) do
+      checkbox.id = id
+   end
 end
 
 function Screen:create_selector(id, title, list, default_value, tooltip, callback)
@@ -795,9 +815,6 @@ function Screen:set_value(id, value, index)
    for _, item in ipairs(self.widgets) do
       if item.id == id then
          if item.type == 'LABEL' or item.type == 'BUTTON' then
-            if item.type == 'BUTTON' then
-               value = " "..value.." "
-            end
             item.widget.label = value
          elseif item.type == 'BUTTON_BOX' then
             item.widget.buttons[index].label = " "..value.." "
@@ -834,7 +851,6 @@ function Screen:get_value(id, index)
             if item.type == 'BUTTON_BOX' then
                label = item.widget.buttons[index].label
             end
-            label = label:gsub("^%s*(.-)%s*$", "%1") -- trim
             return label
          elseif item.type == 'IMAGE' then
             return nil
@@ -915,14 +931,21 @@ function Screen:run()
    tooltip_bar()
    local scroll = {
       view_pos = 1,
-      total_height = 0
+      total_height = 0,
+      top_item = {},
+      bottom_item = {},
+      pad_height = scr_h-5,
    }
-   for _, item in ipairs(self.widgets) do
-      scroll.total_height = scroll.total_height + item.widget.height + 1
-      if scroll.total_height >= scr_h - 5 and not scroll.last_item then
-         scroll.last_item = item.id
-      end
-   end
+--   for _, item in ipairs(self.widgets) do
+--      scroll.total_height = scroll.total_height + item.widget.height + 1
+--      if not scroll.top_item.id and item.widget.focusable then
+--         scroll.top_item.id = item.id
+--      end
+--      if not scroll.bottom_item.id and scroll.total_height >= scroll.pad_height then
+--         scroll.bottom_item.id = item.id
+--      end
+--   end
+--   scroll.last_pos = scroll.total_height - scroll.pad_height + 2
    local function move_focus(direction)
       local widget = self.widgets[self.focus].widget
       local next_focus = self.focus + direction
@@ -939,11 +962,18 @@ function Screen:run()
       if self.focus == -1 or self.focus > #self.widgets then
          return actions.FOCUS_ON_BUTTONS
       end
---      if self.widgets[self.focus].id == scroll.last_item then
---         while scroll.view_pos <= widget.height do
---            scroll.view_pos = scroll.view_pos + direction
+--      local actual_item_id = self.widgets[self.focus].id
+--      if actual_item_id == scroll.bottom_item.id then
+--         scroll.view_pos = math.min(scroll.last_pos, scroll.view_pos + direction + (direction * widget.height))
+--         if self.focus < #self.widgets then
+----            scroll.top_item.id = 
+--            scroll.bottom_item.id = self.widgets[self.focus+1].id
 --         end
-----         scroll.last_item = self.widgets[self.focus+1].id
+--      elseif actual_item_id == scroll.top_item.id then
+--         scroll.view_pos = math.max(1, scroll.view_pos + direction + (direction * widget.height))
+--         if self.focus > 1 then
+--            scroll.top_item.id = self.widgets[self.focus-1].id
+--         end
 --      end
       if self.widgets[self.focus].widget.enabled then
          return actions.HANDLED
@@ -951,20 +981,20 @@ function Screen:run()
    end
    local function process_key(key, widget)
       local motion = widget:process_key(key)
-      if motion == actions.PASSTHROUGH or motion == actions.HANDLED then
-         local pad_height = scr_h-5
-         local last_pos = scroll.total_height - pad_height + 2
-         if scroll.total_height > pad_height then
-            if key == keys.PAGE_UP then
-               scroll.view_pos = math.max(1, scroll.view_pos - math.floor(pad_height/2))
-            elseif key == keys.PAGE_DOWN then
-               scroll.view_pos = math.min(last_pos, scroll.view_pos + math.floor(pad_height/2))
-            elseif key == keys.HOME then
-               scroll.view_pos = 1
-            elseif key == keys.END then
-               scroll.view_pos = last_pos
-            end
-         end
+      if motion == actions.PASSTHROUGH then
+--         if scroll.total_height > scroll.pad_height then
+--            if key == keys.PAGE_UP then
+--               scroll.view_pos = math.max(1, scroll.view_pos - math.floor(scroll.pad_height/2))
+--            elseif key == keys.PAGE_DOWN then
+--               scroll.view_pos = math.min(scroll.last_pos, scroll.view_pos + math.floor(scroll.pad_height/2))
+--            elseif key == keys.HOME then
+--               scroll.view_pos = 1
+--               scroll.top_item.id = self.widgets[1].id
+--            elseif key == keys.END then
+--               scroll.view_pos = scroll.last_pos
+--               scroll.bottom_item.id = self.widgets[#self.widgets].id
+--            end
+--         end
          return motion
       elseif motion == actions.FOCUS_ON_BUTTONS then
          self.focus = #self.widgets + 1
@@ -985,10 +1015,10 @@ function Screen:run()
    while true do
       stdscr:attrset(colors.title)
       stdscr:mvaddstr(1, 1, self.title)
-      local y = 3
-      if scroll.total_height > scr_h-5 then
-         draw_scrollbar(stdscr, scr_w-2, y-2, scr_h-6, scroll.total_height, scroll.view_pos)
-      end
+      local y = 2
+--      if scroll.total_height > scr_h-5 then
+--         draw_scrollbar(stdscr, scr_w-1, y-1, scr_h-6, scroll.total_height, scroll.view_pos)
+--      end
       for i, item in ipairs(self.widgets) do
          local arrow = " "
          if i == self.focus then
@@ -1012,9 +1042,9 @@ function Screen:run()
             arrow = ">"
          end
          self.pad:attrset(colors.title)
-         self.pad:mvaddstr(y-scroll.view_pos-1, 1, arrow)
-         item.widget:draw(self.pad, 3, y-scroll.view_pos-1, i == self.focus)
-         self.pad:prefresh(0, 0, 2, 1, scr_h-5, scr_w-2)
+         self.pad:mvaddstr(y, 1, arrow)
+         item.widget:draw(self.pad, 3, y, i == self.focus)
+         self.pad:prefresh(0, 0, scroll.view_pos, 1, scr_h-5, scr_w-2)
          y = y + item.widget.height + 1
       end
       self.pad:clear()
