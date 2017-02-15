@@ -4,4 +4,6 @@
 
 The Abstract Toolkit – a widget toolkit for GUI and text-mode applications.
 
-(Lua version of https://github.com/gobolinux/AbsTK)
+(Lua version of <https://github.com/gobolinux/AbsTK>)
+
+Documentation is available at <https://pedroalvesv.github.io/AbsTK-Lua>
