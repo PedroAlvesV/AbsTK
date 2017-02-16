@@ -7,9 +7,8 @@
 -- @see abstk
 -------------------------------------------------
 
--- fix textbox pad glitch
 -- fix bbox starting subfocus (when first button is disabled)
--- fix callbacks
+-- fix pgup and home screen scrolling
 
 -- FOCUS_ON_BUTTONS não existe mais como widget
 -- Wizard trata botões e reaproveita button_box
@@ -74,6 +73,7 @@ local function attr_code(attr)
 end
 
 local function draw_scrollbar(drawable, x, y, h_box, h_data, current_line)
+   drawable:attrset(colors.default)
    for i=1, h_box do
       drawable:mvaddstr(y+i, x, " ")
    end
@@ -190,6 +190,7 @@ function AbsCursesButtonBox.new(labels, tooltips, callbacks)
       focusable = true,
       subfocus = 1,
       enabled = true,
+      tooltip = "",
    }
    return setmetatable(self, { __index = AbsCursesButtonBox })
 end
@@ -379,6 +380,9 @@ function AbsCursesTextBox.new(title, default_value, tooltip, callback)
       callback = callback,
       enabled = true,
    }
+   if type(title) == 'string' then
+      self.height = self.height + 1
+   end
    self.text, self.text_height = "", 0
    if default_value then
       self.text = {}
@@ -391,6 +395,10 @@ end
 
 function AbsCursesTextBox:draw(drawable, x, y, focus)
    self.width = scr_w-5
+   self.inside_box_h = self.height - 2
+   if type(self.title) == 'string' then
+      self.inside_box_h = self.inside_box_h - 1
+   end
    local function title_colors()
       if focus then
          return colors.current
@@ -408,16 +416,16 @@ function AbsCursesTextBox:draw(drawable, x, y, focus)
       drawable:mvaddstr(y, x, self.title)
       y = y + 1
    end
-   local pad = curses.newpad(self.height+2, self.width-2)
+   local pad = curses.newpad(self.inside_box_h+2, self.width-2)
    pad:wbkgd(attr_code(box_colors()))
    for i=self.view_pos, self.view_pos + self.height - 1 do
-      pad:mvaddstr(i-self.view_pos+1, 1, self.text[i] or "")
+      pad:mvaddstr(i-self.view_pos+1, 1, self.text[i] or tostring(i-self.view_pos+1))
    end
    pad:attrset(colors.default)
    pad:border(0,0)
-   pad:copywin(drawable, 0, 0, y, x, y+self.height+1, self.width, false)
-   if self.inside and #self.text > self.height then
-      draw_scrollbar(drawable, self.width, y, self.height, #self.text, self.view_pos)
+   pad:copywin(drawable, 0, 0, y, x, y+self.inside_box_h+1, self.width, false)
+   if self.inside and #self.text > self.inside_box_h then
+      draw_scrollbar(drawable, self.width, y, self.inside_box_h, #self.text, self.view_pos)
    end
 end
 
@@ -432,8 +440,8 @@ function AbsCursesTextBox:process_key(key)
       self.inside = false
       return actions.NEXT
    elseif key == keys.DOWN then
-      if self.inside and #self.text > self.height then
-         if self.view_pos <= #self.text - self.height then
+      if self.inside and #self.text > self.inside_box_h then
+         if self.view_pos <= #self.text - self.inside_box_h then
             self.view_pos = self.view_pos + 1
          end
          return actions.HANDLED
@@ -441,7 +449,7 @@ function AbsCursesTextBox:process_key(key)
       self.inside = false
       return actions.NEXT
    elseif key == keys.UP then
-      if self.inside and #self.text > self.height then
+      if self.inside and #self.text > self.inside_box_h then
          if self.view_pos > 1 then
             self.view_pos = self.view_pos - 1
          end
@@ -450,11 +458,11 @@ function AbsCursesTextBox:process_key(key)
       self.inside = false
       return actions.PREVIOUS
    elseif key == keys.PAGE_DOWN then
-      if self.inside and #self.text > self.height then
-         if self.view_pos <= #self.text - self.height then
+      if self.inside and #self.text > self.inside_box_h then
+         if self.view_pos <= #self.text - self.inside_box_h then
             local temp_vpos = self.view_pos + 5
-            if temp_vpos > #self.text - self.height then
-               self.view_pos = #self.text - self.height + 1
+            if temp_vpos > #self.text - self.inside_box_h then
+               self.view_pos = #self.text - self.inside_box_h + 1
             else
                self.view_pos = temp_vpos
             end
@@ -462,7 +470,7 @@ function AbsCursesTextBox:process_key(key)
          return actions.HANDLED
       end
    elseif key == keys.PAGE_UP then
-      if self.inside and #self.text > self.height then
+      if self.inside and #self.text > self.inside_box_h then
          if self.view_pos > 1 then
             local temp_vpos = self.view_pos - 5
             if temp_vpos < 1 then
@@ -480,7 +488,7 @@ function AbsCursesTextBox:process_key(key)
       end
    elseif key == keys.END then
       if self.inside then
-         self.view_pos = #self.text - self.height + 1
+         self.view_pos = #self.text - self.inside_box_h + 1
          return actions.HANDLED
       end
    end
@@ -914,7 +922,7 @@ end
 
 function Screen:run()
    local stdscr = init_curses()
-   self.pad = curses.newpad(scr_w-2 + 100, scr_h-4 + 100) -- FIX CALCULATE SIZE BASED ON WIDGETS HEIGHT
+   self.pad = curses.newpad(scr_w-2 + 100, scr_h-5 + 100) -- FIX CALCULATE SIZE BASED ON WIDGETS HEIGHT
    self.pad:wbkgd(attr_code(colors.default))
    stdscr:sub(scr_h-1, scr_w, 0, 0):box(0, 0)
    stdscr:attrset(colors.default)
@@ -929,23 +937,21 @@ function Screen:run()
       end
    end
    tooltip_bar()
-   local scroll = {
-      view_pos = 1,
-      total_height = 0,
-      top_item = {},
-      bottom_item = {},
-      pad_height = scr_h-5,
+   local pad = {
+      viewport_h = scr_h-5,
+      min = 1,
    }
---   for _, item in ipairs(self.widgets) do
---      scroll.total_height = scroll.total_height + item.widget.height + 1
---      if not scroll.top_item.id and item.widget.focusable then
---         scroll.top_item.id = item.id
---      end
---      if not scroll.bottom_item.id and scroll.total_height >= scroll.pad_height then
---         scroll.bottom_item.id = item.id
---      end
---   end
---   scroll.last_pos = scroll.total_height - scroll.pad_height + 2
+   local function calculate_pad_h()
+      local y = 2
+      for i, item in ipairs(self.widgets) do
+         item.y = y
+         y = y + item.widget.height + 1
+      end
+      return y-1
+   end
+   pad.total_h = calculate_pad_h()
+   pad.max = pad.min + pad.viewport_h - 1
+   pad.last_pos = pad.total_h - pad.viewport_h + 2
    local function move_focus(direction)
       local widget = self.widgets[self.focus].widget
       local next_focus = self.focus + direction
@@ -962,39 +968,25 @@ function Screen:run()
       if self.focus == -1 or self.focus > #self.widgets then
          return actions.FOCUS_ON_BUTTONS
       end
---      local actual_item_id = self.widgets[self.focus].id
---      if actual_item_id == scroll.bottom_item.id then
---         scroll.view_pos = math.min(scroll.last_pos, scroll.view_pos + direction + (direction * widget.height))
---         if self.focus < #self.widgets then
-----            scroll.top_item.id = 
---            scroll.bottom_item.id = self.widgets[self.focus+1].id
---         end
---      elseif actual_item_id == scroll.top_item.id then
---         scroll.view_pos = math.max(1, scroll.view_pos + direction + (direction * widget.height))
---         if self.focus > 1 then
---            scroll.top_item.id = self.widgets[self.focus-1].id
---         end
---      end
       if self.widgets[self.focus].widget.enabled then
          return actions.HANDLED
       end
    end
-   local function process_key(key, widget)
+   local function process_key(key, item)
+      local widget = item.widget
       local motion = widget:process_key(key)
       if motion == actions.PASSTHROUGH then
---         if scroll.total_height > scroll.pad_height then
---            if key == keys.PAGE_UP then
---               scroll.view_pos = math.max(1, scroll.view_pos - math.floor(scroll.pad_height/2))
---            elseif key == keys.PAGE_DOWN then
---               scroll.view_pos = math.min(scroll.last_pos, scroll.view_pos + math.floor(scroll.pad_height/2))
---            elseif key == keys.HOME then
---               scroll.view_pos = 1
---               scroll.top_item.id = self.widgets[1].id
---            elseif key == keys.END then
---               scroll.view_pos = scroll.last_pos
---               scroll.bottom_item.id = self.widgets[#self.widgets].id
---            end
---         end
+         if pad.total_h > pad.viewport_h then
+            if key == keys.PAGE_UP then
+               pad.min = math.max(item.y + widget.height - pad.viewport_h, pad.min - math.floor(pad.viewport_h/2))
+            elseif key == keys.PAGE_DOWN then
+               pad.min = math.min(pad.last_pos, pad.min + math.floor(pad.viewport_h/2))
+            elseif key == keys.HOME then
+               pad.min = item.y + widget.height - pad.viewport_h
+            elseif key == keys.END then
+               pad.min = pad.last_pos
+            end
+         end
          return motion
       elseif motion == actions.FOCUS_ON_BUTTONS then
          self.focus = #self.widgets + 1
@@ -1012,17 +1004,33 @@ function Screen:run()
          break
       end
    end
+   local function scroll_screen(item)
+      local widget = item.widget
+      local item_y = item.y
+      if item_y > pad.min and item_y <= pad.max then
+         if item_y + widget.height - 1 > pad.max then
+            pad.min = pad.min + (item_y + widget.height - pad.max)
+         end
+      else
+         if item_y < pad.min then
+            pad.min = item_y - 1
+         else
+            pad.min = item_y + widget.height - pad.viewport_h + 1
+         end
+      end
+      pad.max = pad.min + pad.viewport_h - 1
+      if pad.total_h > pad.viewport_h then
+         draw_scrollbar(stdscr, scr_w-1, 1, pad.viewport_h-1, pad.total_h, pad.min)
+      end
+   end
    while true do
       stdscr:attrset(colors.title)
       stdscr:mvaddstr(1, 1, self.title)
-      local y = 2
---      if scroll.total_height > scr_h-5 then
---         draw_scrollbar(stdscr, scr_w-1, y-1, scr_h-6, scroll.total_height, scroll.view_pos)
---      end
+--      stdscr:mvaddstr(1, 1, "viewport_h="..pad.viewport_h.." total_h="..pad.total_h.." pmin="..pad.min.." pmax="..pad.max.." debug:"..debug.."    ")
       for i, item in ipairs(self.widgets) do
          local arrow = " "
          if i == self.focus then
-            if type(item.widget.tooltip) == 'string' or item.type == 'BUTTON_BOX' then
+            if type(item.widget.tooltip) == 'string' then
                local tooltip = item.widget.tooltip
                if item.type == 'BUTTON_BOX' then
                   local j = 1
@@ -1040,16 +1048,16 @@ function Screen:run()
                tooltip_bar()
             end
             arrow = ">"
+            scroll_screen(item)
          end
          self.pad:attrset(colors.title)
-         self.pad:mvaddstr(y, 1, arrow)
-         item.widget:draw(self.pad, 3, y, i == self.focus)
-         self.pad:prefresh(0, 0, scroll.view_pos, 1, scr_h-5, scr_w-2)
-         y = y + item.widget.height + 1
+         self.pad:mvaddstr(item.y, 1, arrow)
+         item.widget:draw(self.pad, 3, item.y, i == self.focus)
+         self.pad:prefresh(pad.min, 0, 2, 1, pad.viewport_h, scr_w-2)
       end
       self.pad:clear()
       stdscr:move(scr_h-1,scr_w-1)
-      process_key(stdscr:getch(), self.widgets[self.focus].widget)
+      process_key(stdscr:getch(), self.widgets[self.focus])
    end
    -- done_curses()
 end
