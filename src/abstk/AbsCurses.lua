@@ -8,7 +8,7 @@
 -------------------------------------------------
 
 -- fix bbox starting subfocus (when first button is disabled)
--- fix pgup and home screen scrolling
+-- add scrolling to text_inputs
 
 -- FOCUS_ON_BUTTONS não existe mais como widget
 -- Wizard trata botões e reaproveita button_box
@@ -419,7 +419,7 @@ function AbsCursesTextBox:draw(drawable, x, y, focus)
    local pad = curses.newpad(self.inside_box_h+2, self.width-2)
    pad:wbkgd(attr_code(box_colors()))
    for i=self.view_pos, self.view_pos + self.height - 1 do
-      pad:mvaddstr(i-self.view_pos+1, 1, self.text[i] or tostring(i-self.view_pos+1))
+      pad:mvaddstr(i-self.view_pos+1, 1, self.text[i] or "")
    end
    pad:attrset(colors.default)
    pad:border(0,0)
@@ -978,11 +978,11 @@ function Screen:run()
       if motion == actions.PASSTHROUGH then
          if pad.total_h > pad.viewport_h then
             if key == keys.PAGE_UP then
-               pad.min = math.max(item.y + widget.height - pad.viewport_h, pad.min - math.floor(pad.viewport_h/2))
+               pad.min = math.max(1, pad.min - math.floor(pad.viewport_h/2))
             elseif key == keys.PAGE_DOWN then
                pad.min = math.min(pad.last_pos, pad.min + math.floor(pad.viewport_h/2))
             elseif key == keys.HOME then
-               pad.min = item.y + widget.height - pad.viewport_h
+               pad.min = 1
             elseif key == keys.END then
                pad.min = pad.last_pos
             end
@@ -1026,7 +1026,7 @@ function Screen:run()
    while true do
       stdscr:attrset(colors.title)
       stdscr:mvaddstr(1, 1, self.title)
---      stdscr:mvaddstr(1, 1, "viewport_h="..pad.viewport_h.." total_h="..pad.total_h.." pmin="..pad.min.." pmax="..pad.max.." debug:"..debug.."    ")
+--      stdscr:mvaddstr(1, 1, "viewport_h="..pad.viewport_h.." total_h="..pad.total_h.." pmin="..pad.min.." pmax="..pad.max.."    ")
       for i, item in ipairs(self.widgets) do
          local arrow = " "
          if i == self.focus then
