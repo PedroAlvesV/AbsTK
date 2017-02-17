@@ -4,7 +4,7 @@ abstk.set_mode(...)
 
 local scr = abstk.new_screen("AbsTK Complete Test - Lists Module")
 
-local chk_callback = function(id, value, index)
+local chk_callback = function(id, index, value)
    print(scr:get_value(id, index))
 end
 local slct_callback = function(id, value)

@@ -12,15 +12,17 @@ local scr3 = abstk.new_screen("Images Module")
 local scr4 = abstk.new_screen("Lists Module")
 local scr5 = abstk.new_screen("Text Input Module")
 
--- Generic callbacks
+-- Test callbacks
 local bt_callback = function(id, label)
    print(label.." clicado.")
---   scr2:show_message_box('msgbox', label, 'OK')
+end
+local subbt_callback = function(id, index, label)
+   print(label.." clicado.")
 end
 local default_callback = function(id, value)
    print(id, value)
 end
-local chk_callback = function(id, value, index)
+local chk_callback = function(id, index, value)
    print(scr4:get_value(id, index))
 end
 local slct_callback = function(id, value)
@@ -37,7 +39,7 @@ scr2:add_label('label1', 'Simple Buttons')
 scr2:add_button('bt1', 'Button1', "tooltip", bt_callback)
 scr2:add_button('bt2', 'Button2', nil, bt_callback)
 scr2:add_label('label2', 'ButtonBox')
-scr2:create_button_box('bbox', {'A', 'B', 'C', 'D'}, nil, {bt_callback, bt_callback, bt_callback, bt_callback})
+scr2:create_button_box('bbox', {'A', 'B', 'C', 'D'}, nil, {subbt_callback, subbt_callback, subbt_callback, subbt_callback})
 scr2:create_combobox('cbox', "ComboBox", {'Label1', 'Label2', 'Label3'}, nil, nil, default_callback)
 
 -- Fill the third screen
@@ -88,7 +90,7 @@ for i=1, n do
       txt = txt.."\n"
    end
 end
-scr5:add_textbox('tbox', "TextBox", txt, nil, default_callback)
+scr5:add_textbox('tbox', "TextBox", txt)
 
 -- Add all screens to wizard
 wizard:add_page('screen1', scr1, 'INTRO')
