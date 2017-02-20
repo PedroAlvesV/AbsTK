@@ -66,11 +66,6 @@ function Screen:add_button(id, label, tooltip, callback)
       label = label,
    }
    button:set_tooltip_text(tooltip)
-   if callback then
-      button.on_clicked = function(self)
-         callback(id, label)
-      end
-   end
    local item = {
       id = id,
       type = 'BUTTON',
@@ -79,6 +74,11 @@ function Screen:add_button(id, label, tooltip, callback)
          button,
       }
    }
+   if callback then
+      button.on_clicked = function(self)
+         callback(id, item.widget.child.button:get_label())
+      end
+   end
    table.insert(self.widgets, item)
 end
 
