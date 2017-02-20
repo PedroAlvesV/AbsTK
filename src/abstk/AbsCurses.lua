@@ -233,6 +233,8 @@ function AbsCursesTextInput.new(label, visibility, default_value, tooltip, callb
       label = label or " ",
       visibility = visibility,
       text = default_value or "",
+      hidden_text_start = "",
+      hidden_text_end = "",
       cursor = 0,
       tooltip = tooltip,
       callback = callback,
@@ -243,7 +245,12 @@ function AbsCursesTextInput.new(label, visibility, default_value, tooltip, callb
 end
 
 function AbsCursesTextInput:draw(drawable, x, y, focus)
-   self.max_text = scr_w - utf8.len(self.label) - 11
+   self.field_limit = scr_w - 6
+   self.max_text = self.field_limit - utf8.len(self.label) - 3
+   if utf8.len(self.text) > self.field_limit then
+      self.hidden_text_start = self.text:sub(1, self.field_limit-utf8.len(self.text)) -- MUST FIX
+      self.text = self.text:sub( -(utf8.len(self.hidden_text_start)) )
+   end
    if self.focusable then
       drawable:attrset(colors.widget)
    else
@@ -284,23 +291,40 @@ function AbsCursesTextInput:draw(drawable, x, y, focus)
       title = "["
    end
    drawable:mvaddstr(y, x, title)
-   drawable:mvaddstr(y, iter, "]")
+   drawable:mvaddstr(y, iter, utf8.len(self.text))
 end
 
 function AbsCursesTextInput:process_key(key)
    local first_position = utf8.len(self.label) + 5
    local last_position = first_position + utf8.len(self.text)
-   if utf8.len(self.text) > self.max_text then
+   local has_hidden_text_at_start = utf8.len(self.hidden_text_start) > 0
+   local has_hidden_text_at_end = utf8.len(self.hidden_text_end) > 0
+   local function bring_char()
+      if has_hidden_text_at_end then
+         self.text = self.text..self.hidden_text_end:sub(1,1)
+         self.hidden_text_end = self.hidden_text_end:sub(2)
+      end
+   end
+   if utf8.len(self.text) >= self.max_text-1 then
       last_position = last_position - 1
    end
    if key == keys.LEFT then
       if self.cursor > first_position then
          self.cursor = self.cursor - 1
+      elseif has_hidden_text_at_start then
+         self.hidden_text_end = self.text:sub(-2)..self.hidden_text_end
+         self.text = self.text:sub(1,-2)
+         self.text = self.hidden_text_start:sub(-1)..self.text
+         self.hidden_text_start = self.hidden_text_start:sub(1,-2)
       end
       return actions.HANDLED
    elseif key == keys.RIGHT then
       if self.cursor < last_position then
          self.cursor = self.cursor + 1
+      elseif utf8.len(self.text) >= self.max_text-1 then
+         self.hidden_text_start = self.hidden_text_start..self.text:sub(1,1)
+         self.text = self.text:sub(2)
+         bring_char()
       end
       return actions.HANDLED
    elseif key == keys.TAB or key == keys.DOWN then
@@ -313,57 +337,57 @@ function AbsCursesTextInput:process_key(key)
    elseif key == keys.END then
       self.cursor = last_position
       return actions.HANDLED
-   elseif key == keys.PAGE_UP then
-      return actions.PASSTHROUGH
-   elseif key == keys.PAGE_DOWN then
+   elseif key == keys.PAGE_UP or key == keys.PAGE_DOWN then
       return actions.PASSTHROUGH
    elseif key >= 32 and key <= 382 then
       local pos_x = self.cursor-utf8.len(self.label)-utf8.len(self.text)-5
       if key == curses.KEY_BACKSPACE then
-         if self.cursor > first_position then
-            if self.cursor == last_position then
-               self.text = string.sub(self.text, 1, utf8.len(self.text)-1)
-            else
-               self.text = string.sub(self.text, 1, pos_x-2)..string.sub(self.text, pos_x)
+         if self.cursor == first_position then
+            if has_hidden_text_at_start then
+               self.hidden_text_start = self.hidden_text_start:sub(1,-2)
             end
-            self.cursor = self.cursor - 1
+         else
+            if self.cursor == last_position then
+               self.text = self.text:sub(1,-2)
+               bring_char()
+            else
+               self.text = self.text:sub(1, pos_x-2)..self.text:sub(pos_x)
+               bring_char()
+            end
+            self.cursor = self.cursor-1
          end
          run_callback(self, self.text)
          return actions.HANDLED
       elseif key == curses.KEY_DC then
          if self.cursor < last_position then
             if self.cursor == last_position - 1 then
-               self.text = string.sub(self.text, 1, utf8.len(self.text)-1)
+               self.text = self.text:sub(1,-2)
             else
-               self.text = string.sub(self.text, 1, pos_x-1)..string.sub(self.text, pos_x+1)
-            end   
+               self.text = self.text:sub(1, pos_x-1)..self.text:sub(pos_x+1)
+            end
+            bring_char()
          end
          run_callback(self, self.text)
          return actions.HANDLED
       else
-         local function add_char()
-            if self.cursor == last_position then
-               self.text = self.text..string.char(key)
-            else
-               self.text = string.sub(self.text, 1, pos_x-1)..string.char(key)..string.sub(self.text, pos_x)
-            end
-         end
-         if utf8.len(self.text) < self.max_text then
-            add_char()
+         if self.cursor == last_position then
+            self.text = self.text..string.char(key)
             self.cursor = self.cursor + 1
-         elseif utf8.len(self.text) == self.max_text then
-            add_char()
-         elseif utf8.len(self.text) > self.max_text then
-            self.text = self.text:sub(1, -2)..string.char(key)
-            self.cursor = last_position
+            if self.cursor > self.field_limit then
+               self.cursor = self.cursor - 1
+               self.hidden_text_start = self.hidden_text_start..self.text:sub(1,1)
+               self.text = self.text:sub(2)
+            end
+         else
+            self.text = self.text:sub(1, pos_x-1)..string.char(key)..self.text:sub(pos_x)
+            if utf8.len(self.text) >= self.max_text then
+               self.hidden_text_end = self.text:sub(-1)..self.hidden_text_end
+               self.text = self.text:sub(1,-2)
+            end
          end
          run_callback(self, self.text)
          return actions.HANDLED
       end
-      run_callback(self, self.text)
-      return actions.HANDLED
-   else
-      return actions.HANDLED
    end
    return actions.PASSTHROUGH
 end
@@ -831,6 +855,8 @@ function Screen:set_value(id, value, index)
          elseif item.type == 'TEXT_INPUT' then
             local entry = item.widget
             entry.text = value
+            entry.hidden_text_start = ""
+            entry.hidden_text_end = ""
             entry.cursor = utf8.len(entry.label) + utf8.len(entry.text) + 6
          elseif item.type == 'TEXTBOX' then
             local textbox = item.widget
@@ -863,7 +889,9 @@ function Screen:get_value(id, index)
          elseif item.type == 'IMAGE' then
             return nil
          elseif item.type == 'TEXT_INPUT' then
-            return item.widget.text
+            local entry = item.widget
+            local text = entry.hidden_text_start..entry.text..entry.hidden_text_end
+            return text
          elseif item.type == 'TEXTBOX' then
             local textbox = item.widget
             local text = ""
