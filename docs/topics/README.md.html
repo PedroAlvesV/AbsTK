@@ -30,6 +30,12 @@
   <li><a href="../index.html">Index</a></li>
 </ul>
 
+<h2>Contents</h2>
+<ul>
+<li><a href="#Installation">Installation </a></li>
+<li><a href="#Getting_Started">Getting Started </a></li>
+<li><a href="#License">License </a></li>
+</ul>
 
 
 <h2>Topics</h2>
@@ -51,22 +57,144 @@
 <div id="content">
 
 
-<h1>AbsTK-Lua</h1>
+<h1><img src="logo/232x72.png?raw=true" alt="AbsTK-Lua"/></h1>
 
-<p><a href="https://gitter.im/AbsTK-Lua/Lobby?utm_source=badge&amp;utm_medium=badge&amp;utm_campaign=pr-badge&amp;utm_content=badge"><img src="https://badges.gitter.im/AbsTK-Lua/Lobby.svg" alt="Join the chat at https://gitter.im/AbsTK-Lua/Lobby"/></a></p>
+<p><a href="https://gitter.im/AbsTK-Lua/Lobby?utm_source=badge&amp;utm_medium=badge&amp;utm_campaign=pr-badge&amp;utm_content=badge"><img src="https://badges.gitter.im/AbsTK-Lua/Lobby.svg" alt="Join the chat at https://gitter.im/AbsTK-Lua/Lobby"/></a>
+<a href="http://doge.mit-license.org"><img src="http://img.shields.io/:license-mit-blue.svg" alt="MIT License"/></a></p>
 
-<p>The Abstract Toolkit – a widget toolkit for GUI and text-mode applications.</p>
+<blockquote>
+    <p>The Abstract Toolkit – a widget toolkit for GUI and text-mode applications.</p>
 
-<p>(Lua version of <a href="https://github.com/gobolinux/AbsTK">https://github.com/gobolinux/AbsTK</a>)</p>
+    <p>(Lua version of <a href="https://github.com/gobolinux/AbsTK">https://github.com/gobolinux/AbsTK</a>)</p>
+</blockquote>
 
-<p>Documentation is available at <a href="https://pedroalvesv.github.io/AbsTK-Lua">https://pedroalvesv.github.io/AbsTK-Lua</a></p>
+<p>Documentation available at <a href="https://pedroalvesv.github.io/AbsTK-Lua">https://pedroalvesv.github.io/AbsTK-Lua</a>.</p>
+
+<p><a name="Installation"></a></p>
+<h2>Installation</h2>
+
+<p>AbsTK can generate GUI and text-mode applications, with those being GTK and Ncurses. So, it's correct to presume that both are
+required to run the toolkit.
+The good news is that it isn't hard to install them:</p>
+
+<pre><code> $ [sudo] luarocks install lgi
+ $ [sudo] luarocks install lcurses
+</code></pre>
+
+
+<p>And to finally install AbsTK:</p>
+
+<pre><code> $ [sudo] luarocks install --server=http://luarocks.org/dev abstk
+</code></pre>
+
+
+<p><a name="Getting_Started"></a></p>
+<h2>Getting Started</h2>
+
+<h3>Routines</h3>
+
+<p>AbsTK routines are simple.</p>
+
+<h4>Single Screen</h4>
+
+<ol>
+    <li>Create a Screen</li>
+    <li>Populate Screen with widgets</li>
+    <li>Run Screen</li>
+</ol>
+
+<p>As you can see <a href="https://github.com/PedroAlvesV/AbsTK-Lua/blob/master/src/minimalist-test/minimalist-test.lua">here</a>.</p>
+
+<h4>Wizard</h4>
+
+<ol>
+    <li>Create Wizard</li>
+    <li>Create Screens</li>
+    <li>Populate Screens with widgets</li>
+    <li>Add Screens to Wizard</li>
+    <li>Run Wizard</li>
+</ol>
+
+<p>As you can see <a href="https://github.com/PedroAlvesV/AbsTK-Lua/blob/master/src/complete-test/wizard.lua">here</a>.</p>
+
+<h3>First steps</h3>
+
+<p>There are two must call functions that AbsTK needs in order to start:</p>
+
+
+<pre>
+<span class="keyword">local</span> abstk = <span class="global">require</span> <span class="string">'abstk'</span>
+abstk.set_mode(...)
+</pre>
+
+<p>While the first one is pretty obvious, the second one is just as necessary as it.
+To determine whether UI is going to be constructed, AbsTK uses a function that asks for a string parameter.
+When nothing is passed, the toolkit decides which one to use based on <code>os.getenv(&quot;DISPLAY&quot;)</code> returning value.
+If it returns something, the OS runs in a GUI, so AbsTK runs in GUI as well. Otherwise, it runs in text-mode.</p>
+
+<h3>Widgets</h3>
+
+<h4>Screen</h4>
+
+<p>To add widgets to a Screen, all that must be done is call its construction method with the desired Screen object.
+About the functions names, they are very clear and follow a golden rule:</p>
+<blockquote>
+    <p>"add" refers to single widgets construction;</p>
+
+    <p>"create" refers to groups of widgets construction.</p>
+</blockquote>
+
+<p>For instance,</p>
+
+
+<pre>
+scr:add_button(<span class="string">'button'</span>, <span class="string">"I'm a Button!"</span>)
+scr:create_button_box(<span class="string">'bbox'</span>, {<span class="string">"We"</span>, <span class="string">"Are"</span>, <span class="string">"A"</span>, <span class="string">"Button"</span>, <span class="string">"Group."</span>})
+</pre>
+
+
+<h4>Wizard</h4>
+
+<p>As Screens for widgets, Wizards follow the same pattern:</p>
+
+
+<pre>
+wizard:add_page(<span class="string">'screen'</span>, scr)
+</pre>
+
+
+<p>You can see more examples in <a href="src/complete-test/">src/complete-test/</a> and a list with every function at the <a href="https://pedroalvesv.github.io/AbsTK-Lua">documentation</a>.</p>
+
+<p><a name="License"></a></p>
+<h2>License</h2>
+
+<p>The MIT License (MIT)</p>
+
+<p>Copyright (c) 2017 Pedro Alves Valentim</p>
+
+<p>Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the "Software"), to deal in
+the Software without restriction, including without limitation the rights to
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+the Software, and to permit persons to whom the Software is furnished to do so,
+subject to the following conditions:</p>
+
+<p>The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.</p>
+
+<p>THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p>
 
 
 </div> <!-- id="content" -->
 </div> <!-- id="main" -->
 <div id="about">
 <i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
-<i style="float:right;">Last updated 2017-02-15 20:54:02 </i>
+<i style="float:right;">Last updated 2017-02-21 17:38:11 </i>
 </div> <!-- id="about" -->
 </div> <!-- id="container" -->
 </body>

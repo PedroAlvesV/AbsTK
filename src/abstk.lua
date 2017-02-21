@@ -296,7 +296,6 @@ function abstk.new_screen(title, w, h)
       -- * `TextBox - string (text to be insert)`
       -- * `CheckList - boolean (state of button)`
       -- * `Selector - boolean (state of button)`
-      -- * `List - boolean (state of button)`
       --
       -- Note that, since Selector items can only be active one at the time per group,
       -- the value parameter passed is the index representing which one must be set active.
@@ -317,7 +316,6 @@ function abstk.new_screen(title, w, h)
       -- scr:set_value('checkbox', true)
       -- scr:set_value('checklist', true, 1)
       -- scr:set_value('selector', 2)
-      -- scr:set_value('list', true, 3)
       -------------------------------------------------
       set_value = function(self, id, value, index)
          obj:set_value(id, value, index)
@@ -338,7 +336,6 @@ function abstk.new_screen(title, w, h)
       -- * `Textbox - a string (current text)`
       -- * `Checklist - a string and a boolean (label and state of button)`
       -- * `Selector - a string and a boolean (label and state of button)`
-      -- * `List - a string and a boolean (label and state of button)`
       -------------------------------------------------
       get_value = function(self, id, index)
          return obj:get_value(id, index)
