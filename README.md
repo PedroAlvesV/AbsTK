@@ -3,7 +3,7 @@
 [![Join the chat at https://gitter.im/AbsTK-Lua/Lobby](https://badges.gitter.im/AbsTK-Lua/Lobby.svg)](https://gitter.im/AbsTK-Lua/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![MIT License](http://img.shields.io/:license-mit-blue.svg)](http://doge.mit-license.org)
 
->The Abstract Toolkit – a widget toolkit for GUI and text-mode applications.
+>The Abstract Toolkit – a widget toolkit for GUI and text-mode applications. It allows you to write an UI and, depending on the OS having or not a desktop environment, it runs on GUI (GTK) or text-mode (Curses).
 
 >(Lua version of <https://github.com/gobolinux/AbsTK>)
 
