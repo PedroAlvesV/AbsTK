@@ -1,4 +1,4 @@
-# ![AbsTK-Lua](logo/232x72.png)
+# ![AbsTK-Lua](logo/232x72.png?raw=true)
 
 [![Join the chat at https://gitter.im/AbsTK-Lua/Lobby](https://badges.gitter.im/AbsTK-Lua/Lobby.svg)](https://gitter.im/AbsTK-Lua/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![MIT License](http://img.shields.io/:license-mit-blue.svg)](http://doge.mit-license.org)
@@ -9,7 +9,6 @@
 
 Documentation available at <https://pedroalvesv.github.io/AbsTK-Lua>.
 
-<!---
 ## Installation
 
 AbsTK can generate GUI and text-mode applications, with those being GTK and Ncurses. So, it's correct to presume that both are 
@@ -24,9 +23,8 @@ $ [sudo] luarocks install lcurses
 And to finally install AbsTK:
 
 ```
-$ [sudo] luarocks install abstk-lua
+$ [sudo] luarocks install --server=http://luarocks.org/dev abstk
 ```
---->
 
 ## Getting Started
 
