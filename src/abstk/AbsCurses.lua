@@ -111,6 +111,9 @@ end
 function AbsCurses.new_wizard(title)
    local self = {
       pages = {},
+      current_page = 1,
+      nav_buttons = {},
+      focus_on_buttons = false,
    }
    local mt = {
       __index = Wizard,
@@ -291,7 +294,7 @@ function AbsCursesTextInput:draw(drawable, x, y, focus)
       title = "["
    end
    drawable:mvaddstr(y, x, title)
-   drawable:mvaddstr(y, iter, utf8.len(self.text))
+   drawable:mvaddstr(y, iter, "]")
 end
 
 function AbsCursesTextInput:process_key(key)
@@ -312,7 +315,12 @@ function AbsCursesTextInput:process_key(key)
       if self.cursor > first_position then
          self.cursor = self.cursor - 1
       elseif has_hidden_text_at_start then
-         self.hidden_text_end = self.text:sub(-2)..self.hidden_text_end
+         local iter = 0
+         while utf8.len(self.text) < self.max_text-1 do
+            self.text = self.hidden_text_start:sub(-iter)..self.text
+            iter = iter + 1
+         end
+         self.hidden_text_end = self.text:sub(-1)..self.hidden_text_end
          self.text = self.text:sub(1,-2)
          self.text = self.hidden_text_start:sub(-1)..self.text
          self.hidden_text_start = self.hidden_text_start:sub(1,-2)
@@ -1091,24 +1099,35 @@ function Screen:run()
 end
 
 function Wizard:add_page(id, screen, page_type)
-   local content
-   for _, item in ipairs(screen.widgets) do
-
-   end
    local page = {
       id = id,
       title = screen.title,
-      content = content,
+      screen = screen,
+      page_type = page_type,
    }
    table.insert(self.pages, page)
-   if page_type == 'INTRO' or page_type == 'CONTENT' or page_type == 'CONFIRM'
-   or page_type == 'SUMMARY' or page_type == 'PROGRESS' then
-
-   end
 end
 
 function Wizard:run()
-
+   local function create_navigation_buttons()
+      local labels = {'PREVIOUS', 'NEXT', 'QUIT'}
+      local tooltips = {"Go to previous page", "Go to next page", 'Quit wizard'}
+      local prev_page = function()
+         self.current_page = self.current_page - 1
+      end
+      local next_page = function()
+         self.current_page = self.current_page + 1
+      end
+      local quit = function()
+         --done_curses()
+      end
+      local callbacks = {prev_page, next_page, quit}
+      self.nav_buttons = Screen:create_button_box('nav_buttons', labels, tooltips, callbacks)
+   end
+   self.pages[self.current_page].screen.run()
+   while true do
+      self.nav_buttons:draw()
+   end
 end
 
 return AbsCurses
