@@ -8,7 +8,6 @@
 -------------------------------------------------
 
 -- fix bbox starting subfocus (when first button is disabled)
--- add scrolling to text_inputs
 
 -- FOCUS_ON_BUTTONS não existe mais como widget
 -- Wizard trata botões e reaproveita button_box
@@ -35,6 +34,7 @@ local AbsCursesCheckBox = {}
 local AbsCursesCheckList = {}
 local AbsCursesSelector = {}
 
+local stdscr
 local scr_w, scr_h
 local colors = {}
 local actions = {
@@ -184,11 +184,14 @@ end
 
 function AbsCursesButtonBox.new(labels, tooltips, callbacks)
    local buttons = {}
+   local width = 0
    for i, label in ipairs(labels) do
       table.insert(buttons, AbsCursesButton.new(label, tooltips and tooltips[i], callbacks and callbacks[i]))
+      width = width + utf8.len(label) + 5
    end
    local self = {
       height = 1,
+      width = width,
       buttons = buttons,
       focusable = true,
       subfocus = 1,
@@ -923,92 +926,28 @@ function Screen:get_value(id, index)
    end
 end
 
-local function init_curses()
-   local stdscr = curses.initscr()
-   curses.cbreak()
-   curses.echo(false)
-   curses.nl(false)
-   stdscr:keypad(true)
-   scr_h, scr_w = stdscr:getmaxyx()
-   scr_w = math.min(scr_w, 127)
-   -- scr_h = math.min(scr_h, 24)
-   curses.start_color()
-   curses.use_default_colors()
-   pcall(curses.init_pair, 1, curses.COLOR_WHITE, curses.COLOR_BLUE)
-   pcall(curses.init_pair, 2, curses.COLOR_BLACK, curses.COLOR_BLUE)
-   pcall(curses.init_pair, 3, curses.COLOR_YELLOW, curses.COLOR_BLUE)
-   pcall(curses.init_pair, 4, curses.COLOR_BLACK, curses.COLOR_WHITE)
-   pcall(curses.init_pair, 5, curses.COLOR_BLACK, curses.COLOR_CYAN)
-   pcall(curses.init_pair, 6, curses.COLOR_CYAN, curses.COLOR_BLUE)
-   pcall(curses.init_pair, 7, curses.COLOR_CYAN, curses.COLOR_BLACK)
-   colors.default = curses.color_pair(1)
-   colors.disabled = curses.color_pair(2) + curses.A_BOLD
-   colors.title = curses.color_pair(3) + curses.A_BOLD
-   colors.button = curses.color_pair(4)
-   colors.widget = curses.color_pair(5)
-   colors.widget_disabled = curses.color_pair(5) + curses.A_BOLD
-   colors.current = curses.color_pair(1) + curses.A_BOLD
-   colors.subcurrent = curses.color_pair(6) + curses.A_BOLD
-   colors.cursor = curses.color_pair(7) + curses.A_BOLD
-   stdscr:clear()
-   stdscr:wbkgd(attr_code(colors.default))
-   stdscr:attrset(colors.default)
-   return stdscr
-end
-
-function Screen:run()
-   local stdscr = init_curses()
-   self.pad = curses.newpad(scr_w-2 + 100, scr_h-5 + 100) -- FIX CALCULATE SIZE BASED ON WIDGETS HEIGHT
-   self.pad:wbkgd(attr_code(colors.default))
-   stdscr:sub(scr_h-1, scr_w, 0, 0):box(0, 0)
-   stdscr:attrset(colors.default)
-   stdscr:mvaddstr(scr_h-3, 2, "Tab: move focus   Enter: select")
-   stdscr:refresh()
-   local function tooltip_bar()
-      stdscr:attrset(colors.widget)
-      local i = 0
-      while i < scr_w-1 do
-         stdscr:mvaddstr(scr_h-1, i, " ")
-         i = i + 1
-      end
-   end
-   tooltip_bar()
-   local pad = {
-      viewport_h = scr_h-5,
-      min = 1,
-   }
-   local function calculate_pad_h()
-      local y = 2
-      for i, item in ipairs(self.widgets) do
-         item.y = y
-         y = y + item.widget.height + 1
-      end
-      return y-1
-   end
-   pad.total_h = calculate_pad_h()
-   pad.max = pad.min + pad.viewport_h - 1
-   pad.last_pos = pad.total_h - pad.viewport_h + 2
-   local function move_focus(direction)
-      local widget = self.widgets[self.focus].widget
-      local next_focus = self.focus + direction
-      while true do
-         if next_focus < 1 or next_focus > #self.widgets then
+local function run_screen(screen, pad)
+   local function process_key(key, item)
+      local function move_focus(direction)
+         local widget = screen.widgets[screen.focus].widget
+         local next_focus = screen.focus + direction
+         while true do
+            if next_focus < 1 or next_focus > #screen.widgets then
+               return actions.HANDLED
+            end
+            if screen.widgets[next_focus].widget.focusable then
+               break
+            end
+            next_focus = next_focus + direction
+         end
+         screen.focus = next_focus
+         if screen.focus == -1 or screen.focus > #screen.widgets then
+            return actions.FOCUS_ON_BUTTONS
+         end
+         if screen.widgets[screen.focus].widget.enabled then
             return actions.HANDLED
          end
-         if self.widgets[next_focus].widget.focusable then
-            break
-         end
-         next_focus = next_focus + direction
       end
-      self.focus = next_focus
-      if self.focus == -1 or self.focus > #self.widgets then
-         return actions.FOCUS_ON_BUTTONS
-      end
-      if self.widgets[self.focus].widget.enabled then
-         return actions.HANDLED
-      end
-   end
-   local function process_key(key, item)
       local widget = item.widget
       local motion = widget:process_key(key)
       if motion == actions.PASSTHROUGH then
@@ -1025,7 +964,7 @@ function Screen:run()
          end
          return motion
       elseif motion == actions.FOCUS_ON_BUTTONS then
-         self.focus = #self.widgets + 1
+         screen.focus = 0
          return motion
       end
       if motion == actions.PREVIOUS then
@@ -1034,10 +973,12 @@ function Screen:run()
          move_focus(1)
       end
    end
-   for i, item in ipairs(self.widgets) do
-      if item.widget.focusable then
-         self.focus = i
-         break
+   local function clear_tooltip_bar()
+      stdscr:attrset(colors.widget)
+      local i = 0
+      while i < scr_w-1 do
+         stdscr:mvaddstr(scr_h-1, i, " ")
+         i = i + 1
       end
    end
    local function scroll_screen(item)
@@ -1056,44 +997,118 @@ function Screen:run()
       end
       pad.max = pad.min + pad.viewport_h - 1
       if pad.total_h > pad.viewport_h then
-         draw_scrollbar(stdscr, scr_w-1, 1, pad.viewport_h-1, pad.total_h, pad.min)
+         draw_scrollbar(stdscr, scr_w-1, 1, pad.viewport_h-1, pad.total_h-1, pad.min)
       end
    end
-   while true do
-      stdscr:attrset(colors.title)
-      stdscr:mvaddstr(1, 1, self.title)
---      stdscr:mvaddstr(1, 1, "viewport_h="..pad.viewport_h.." total_h="..pad.total_h.." pmin="..pad.min.." pmax="..pad.max.."    ")
-      for i, item in ipairs(self.widgets) do
-         local arrow = " "
-         if i == self.focus then
-            if type(item.widget.tooltip) == 'string' then
-               local tooltip = item.widget.tooltip
-               if item.type == 'BUTTON_BOX' then
-                  local j = 1
-                  while j < item.widget.subfocus do
-                     j = j + 1
-                  end
-                  tooltip = item.widget.buttons[j].tooltip or ""
+   stdscr:attrset(colors.title)
+   stdscr:mvaddstr(1, 1, screen.title)
+   for i, item in ipairs(screen.widgets) do
+      local arrow = " "
+      if i == screen.focus then
+         if type(item.widget.tooltip) == 'string' then
+            local tooltip = item.widget.tooltip
+            if item.type == 'BUTTON_BOX' then
+               local j = 1
+               while j < item.widget.subfocus do
+                  j = j + 1
                end
-               while utf8.len(tooltip) < scr_w do
-                  tooltip = tooltip.." "
-               end
-               stdscr:attrset(colors.widget)
-               stdscr:mvaddstr(scr_h-1, 0, tooltip)
-            else
-               tooltip_bar()
+               tooltip = item.widget.buttons[j].tooltip or ""
             end
-            arrow = ">"
-            scroll_screen(item)
+            while utf8.len(tooltip) < scr_w do
+               tooltip = tooltip.." "
+            end
+            stdscr:attrset(colors.widget)
+            stdscr:mvaddstr(scr_h-1, 0, tooltip)
+         else
+            clear_tooltip_bar()
          end
-         self.pad:attrset(colors.title)
-         self.pad:mvaddstr(item.y, 1, arrow)
-         item.widget:draw(self.pad, 3, item.y, i == self.focus)
-         self.pad:prefresh(pad.min, 0, 2, 1, pad.viewport_h, scr_w-2)
+         arrow = ">"
+         scroll_screen(item)
       end
-      self.pad:clear()
-      stdscr:move(scr_h-1,scr_w-1)
-      process_key(stdscr:getch(), self.widgets[self.focus])
+      screen.pad:attrset(colors.title)
+      screen.pad:mvaddstr(item.y, 1, arrow)
+      item.widget:draw(screen.pad, 3, item.y, i == screen.focus)
+      screen.pad:prefresh(pad.min, 0, 2, 1, pad.viewport_h, scr_w-2)
+   end
+   screen.pad:clear()
+   stdscr:move(scr_h-1,scr_w-1)
+   return process_key(stdscr:getch(), screen.widgets[screen.focus])
+end
+
+local function create_pad(screen)
+   local function calculate_pad_h()
+      local y = 2
+      for i, item in ipairs(screen.widgets) do
+         item.y = y
+         y = y + item.widget.height + 1
+      end
+      return y-1
+   end
+   local pad_data = {
+      viewport_h = scr_h-5,
+      min = 1,
+   }
+   pad_data.total_h = calculate_pad_h()
+   pad_data.max = pad_data.min + pad_data.viewport_h - 1
+   pad_data.last_pos = pad_data.total_h - pad_data.viewport_h + 2
+   local actual_pad = curses.newpad(pad_data.total_h, scr_w-2)
+   return pad_data, actual_pad
+end
+
+local function setup_screen(screen)
+   local function init_curses()
+      local stdscr = curses.initscr()
+      curses.cbreak()
+      curses.echo(false)
+      curses.nl(false)
+      stdscr:keypad(true)
+      scr_h, scr_w = stdscr:getmaxyx()
+      scr_w = math.min(scr_w, 127)
+      -- scr_h = math.min(scr_h, 24)
+      curses.start_color()
+      curses.use_default_colors()
+      pcall(curses.init_pair, 1, curses.COLOR_WHITE, curses.COLOR_BLUE)
+      pcall(curses.init_pair, 2, curses.COLOR_BLACK, curses.COLOR_BLUE)
+      pcall(curses.init_pair, 3, curses.COLOR_YELLOW, curses.COLOR_BLUE)
+      pcall(curses.init_pair, 4, curses.COLOR_BLACK, curses.COLOR_WHITE)
+      pcall(curses.init_pair, 5, curses.COLOR_BLACK, curses.COLOR_CYAN)
+      pcall(curses.init_pair, 6, curses.COLOR_CYAN, curses.COLOR_BLUE)
+      pcall(curses.init_pair, 7, curses.COLOR_CYAN, curses.COLOR_BLACK)
+      colors.default = curses.color_pair(1)
+      colors.disabled = curses.color_pair(2) + curses.A_BOLD
+      colors.title = curses.color_pair(3) + curses.A_BOLD
+      colors.button = curses.color_pair(4)
+      colors.widget = curses.color_pair(5)
+      colors.widget_disabled = curses.color_pair(5) + curses.A_BOLD
+      colors.current = curses.color_pair(1) + curses.A_BOLD
+      colors.subcurrent = curses.color_pair(6) + curses.A_BOLD
+      colors.cursor = curses.color_pair(7) + curses.A_BOLD
+      stdscr:clear()
+      stdscr:wbkgd(attr_code(colors.default))
+      stdscr:attrset(colors.default)
+      return stdscr
+   end
+   stdscr = init_curses()
+   stdscr:sub(scr_h-1, scr_w, 0, 0):box(0, 0)
+   stdscr:attrset(colors.default)
+   stdscr:mvaddstr(scr_h-3, 2, "Tab: move focus   Enter: select")
+   stdscr:refresh()
+   for i, item in ipairs(screen.widgets) do
+      if item.widget.focusable then
+         screen.focus = i
+         break
+      end
+   end
+   return screen
+end
+
+function Screen:run()
+   self = setup_screen(self)
+   local pad, actual_pad = create_pad(self)
+   self.pad = actual_pad
+   self.pad:wbkgd(attr_code(colors.default))
+   while true do
+      run_screen(self, pad)
    end
    -- done_curses()
 end
@@ -1110,7 +1125,7 @@ end
 
 function Wizard:run()
    local function create_navigation_buttons()
-      local labels = {'PREVIOUS', 'NEXT', 'QUIT'}
+      local labels = {'< Previous', 'Next >', 'Quit'}
       local tooltips = {"Go to previous page", "Go to next page", 'Quit wizard'}
       local prev_page = function()
          self.current_page = self.current_page - 1
@@ -1119,14 +1134,19 @@ function Wizard:run()
          self.current_page = self.current_page + 1
       end
       local quit = function()
-         --done_curses()
+         -- done_curses()
       end
       local callbacks = {prev_page, next_page, quit}
-      self.nav_buttons = Screen:create_button_box('nav_buttons', labels, tooltips, callbacks)
+      return AbsCursesButtonBox.new(labels, tooltips, callbacks)
    end
-   self.pages[self.current_page].screen.run()
+   self.nav_buttons = create_navigation_buttons()
+   local current_screen = setup_screen(self.pages[self.current_page].screen)
+   local pad, actual_pad = create_pad(current_screen)
+   current_screen.pad = actual_pad
+   current_screen.pad:wbkgd(attr_code(colors.default))
    while true do
-      self.nav_buttons:draw()
+      self.nav_buttons:draw(stdscr, scr_w-self.nav_buttons.width-1, scr_h-3, self.focus_on_buttons)
+      self.focus_on_buttons = (run_screen(current_screen, pad) == actions.FOCUS_ON_BUTTONS)
    end
 end
 
