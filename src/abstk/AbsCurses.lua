@@ -132,6 +132,15 @@ function AbsCursesLabel:draw(drawable, x, y)
    drawable:mvaddstr(y, x, self.label)
 end
 
+function AbsCursesLabel:process_key(key)
+   if key == keys.TAB or key == keys.DOWN then
+      return actions.NEXT
+   elseif key == keys.UP then
+      return actions.PREVIOUS
+   end
+   return actions.PASSTHROUGH
+end
+
 function AbsCursesButton.new(label, tooltip, callback)
    local self = {
       height = 1,
@@ -917,37 +926,41 @@ function Screen:get_value(id, index)
 end
 
 local function run_screen(screen, pad, wizard_title)
+   local function scroll_screen(item)
+      local widget = item.widget
+      local item_y = item.y
+      if item_y > pad.min and item_y <= pad.max then
+         if item_y + widget.height - 1 > pad.max then
+            pad.min = pad.min + (item_y + widget.height - pad.max)
+         end
+      else
+         if item_y < pad.min then
+            pad.min = item_y - 1
+         else
+            pad.min = item_y + widget.height - pad.viewport_h + 1
+         end
+      end
+      pad.max = pad.min + pad.viewport_h - 1
+      if pad.total_h > pad.viewport_h then
+         draw_scrollbar(stdscr, scr_w-1, 1, pad.viewport_h-1, pad.total_h-1, pad.min)
+      end
+   end
    local function process_key(key, item)
       local function move_focus(direction)
          local widget = screen.widgets[screen.focus].widget
          local next_focus = screen.focus + direction
-         while true do
-            if next_focus < 1 or next_focus > #screen.widgets then
-               return actions.HANDLED
-            end
-            if screen.widgets[next_focus].widget.focusable then
-               break
-            end
-            next_focus = next_focus + direction
+         if next_focus > 0 and next_focus <= #screen.widgets then
+            screen.focus = next_focus
          end
-         screen.focus = next_focus
-         if screen.focus == -1 or screen.focus > #screen.widgets then
-            return actions.FOCUS_ON_BUTTONS
-         end
-         if screen.widgets[screen.focus].widget.enabled then
-            return actions.HANDLED
-         end
+         return actions.HANDLED
       end
       local widget = item.widget
       local motion = widget:process_key(key)
       if motion == actions.PASSTHROUGH then
          if pad.total_h > pad.viewport_h then
-            if key == keys.PAGE_UP then
-               pad.min = math.max(1, pad.min - math.floor(pad.viewport_h/2))
-            elseif key == keys.PAGE_DOWN then
-               pad.min = math.min(pad.last_pos, pad.min + math.floor(pad.viewport_h/2))
-            elseif key == keys.HOME then
+            if key == keys.HOME then
                pad.min = 1
+               scroll_screen(item)
             elseif key == keys.END then
                pad.min = pad.last_pos
             end
@@ -971,26 +984,6 @@ local function run_screen(screen, pad, wizard_title)
          i = i + 1
       end
    end
-   local function scroll_screen(item)
-      local widget = item.widget
-      local item_y = item.y
-      if item_y > pad.min and item_y <= pad.max then
-         if item_y + widget.height - 1 > pad.max then
-            pad.min = pad.min + (item_y + widget.height - pad.max)
-         end
-      else
-         if item_y < pad.min then
-            pad.min = item_y - 1
-         else
-            pad.min = item_y + widget.height - pad.viewport_h + 1
-         end
-      end
-      pad.max = pad.min + pad.viewport_h - 1
-      if pad.total_h > pad.viewport_h then
-         draw_scrollbar(stdscr, scr_w-1, 1, pad.viewport_h-1, pad.total_h-1, pad.min)
-      end
-   end
-
    stdscr:attrset(colors.title)
    local title = screen.title
    if wizard_title then
@@ -1020,7 +1013,11 @@ local function run_screen(screen, pad, wizard_title)
          arrow = ">"
          scroll_screen(item)
       end
-      screen.pad:attrset(colors.title)
+      if item.widget.focusable then
+         screen.pad:attrset(colors.title)
+      else
+         screen.pad:attrset(colors.default)
+      end
       if item.id == 'nav_buttons' then
          item.widget:draw(stdscr, scr_w-item.widget.width-1, scr_h-3, i == screen.focus)
       else
@@ -1092,12 +1089,7 @@ local function setup_screen(screen)
    stdscr:attrset(colors.default)
    stdscr:mvaddstr(scr_h-3, 2, "Tab: move focus   Enter: select")
    stdscr:refresh()
-   for i, item in ipairs(screen.widgets) do
-      if item.widget.focusable then
-         screen.focus = i
-         break
-      end
-   end
+   screen.focus = 1
    return screen
 end
 
@@ -1126,7 +1118,7 @@ function Wizard:run()
    local function create_navigation_buttons(screen, page_number)
       local prev_page = function()
          if self.current_page > 1 then
-            self.current_page = sFOCUS_ON_BUTTONSelf.current_page - 1
+            self.current_page = self.current_page - 1
          end
       end
       local next_page = function()
