@@ -9,9 +9,6 @@
 
 -- fix bbox starting subfocus (when first button is disabled)
 
--- FOCUS_ON_BUTTONS não existe mais como widget
--- Wizard trata botões e reaproveita button_box
-
 local AbsCurses = {}
 
 local curses = require 'curses' -- http://www.pjb.com.au/comp/lua/lcurses.html
@@ -42,7 +39,6 @@ local actions = {
    HANDLED = -2,
    PREVIOUS = -1,
    NEXT = 1,
-   FOCUS_ON_BUTTONS = 10
 }
 local keys = {
    TAB = 9,
@@ -110,10 +106,10 @@ end
 
 function AbsCurses.new_wizard(title)
    local self = {
+      title = title,
       pages = {},
       current_page = 1,
       nav_buttons = {},
-      focus_on_buttons = false,
    }
    local mt = {
       __index = Wizard,
@@ -172,8 +168,6 @@ function AbsCursesButton:process_key(key, index)
       else
          run_callback(self, self.label)
       end
-   elseif key == keys.LEFT or key == keys.RIGHT then
-      return actions.FOCUS_ON_BUTTONS
    elseif key == keys.TAB or key == keys.DOWN then
       return actions.NEXT
    elseif key == keys.UP then
@@ -577,8 +571,6 @@ function AbsCursesCheckBox:process_key(key, index)
       else
          run_callback(self, self.state, self.label)
       end
-   elseif key == keys.LEFT or key == keys.RIGHT then
-      return actions.FOCUS_ON_BUTTONS
    elseif key == keys.TAB then
       return actions.NEXT
    elseif key == keys.DOWN then
@@ -738,8 +730,6 @@ function AbsCursesSelector:process_key(key)
          self.marked = self.subfocus
          run_callback(self, self.marked, self.list[self.marked])
       end
-   elseif key == keys.LEFT or key == keys.RIGHT then
-      return actions.FOCUS_ON_BUTTONS
    elseif key == keys.TAB then
       return actions.NEXT
    elseif key == keys.DOWN then
@@ -926,7 +916,7 @@ function Screen:get_value(id, index)
    end
 end
 
-local function run_screen(screen, pad)
+local function run_screen(screen, pad, wizard_title)
    local function process_key(key, item)
       local function move_focus(direction)
          local widget = screen.widgets[screen.focus].widget
@@ -1000,8 +990,13 @@ local function run_screen(screen, pad)
          draw_scrollbar(stdscr, scr_w-1, 1, pad.viewport_h-1, pad.total_h-1, pad.min)
       end
    end
+
    stdscr:attrset(colors.title)
-   stdscr:mvaddstr(1, 1, screen.title)
+   local title = screen.title
+   if wizard_title then
+      title = wizard_title.." - "..title
+   end
+   stdscr:mvaddstr(1, 1, title)
    for i, item in ipairs(screen.widgets) do
       local arrow = " "
       if i == screen.focus then
@@ -1026,8 +1021,12 @@ local function run_screen(screen, pad)
          scroll_screen(item)
       end
       screen.pad:attrset(colors.title)
-      screen.pad:mvaddstr(item.y, 1, arrow)
-      item.widget:draw(screen.pad, 3, item.y, i == screen.focus)
+      if item.id == 'nav_buttons' then
+         item.widget:draw(stdscr, scr_w-item.widget.width-1, scr_h-3, i == screen.focus)
+      else
+         screen.pad:mvaddstr(item.y, 1, arrow)
+         item.widget:draw(screen.pad, 3, item.y, i == screen.focus)
+      end
       screen.pad:prefresh(pad.min, 0, 2, 1, pad.viewport_h, scr_w-2)
    end
    screen.pad:clear()
@@ -1124,29 +1123,48 @@ function Wizard:add_page(id, screen, page_type)
 end
 
 function Wizard:run()
-   local function create_navigation_buttons()
-      local labels = {'< Previous', 'Next >', 'Quit'}
-      local tooltips = {"Go to previous page", "Go to next page", 'Quit wizard'}
+   local function create_navigation_buttons(screen, page_number)
       local prev_page = function()
-         self.current_page = self.current_page - 1
+         if self.current_page > 1 then
+            self.current_page = sFOCUS_ON_BUTTONSelf.current_page - 1
+         end
       end
       local next_page = function()
-         self.current_page = self.current_page + 1
+         if self.current_page < #self.pages then
+            self.current_page = self.current_page + 1
+         end
       end
       local quit = function()
+         -- quit()
+      end
+      local done = function()
          -- done_curses()
       end
-      local callbacks = {prev_page, next_page, quit}
-      return AbsCursesButtonBox.new(labels, tooltips, callbacks)
+      local labels, tooltips, callbacks
+      if page_number == 1 then
+         labels = {'Next >', 'Quit'}
+         tooltips = {"Go to next page", 'Quit wizard'}
+         callbacks = {next_page, quit}
+      elseif page_number == #self.pages then
+         labels = {'< Previous', 'Done'}
+         tooltips = {"Go to previous page", "Done Wizard"}
+         callbacks = {prev_page, done}
+      else
+         labels = {'< Previous', 'Next >', 'Quit'}
+         tooltips = {"Go to previous page", "Go to next page", 'Quit wizard'}
+         callbacks = {prev_page, next_page, quit}
+      end
+      screen:create_button_box('nav_buttons', labels, tooltips, callbacks)
+      stdscr:refresh()
    end
-   self.nav_buttons = create_navigation_buttons()
    local current_screen = setup_screen(self.pages[self.current_page].screen)
-   local pad, actual_pad = create_pad(current_screen)
-   current_screen.pad = actual_pad
-   current_screen.pad:wbkgd(attr_code(colors.default))
    while true do
-      self.nav_buttons:draw(stdscr, scr_w-self.nav_buttons.width-1, scr_h-3, self.focus_on_buttons)
-      self.focus_on_buttons = (run_screen(current_screen, pad) == actions.FOCUS_ON_BUTTONS)
+      current_screen = self.pages[self.current_page].screen
+      create_navigation_buttons(current_screen, self.current_page)
+      local pad, actual_pad = create_pad(current_screen)
+      current_screen.pad = actual_pad
+      current_screen.pad:wbkgd(attr_code(colors.default))
+      run_screen(current_screen, pad, self.title)
    end
 end
 
