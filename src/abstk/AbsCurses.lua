@@ -68,6 +68,13 @@ local function attr_code(attr)
    return code
 end
 
+local quit_curses = function()
+   -- TODO
+end
+local done_curses = function()
+   -- TODO
+end
+
 local function draw_scrollbar(drawable, x, y, h_box, h_data, current_line)
    drawable:attrset(colors.default)
    for i=1, h_box do
@@ -95,7 +102,7 @@ function AbsCurses.new_screen(title)
    local self = {
       title = title,
       widgets = {},
-      focus = 0,
+      focus = 1,
    }
    local mt = {
       __index = Screen,
@@ -928,16 +935,15 @@ end
 local function run_screen(screen, pad, wizard_title)
    local function scroll_screen(item)
       local widget = item.widget
-      local item_y = item.y
-      if item_y > pad.min and item_y <= pad.max then
-         if item_y + widget.height - 1 > pad.max then
-            pad.min = pad.min + (item_y + widget.height - pad.max)
+      if item.y > pad.min and item.y <= pad.max then
+         if item.y + widget.height - 1 > pad.max then
+            pad.min = pad.min + (item.y + widget.height - pad.max)
          end
       else
-         if item_y < pad.min then
-            pad.min = item_y - 1
+         if item.y < pad.min then
+            pad.min = item.y - 1
          else
-            pad.min = item_y + widget.height - pad.viewport_h + 1
+            pad.min = item.y + widget.height - pad.viewport_h + 1
          end
       end
       pad.max = pad.min + pad.viewport_h - 1
@@ -957,6 +963,9 @@ local function run_screen(screen, pad, wizard_title)
       local widget = item.widget
       local motion = widget:process_key(key)
       if motion == actions.PASSTHROUGH then
+         if key == keys.LEFT or key == keys.RIGHT then
+            screen.focus = #screen.widgets
+         end
          if pad.total_h > pad.viewport_h then
             if key == keys.HOME then
                pad.min = 1
@@ -965,9 +974,6 @@ local function run_screen(screen, pad, wizard_title)
                pad.min = pad.last_pos
             end
          end
-         return motion
-      elseif motion == actions.FOCUS_ON_BUTTONS then
-         screen.focus = 0
          return motion
       end
       if motion == actions.PREVIOUS then
@@ -978,10 +984,8 @@ local function run_screen(screen, pad, wizard_title)
    end
    local function clear_tooltip_bar()
       stdscr:attrset(colors.widget)
-      local i = 0
-      while i < scr_w-1 do
+      for i=0,scr_w-1 do
          stdscr:mvaddstr(scr_h-1, i, " ")
-         i = i + 1
       end
    end
    stdscr:attrset(colors.title)
@@ -1011,14 +1015,16 @@ local function run_screen(screen, pad, wizard_title)
             clear_tooltip_bar()
          end
          arrow = ">"
-         scroll_screen(item)
+         if item.id ~= 'assist_buttons' then
+            scroll_screen(item)
+         end
       end
       if item.widget.focusable then
          screen.pad:attrset(colors.title)
       else
          screen.pad:attrset(colors.default)
       end
-      if item.id == 'nav_buttons' then
+      if item.id == 'nav_buttons' or item.id == 'assist_buttons' then
          item.widget:draw(stdscr, scr_w-item.widget.width-1, scr_h-3, i == screen.focus)
       else
          screen.pad:mvaddstr(item.y, 1, arrow)
@@ -1026,9 +1032,9 @@ local function run_screen(screen, pad, wizard_title)
       end
       screen.pad:prefresh(pad.min, 0, 2, 1, pad.viewport_h, scr_w-2)
    end
-   screen.pad:clear()
+   --screen.pad:clear()
    stdscr:move(scr_h-1,scr_w-1)
-   return process_key(stdscr:getch(), screen.widgets[screen.focus])
+   process_key(stdscr:getch(), screen.widgets[screen.focus])
 end
 
 local function create_pad(screen)
@@ -1089,19 +1095,25 @@ local function setup_screen(screen)
    stdscr:attrset(colors.default)
    stdscr:mvaddstr(scr_h-3, 2, "Tab: move focus   Enter: select")
    stdscr:refresh()
-   screen.focus = 1
    return screen
 end
 
 function Screen:run()
+   local function create_assistant_buttons()
+      local labels, tooltips, callbacks
+      labels = {'Done', 'Quit'}
+      tooltips = {"Done assistant", "Quit assistant"}
+      callbacks = {done_curses, quit_curses}
+      self:create_button_box('assist_buttons', labels, tooltips, callbacks)
+   end
    self = setup_screen(self)
    local pad, actual_pad = create_pad(self)
    self.pad = actual_pad
    self.pad:wbkgd(attr_code(colors.default))
+   create_assistant_buttons()
    while true do
       run_screen(self, pad)
    end
-   -- done_curses()
 end
 
 function Wizard:add_page(id, screen, page_type)
@@ -1115,44 +1127,37 @@ function Wizard:add_page(id, screen, page_type)
 end
 
 function Wizard:run()
-   local function create_navigation_buttons(screen, page_number)
+   local function create_navigation_buttons(pages)
       local prev_page = function()
-         if self.current_page > 1 then
-            self.current_page = self.current_page - 1
-         end
+         self.current_page = self.current_page - 1
+         setup_screen(self.pages[self.current_page].screen)
       end
       local next_page = function()
-         if self.current_page < #self.pages then
-            self.current_page = self.current_page + 1
+         self.current_page = self.current_page + 1
+         setup_screen(self.pages[self.current_page].screen)
+      end
+      for page_number, page in ipairs(pages) do
+         local labels, tooltips, callbacks
+         if page_number == 1 then
+            labels = {'Next >', 'Quit'}
+            tooltips = {"Go to next page", "Quit wizard"}
+            callbacks = {next_page, quit_curses}
+         elseif page_number == #pages then
+            labels = {'< Previous', 'Done'}
+            tooltips = {"Go to previous page", "Done Wizard"}
+            callbacks = {prev_page, done_curses}
+         else
+            labels = {'< Previous', 'Next >', 'Quit'}
+            tooltips = {"Go to previous page", "Go to next page", "Quit wizard"}
+            callbacks = {prev_page, next_page, quit_curses}
          end
+         page.screen:create_button_box('nav_buttons', labels, tooltips, callbacks)
       end
-      local quit = function()
-         -- quit()
-      end
-      local done = function()
-         -- done_curses()
-      end
-      local labels, tooltips, callbacks
-      if page_number == 1 then
-         labels = {'Next >', 'Quit'}
-         tooltips = {"Go to next page", 'Quit wizard'}
-         callbacks = {next_page, quit}
-      elseif page_number == #self.pages then
-         labels = {'< Previous', 'Done'}
-         tooltips = {"Go to previous page", "Done Wizard"}
-         callbacks = {prev_page, done}
-      else
-         labels = {'< Previous', 'Next >', 'Quit'}
-         tooltips = {"Go to previous page", "Go to next page", 'Quit wizard'}
-         callbacks = {prev_page, next_page, quit}
-      end
-      screen:create_button_box('nav_buttons', labels, tooltips, callbacks)
-      stdscr:refresh()
    end
    local current_screen = setup_screen(self.pages[self.current_page].screen)
+   create_navigation_buttons(self.pages)
    while true do
       current_screen = self.pages[self.current_page].screen
-      create_navigation_buttons(current_screen, self.current_page)
       local pad, actual_pad = create_pad(current_screen)
       current_screen.pad = actual_pad
       current_screen.pad:wbkgd(attr_code(colors.default))
