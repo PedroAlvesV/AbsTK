@@ -28,13 +28,13 @@ local l3 = {
    {'i', false},
 }
 local l4 = {'x', 'y', 'z', '1', '2', '3'}
---scr:create_checklist('chklist1', "Check1", l1,  nil, "Checkboxes group", test_callback)
---scr:create_checklist('chklist2', "Check2", l2, {true, true, false}, "Checkboxes group", test_callback)
---scr:create_checklist('chklist3', "Check3", l3, nil, "Checkboxes group", test_callback)
---scr:create_checklist('chklist4', "Check4", l4, 3, "Checkboxes group", test_callback)
---scr:create_selector('sl1', "Selector1", l1, nil, "Selector", test_callback)
---scr:create_selector('sl2', "Selector2", l2, {false, true, false, false}, "Selector", test_callback)
---scr:create_selector('sl3', "Selector3", l3, nil, "Selector", test_callback)
---scr:create_selector('sl4', "Selector4", l4, 3, "Selector", test_callback)
---scr:add_textbox('tbox', "TextBox", "lorem\nipsum\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\nlorem\nipsum\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17", "TextBox")
+scr:create_checklist('chklist1', "Check1", l1,  nil, "Checkboxes group", test_callback)
+scr:create_checklist('chklist2', "Check2", l2, {true, true, false}, "Checkboxes group", test_callback)
+scr:create_checklist('chklist3', "Check3", l3, nil, "Checkboxes group", test_callback)
+scr:create_checklist('chklist4', "Check4", l4, 3, "Checkboxes group", test_callback)
+scr:create_selector('sl1', "Selector1", l1, nil, "Selector", test_callback)
+scr:create_selector('sl2', "Selector2", l2, {false, true, false, false}, "Selector", test_callback)
+scr:create_selector('sl3', "Selector3", l3, nil, "Selector", test_callback)
+scr:create_selector('sl4', "Selector4", l4, 3, "Selector", test_callback)
+scr:add_textbox('tbox', "TextBox", "lorem\nipsum\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\nlorem\nipsum\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17", "TextBox")
 scr:run()
