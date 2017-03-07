@@ -1116,12 +1116,11 @@ function Screen:run()
    end
 end
 
-function Wizard:add_page(id, screen, page_type)
+function Wizard:add_page(id, screen)
    local page = {
       id = id,
       title = screen.title,
       screen = screen,
-      page_type = page_type,
    }
    table.insert(self.pages, page)
 end

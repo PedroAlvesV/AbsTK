@@ -388,24 +388,14 @@ function abstk.new_wizard(title, w, h)
       -------------------------------------------------
 
       -------------------------------------------------
-      -- Adds a screen to a wizard. The screen turns into a whole page. There are a 
-      -- few constants to determine which buttonset is going to be used in the 
-      -- page. Those are:
-      --
-      -- * `CONTENT` - The page has regular contents.
-      -- * `INTRO` - The page contains an introduction to the assistant task.
-      -- * `CONFIRM` - The page lets the user confirm or deny the changes.
-      -- * `SUMMARY` - The page informs the user of the changes done.
-      -- * `PROGRESS` - Used for tasks that take a long time to complete, blocks 
-      -- the assistant until the page is marked as complete.<p>
+      -- Adds a screen to a wizard. The screen turns into a page with footer navigation 
+      -- buttons. 
       --
       -- @param id the id to reference the screen later on
       -- @param screen the screen that will be added
-      -- @param[opt] page_type a constant that determines which buttonset is 
-      -- going to be used
       -------------------------------------------------
-      add_page = function(self, id, screen, page_type)
-         obj:add_page(id, screen, page_type)
+      add_page = function(self, id, screen)
+         obj:add_page(id, screen)
       end,
       -------------------------------------------------
       -- Runs a wizard. Must be called in the end of the code, because depends 

@@ -93,11 +93,11 @@ end
 scr5:add_textbox('tbox', "TextBox", txt)
 
 -- Add all screens to wizard
-wizard:add_page('screen1', scr1, 'INTRO')
+wizard:add_page('screen1', scr1)
 wizard:add_page('screen2', scr2)
 wizard:add_page('screen3', scr3)
 wizard:add_page('screen4', scr4)
-wizard:add_page('screen5', scr5, 'CONFIRM')
+wizard:add_page('screen5', scr5)
 
 -- Run wizard
 wizard:run()

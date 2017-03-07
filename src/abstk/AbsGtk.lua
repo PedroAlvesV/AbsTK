@@ -677,7 +677,7 @@ function Screen:run()
    Gtk.main()
 end
 
-function Wizard:add_page(id, screen, page_type)
+function Wizard:add_page(id, screen)
    local vbox = create_vbox(screen.widgets)
    local page = {
       id = id,
@@ -693,16 +693,34 @@ function Wizard:add_page(id, screen, page_type)
    page.content:override_background_color(Gtk.StateFlags.NORMAL, bg_color)
 
    table.insert(self.pages, page)
-   Gtk.Assistant.append_page(self.assistant, page.content)
-   Gtk.Assistant.set_page_title(self.assistant, page.content, screen.title)
-   Gtk.Assistant.set_page_complete(self.assistant, page.content, true)
-   if page_type == 'INTRO' or page_type == 'CONTENT' or page_type == 'CONFIRM'
-   or page_type == 'SUMMARY' or page_type == 'PROGRESS' then
-      Gtk.Assistant.set_page_type(self.assistant, page.content, page_type)
-   end
+   self.assistant:append_page(page.content)
+   self.assistant:set_page_title(page.content, screen.title)
+   self.assistant:set_page_complete(page.content, true)
+   self.assistant:set_page_type(page.content, 'CONTENT')
 end
 
 function Wizard:run()
+   local function config_nav_buttons()
+      local last_page = self.assistant:get_nth_page(-1)
+      self.assistant:set_page_type(last_page, 'CONFIRM')
+      local function get_footer()
+         local label = Gtk.Label{}
+         self.assistant:add_action_widget(label)
+         local footer = label:get_parent()
+         footer:remove(label)
+         return footer
+      end
+      local buttonset = get_footer():get_children()
+      for i, button in ipairs(buttonset) do
+         local label = button:get_label()
+         if label == "_Apply" then
+            button:set_label("Done")
+         elseif label == "_Finish" then
+            get_footer():remove(button)
+         end
+      end
+   end
+   config_nav_buttons()
    self.assistant:show_all()
    Gtk.main()
 end
