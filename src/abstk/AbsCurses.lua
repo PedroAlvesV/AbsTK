@@ -1024,7 +1024,7 @@ local function run_screen(screen, pad, wizard_title)
       else
          screen.pad:attrset(colors.default)
       end
-      if item.id == 'nav_buttons' or item.id == 'assist_buttons' then
+      if item.id == '_NAV_BUTTONS' or item.id == '_ASSIST_BUTTONS' then
          item.widget:draw(stdscr, scr_w-item.widget.width-1, scr_h-3, i == screen.focus)
       else
          screen.pad:mvaddstr(item.y, 1, arrow)
@@ -1104,7 +1104,7 @@ function Screen:run()
       labels = {'Done', 'Quit'}
       tooltips = {"Done assistant", "Quit assistant"}
       callbacks = {done_curses, quit_curses}
-      self:create_button_box('assist_buttons', labels, tooltips, callbacks)
+      self:create_button_box('_ASSIST_BUTTONS', labels, tooltips, callbacks)
    end
    self = setup_screen(self)
    local pad, actual_pad = create_pad(self)
@@ -1143,15 +1143,15 @@ function Wizard:run()
             tooltips = {"Go to next page", "Quit wizard"}
             callbacks = {next_page, quit_curses}
          elseif page_number == #pages then
-            labels = {'< Previous', 'Done'}
+            labels = {'< Back', 'Done'}
             tooltips = {"Go to previous page", "Done Wizard"}
             callbacks = {prev_page, done_curses}
          else
-            labels = {'< Previous', 'Next >', 'Quit'}
+            labels = {'< Back', 'Next >', 'Quit'}
             tooltips = {"Go to previous page", "Go to next page", "Quit wizard"}
             callbacks = {prev_page, next_page, quit_curses}
          end
-         page.screen:create_button_box('nav_buttons', labels, tooltips, callbacks)
+         page.screen:create_button_box('_NAV_BUTTONS', labels, tooltips, callbacks)
       end
    end
    local current_screen = setup_screen(self.pages[self.current_page].screen)
