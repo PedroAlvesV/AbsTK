@@ -68,13 +68,6 @@ local function attr_code(attr)
    return code
 end
 
-local quit_curses = function()
-   -- TODO
-end
-local done_curses = function()
-   -- TODO
-end
-
 local function draw_scrollbar(drawable, x, y, h_box, h_data, current_line)
    drawable:attrset(colors.default)
    for i=1, h_box do
@@ -224,7 +217,11 @@ function AbsCursesButtonBox:process_key(key)
       local next_focus = self.subfocus + direction
       while true do
          if next_focus < 1 or next_focus > #self.buttons then
-            return actions.HANDLED
+            if next_focus < 1 then
+               return actions.PREVIOUS
+            else
+               return actions.NEXT
+            end
          end
          if self.buttons[next_focus].focusable then
             break
@@ -830,20 +827,34 @@ function Screen:create_selector(id, title, list, default_value, tooltip, callbac
 end
 
 function Screen:show_message_box(id, message, buttons)
-   local buttons_number
-   if buttons == 'OK' then
-      buttons_number = 1
-   elseif buttons == 'CLOSE' then
-      buttons_number = 2
-   elseif buttons == 'CANCEL' then
-      buttons_number = 3
-   elseif buttons == 'YES_NO' then
-      buttons_number = 4
-   elseif buttons == 'OK_CANCEL' then
-      buttons_number = 5
-   else
-      buttons_number = 0
-   end
+   local buttonset
+--   if buttons == 'OK' then
+--      buttonset = {"Ok"}
+--   elseif buttons == 'CLOSE' then
+--      buttonset = {"Close"}
+--   elseif buttons == 'CANCEL' then
+--      buttonset = {"Cancel"}
+--   elseif buttons == 'YES_NO' then
+--      buttonset = {"Yes", "No"}
+--   elseif buttons == 'OK_CANCEL' then
+--      buttonset = {"Ok", "Cancel"}
+--   else
+--      buttons_number = 0
+--   end
+   local msgbox = {
+      id = id,
+      message = message,
+      buttonset = buttonset,
+   }
+   local height, width = math.floor(scr_h/3), math.floor(scr_w/1.25)
+   local y, x = math.floor(scr_h/3), math.floor(scr_w/10)
+   local pad = curses.newpad(height, width)
+   pad:wbkgd(colors.default)
+   pad:attrset(colors.widget)
+   pad:border(0,0)
+   pad:attrset(colors.title)
+   pad:mvaddstr(2, 1, msgbox.message or "")
+   pad:copywin(stdscr, 0, 0, y, x, y+height-1, x+width-1, false)
 end
 
 function Screen:set_enabled(id, bool, index)
@@ -1015,7 +1026,7 @@ local function run_screen(screen, pad, wizard_title)
             clear_tooltip_bar()
          end
          arrow = ">"
-         if item.id ~= 'assist_buttons' then
+         if item.id ~= '_ASSIST_BUTTONS' then
             scroll_screen(item)
          end
       end
@@ -1095,6 +1106,8 @@ local function setup_screen(screen)
    stdscr:attrset(colors.default)
    stdscr:mvaddstr(scr_h-3, 2, "Tab: move focus   Enter: select")
    stdscr:refresh()
+   screen.widgets[#screen.widgets].widget.subfocus = 1
+   screen.focus = 1
    return screen
 end
 
@@ -1135,6 +1148,12 @@ function Wizard:run()
          self.current_page = self.current_page + 1
          setup_screen(self.pages[self.current_page].screen)
       end
+      local quit_curses = function()
+         self.pages[self.current_page].screen:show_message_box('_QUIT_MESSAGE')
+      end
+      local done_curses = function()
+         -- TODO
+      end
       for page_number, page in ipairs(pages) do
          local labels, tooltips, callbacks
          if page_number == 1 then
@@ -1142,9 +1161,9 @@ function Wizard:run()
             tooltips = {"Go to next page", "Quit wizard"}
             callbacks = {next_page, quit_curses}
          elseif page_number == #pages then
-            labels = {'< Back', 'Done'}
-            tooltips = {"Go to previous page", "Done Wizard"}
-            callbacks = {prev_page, done_curses}
+            labels = {'< Back', 'Done', 'Quit'}
+            tooltips = {"Go to previous page", "Done wizard", "Quit wizard"}
+            callbacks = {prev_page, done_curses, quit_curses}
          else
             labels = {'< Back', 'Next >', 'Quit'}
             tooltips = {"Go to previous page", "Go to next page", "Quit wizard"}
