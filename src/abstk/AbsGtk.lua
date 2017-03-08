@@ -19,8 +19,12 @@ local Wizard = {}
 function AbsGtk.new_screen(title, w, h)
    local self = {
       title = title,
-      width = w,
-      height = h,
+      window = Gtk.Window {
+         title = title,
+         default_width = w,
+         default_height = h,
+         on_destroy = Gtk.main_quit
+      },
       widgets = {},
    }
    local mt = {
@@ -665,12 +669,6 @@ local function create_vbox(widgets)
 end
 
 function Screen:run()
-   self.window = Gtk.Window {
-      title = self.title,
-      default_width = self.w,
-      default_height = self.h,
-      on_destroy = Gtk.main_quit
-   }
    local vbox = create_vbox(self.widgets)
    self.window:add(vbox)
    self.window:show_all()
@@ -681,7 +679,7 @@ function Wizard:add_page(id, screen)
    local vbox = create_vbox(screen.widgets)
    local page = {
       id = id,
-      title = screen.title,
+      screen = screen,
       complete = true,
       content = Gtk.ScrolledWindow{vbox},
    }
@@ -715,6 +713,9 @@ function Wizard:run()
          local label = button:get_label()
          if label == "_Apply" then
             button:set_label("Done")
+            button.on_clicked = function()
+               self.pages[#self.pages].screen:show_message_box('_DONE_MESSAGE', "Press OK to Proceed", 'OK_CANCEL')
+            end
          elseif label == "_Finish" then
             get_footer():remove(button)
          end
