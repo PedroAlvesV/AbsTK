@@ -258,20 +258,17 @@ function abstk.new_screen(title, w, h)
       -- Creates and shows a message box. There are a few constants to determine 
       -- which buttonset is going to be used in a message box. Those are:
       --
-      -- * `NONE` - no button at all
       -- * `OK` - an OK button
       -- * `CLOSE` - a Close button
-      -- * `CANCEL` - a Cancel button
       -- * `YES_NO` - Yes and No buttons
       -- * `OK_CANCEL` - OK and Cancel buttons
       --
-      -- @param id the id to reference the object later on
       -- @param message the message that will be written over the new window
-      -- @param[opt='NONE'] buttons an constant that determines which buttonset is 
+      -- @param[opt='OK'] buttons an constant that determines which buttonset is 
       -- going to be used
       -------------------------------------------------
-      show_message_box = function(self, id, message, buttons)
-         obj:show_message_box(id, message, buttons)
+      show_message_box = function(self, message, buttons)
+         return obj:show_message_box(message, buttons)
       end,
       -------------------------------------------------
       -- Enable or disable an widget.
