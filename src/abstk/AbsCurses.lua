@@ -34,6 +34,7 @@ local AbsCursesSelector = {}
 local stdscr
 local scr_w, scr_h
 local colors = {}
+local ASSIST_BUTTONS, NAV_BUTTONS = {}, {}
 local actions = {
    PASSTHROUGH = 0,
    HANDLED = -2,
@@ -826,21 +827,19 @@ function Screen:create_selector(id, title, list, default_value, tooltip, callbac
    create_widget(self, 'SELECTOR', AbsCursesSelector, id, title, list, default_value, tooltip, callback)
 end
 
-function Screen:show_message_box(id, message, buttons)
+function Screen:show_message_box(message, buttons)
    local buttonset
---   if buttons == 'OK' then
---      buttonset = {"Ok"}
---   elseif buttons == 'CLOSE' then
---      buttonset = {"Close"}
---   elseif buttons == 'CANCEL' then
---      buttonset = {"Cancel"}
---   elseif buttons == 'YES_NO' then
---      buttonset = {"Yes", "No"}
---   elseif buttons == 'OK_CANCEL' then
---      buttonset = {"Ok", "Cancel"}
---   else
---      buttons_number = 0
---   end
+   if buttons == 'OK' or not buttons then
+      buttonset = {"Ok"}
+   elseif buttons == 'CLOSE' then
+      buttonset = {"Close"}
+   elseif buttons == 'YES_NO' then
+      buttonset = {"Yes", "No"}
+   elseif buttons == 'OK_CANCEL' then
+      buttonset = {"Ok", "Cancel"}
+   else
+      error('Invalid argument "'..buttons..'"')
+   end
    local msgbox = {
       id = id,
       message = message,
@@ -1026,7 +1025,7 @@ local function run_screen(screen, pad, wizard_title)
             clear_tooltip_bar()
          end
          arrow = ">"
-         if item.id ~= '_ASSIST_BUTTONS' then
+         if item.id ~= ASSIST_BUTTONS then
             scroll_screen(item)
          end
       end
@@ -1035,7 +1034,7 @@ local function run_screen(screen, pad, wizard_title)
       else
          screen.pad:attrset(colors.default)
       end
-      if item.id == '_NAV_BUTTONS' or item.id == '_ASSIST_BUTTONS' then
+      if item.id == NAV_BUTTONS or item.id == ASSIST_BUTTONS then
          item.widget:draw(stdscr, scr_w-item.widget.width-1, scr_h-3, i == screen.focus)
       else
          screen.pad:mvaddstr(item.y, 1, arrow)
@@ -1114,10 +1113,16 @@ end
 function Screen:run()
    local function create_assistant_buttons()
       local labels, tooltips, callbacks
+      local quit_curses = function()
+         self:show_message_box("Are you sure you want to quit?", 'YES_NO')
+      end
+      local done_curses = function()
+         self:show_message_box("Press OK to proceed.", 'OK_CANCEL')
+      end
       labels = {'Done', 'Quit'}
       tooltips = {"Done assistant", "Quit assistant"}
       callbacks = {done_curses, quit_curses}
-      self:create_button_box('_ASSIST_BUTTONS', labels, tooltips, callbacks)
+      self:create_button_box(ASSIST_BUTTONS, labels, tooltips, callbacks)
    end
    self = setup_screen(self)
    local pad, actual_pad = create_pad(self)
@@ -1149,10 +1154,10 @@ function Wizard:run()
          setup_screen(self.pages[self.current_page].screen)
       end
       local quit_curses = function()
-         self.pages[self.current_page].screen:show_message_box('_QUIT_MESSAGE')
+         self.pages[self.current_page].screen:show_message_box("Are you sure you want to quit?", 'YES_NO')
       end
       local done_curses = function()
-         -- TODO
+         self.pages[self.current_page].screen:show_message_box("Press OK to proceed.", 'OK_CANCEL')
       end
       for page_number, page in ipairs(pages) do
          local labels, tooltips, callbacks
@@ -1169,7 +1174,7 @@ function Wizard:run()
             tooltips = {"Go to previous page", "Go to next page", "Quit wizard"}
             callbacks = {prev_page, next_page, quit_curses}
          end
-         page.screen:create_button_box('_NAV_BUTTONS', labels, tooltips, callbacks)
+         page.screen:create_button_box(NAV_BUTTONS, labels, tooltips, callbacks)
       end
    end
    local current_screen = setup_screen(self.pages[self.current_page].screen)
