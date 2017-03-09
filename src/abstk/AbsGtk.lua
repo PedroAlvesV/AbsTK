@@ -507,31 +507,38 @@ function Screen:create_list(id, title, list, tooltip, callback)
    table.insert(self.widgets, item)
 end
 
-function Screen:show_message_box(id, message, buttons)
-   local buttons_number
-   if buttons == 'OK' then
-      buttons_number = 1
+function Screen:show_message_box(message, buttons)
+   local buttons_constant
+   if buttons == 'OK' or not buttons then
+      buttons_constant = Gtk.ButtonsType.OK
    elseif buttons == 'CLOSE' then
-      buttons_number = 2
-   elseif buttons == 'CANCEL' then
-      buttons_number = 3
+      buttons_constant = Gtk.ButtonsType.CLOSE
    elseif buttons == 'YES_NO' then
-      buttons_number = 4
+      buttons_constant = Gtk.ButtonsType.YES_NO
    elseif buttons == 'OK_CANCEL' then
-      buttons_number = 5
+      buttons_constant = Gtk.ButtonsType.OK_CANCEL
    else
-      buttons_number = 0
+      error('Invalid argument "'..buttons..'"')
    end
    local message_dialog = Gtk.MessageDialog {
-      id = id,
+      id = "", 
       transient_for = self.window,
       modal = true,
       destroy_with_parent = true,
       message_type = 0,
-      buttons = buttons_number,
+      buttons = buttons_constant,
       text = message,
    }
-   message_dialog:run()
+   local result = message_dialog:run()
+   if result == Gtk.ResponseType.OK then
+      return "OK"
+   elseif result == Gtk.ResponseType.CANCEL or result == Gtk.ResponseType.DELETE_EVENT or result == Gtk.ResponseType.CLOSE then
+      return "CANCEL"
+   elseif result == Gtk.ResponseType.YES then
+      return "YES"
+   elseif result == Gtk.ResponseType.NO then
+      return "NO"
+   end
 end
 
 function Screen:set_enabled(id, bool, index)
@@ -714,7 +721,7 @@ function Wizard:run()
          if label == "_Apply" then
             button:set_label("Done")
             button.on_clicked = function()
-               self.pages[#self.pages].screen:show_message_box('_DONE_MESSAGE', "Press OK to Proceed", 'OK_CANCEL')
+               self.pages[#self.pages].screen:show_message_box("Press OK to proceed.", 'OK_CANCEL')
             end
          elseif label == "_Finish" then
             get_footer():remove(button)
