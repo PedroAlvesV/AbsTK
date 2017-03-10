@@ -11,11 +11,7 @@
 
 local AbsCurses = {}
 
-local curses = require 'curses' -- http://www.pjb.com.au/comp/lua/lcurses.html
--- https://github.com/jballanc/playgo/blob/master/doc/curses-examples/lcurses-test.lua
--- http://invisible-island.net/ncurses/man/ncurses.3x.html
--- https://lcurses.github.io/lcurses/modules/curses.html
--- https://www.ibm.com/support/knowledgecenter/ssw_aix_61/com.ibm.aix.basetrf2/newpad.htm
+local curses = require 'curses'
 
 local util = require 'abstk.util'
 
@@ -841,7 +837,6 @@ function Screen:show_message_box(message, buttons)
       error('Invalid argument "'..buttons..'"')
    end
    local msgbox = {
-      id = id,
       message = message,
       buttonset = buttonset,
    }
@@ -852,7 +847,7 @@ function Screen:show_message_box(message, buttons)
    pad:attrset(colors.widget)
    pad:border(0,0)
    pad:attrset(colors.title)
-   pad:mvaddstr(2, 1, msgbox.message or "")
+   pad:mvaddstr(math.floor(y/2), math.floor((x/2)+1-(utf8.len(message)/2)), message or "")
    pad:copywin(stdscr, 0, 0, y, x, y+height-1, x+width-1, false)
 end
 
