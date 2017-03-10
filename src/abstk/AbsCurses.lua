@@ -65,6 +65,13 @@ local function attr_code(attr)
    return code
 end
 
+local function clear_tooltip_bar()
+   stdscr:attrset(colors.widget)
+   for i=0,scr_w-1 do
+      stdscr:mvaddstr(scr_h-1, i, " ")
+   end
+end
+
 local function draw_scrollbar(drawable, x, y, h_box, h_data, current_line)
    drawable:attrset(colors.default)
    for i=1, h_box do
@@ -84,7 +91,7 @@ end
 
 local function run_callback(self, ...)
    if self.callback then
-      self.callback(self.id, ...)
+      return self.callback(self.id, ...)
    end
 end
 
@@ -170,9 +177,9 @@ end
 function AbsCursesButton:process_key(key, index)
    if key == keys.ENTER or key == keys.SPACE then
       if index then
-         run_callback(self, index, self.label)
+         return run_callback(self, index, self.label)
       else
-         run_callback(self, self.label)
+         return run_callback(self, self.label)
       end
    elseif key == keys.TAB or key == keys.DOWN then
       return actions.NEXT
@@ -824,22 +831,30 @@ function Screen:create_selector(id, title, list, default_value, tooltip, callbac
 end
 
 function Screen:show_message_box(message, buttons)
-   local buttonset
-   if buttons == 'OK' or not buttons then
-      buttonset = {"Ok"}
-   elseif buttons == 'CLOSE' then
-      buttonset = {"Close"}
-   elseif buttons == 'YES_NO' then
-      buttonset = {"Yes", "No"}
-   elseif buttons == 'OK_CANCEL' then
-      buttonset = {"Ok", "Cancel"}
-   else
-      error('Invalid argument "'..buttons..'"')
+   local function create_buttons()
+      local labels, tooltips, callbacks
+      if buttons == 'OK' or not buttons then
+         labels = {"Ok"}
+         tooltips = {"Ok"}
+         callbacks = { function() return "OK" end }
+      elseif buttons == 'CLOSE' then
+         labels = {"Close"}
+         tooltips = {"Close dialog"}
+         callbacks = { function() return "CANCEL" end }
+      elseif buttons == 'YES_NO' then
+         labels = {"Yes", "No"}
+         tooltips = {"Accept", "Deny and close dialog"}
+         callbacks = { function() return "YES" end, function() return "NO" end }
+      elseif buttons == 'OK_CANCEL' then
+         labels = {"Ok", "Cancel"}
+         tooltips = {"Accept", "Deny and close dialog"}
+         callbacks = { function() return "OK" end, function() return "CANCEL" end }
+      else
+         error('Invalid argument "'..buttons..'"')
+      end
+      return AbsCursesButtonBox.new(labels, tooltips, callbacks)
    end
-   local msgbox = {
-      message = message,
-      buttonset = buttonset,
-   }
+   local bbox = create_buttons()
    local height, width = math.floor(scr_h/3), math.floor(scr_w/1.25)
    local y, x = math.floor(scr_h/3), math.floor(scr_w/10)
    local pad = curses.newpad(height, width)
@@ -848,7 +863,26 @@ function Screen:show_message_box(message, buttons)
    pad:border(0,0)
    pad:attrset(colors.title)
    pad:mvaddstr(math.floor(y/2)-1, math.floor((width/2)-(utf8.len(message)/2)), message or "")
-   pad:copywin(stdscr, 0, 0, y, x, y+height-1, x+width-1, false)
+   while true do
+      bbox:draw(pad, math.floor((width/2)-(bbox.width/2)), math.floor(y/2)+1, true)
+      pad:copywin(stdscr, 0, 0, y, x, y+height-1, x+width-1, false)
+      clear_tooltip_bar()
+      local tooltip = bbox.buttons[bbox.subfocus].tooltip
+      while utf8.len(tooltip) < scr_w do
+         tooltip = tooltip.." "
+      end
+      stdscr:attrset(colors.widget)
+      stdscr:mvaddstr(scr_h-1, 0, tooltip)
+      local motion = bbox:process_key(stdscr:getch())
+      if type(motion) == 'string' then
+         stdscr:clear()
+         stdscr:attrset(colors.default)
+         stdscr:sub(scr_h-1, scr_w, 0, 0):box(0, 0)
+         stdscr:mvaddstr(scr_h-3, 2, "Tab: move focus   Enter: select")
+         stdscr:refresh()
+         return motion
+      end
+   end
 end
 
 function Screen:set_enabled(id, bool, index)
@@ -987,12 +1021,6 @@ local function run_screen(screen, pad, wizard_title)
          move_focus(1)
       end
    end
-   local function clear_tooltip_bar()
-      stdscr:attrset(colors.widget)
-      for i=0,scr_w-1 do
-         stdscr:mvaddstr(scr_h-1, i, " ")
-      end
-   end
    stdscr:attrset(colors.title)
    local title = screen.title
    if wizard_title then
@@ -1005,11 +1033,7 @@ local function run_screen(screen, pad, wizard_title)
          if type(item.widget.tooltip) == 'string' then
             local tooltip = item.widget.tooltip
             if item.type == 'BUTTON_BOX' then
-               local j = 1
-               while j < item.widget.subfocus do
-                  j = j + 1
-               end
-               tooltip = item.widget.buttons[j].tooltip or ""
+               tooltip = item.widget.buttons[item.widget.subfocus].tooltip or ""
             end
             while utf8.len(tooltip) < scr_w do
                tooltip = tooltip.." "
@@ -1037,7 +1061,6 @@ local function run_screen(screen, pad, wizard_title)
       end
       screen.pad:prefresh(pad.min, 0, 2, 1, pad.viewport_h, scr_w-2)
    end
-   --screen.pad:clear()
    stdscr:move(scr_h-1,scr_w-1)
    process_key(stdscr:getch(), screen.widgets[screen.focus])
 end
@@ -1109,7 +1132,9 @@ function Screen:run()
    local function create_assistant_buttons()
       local labels, tooltips, callbacks
       local quit_curses = function()
-         self:show_message_box("Are you sure you want to quit?", 'YES_NO')
+         if self:show_message_box("Are you sure you want to quit?", 'YES_NO') == "YES" then
+            os.exit()
+         end
       end
       local done_curses = function()
          self:show_message_box("Press OK to proceed.", 'OK_CANCEL')
@@ -1149,7 +1174,9 @@ function Wizard:run()
          setup_screen(self.pages[self.current_page].screen)
       end
       local quit_curses = function()
-         self.pages[self.current_page].screen:show_message_box("Are you sure you want to quit?", 'YES_NO')
+         if self.pages[self.current_page].screen:show_message_box("Are you sure you want to quit?", 'YES_NO') == "YES" then
+            os.exit()
+         end
       end
       local done_curses = function()
          self.pages[self.current_page].screen:show_message_box("Press OK to proceed.", 'OK_CANCEL')
