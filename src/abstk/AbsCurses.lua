@@ -847,7 +847,7 @@ function Screen:show_message_box(message, buttons)
    pad:attrset(colors.widget)
    pad:border(0,0)
    pad:attrset(colors.title)
-   pad:mvaddstr(math.floor(y/2), math.floor((x/2)+1-(utf8.len(message)/2)), message or "")
+   pad:mvaddstr(math.floor(y/2)-1, math.floor((width/2)-(utf8.len(message)/2)), message or "")
    pad:copywin(stdscr, 0, 0, y, x, y+height-1, x+width-1, false)
 end
 
