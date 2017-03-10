@@ -1022,9 +1022,13 @@ local function run_screen(screen, pad, wizard_title)
       end
    end
    stdscr:attrset(colors.title)
-   local title = screen.title
-   if wizard_title then
-      title = wizard_title.." - "..title
+   local title
+   if wizard_title and screen.title then
+      title = wizard_title.." - "..screen.title
+   elseif not screen.title then
+      title = wizard_title
+   else
+      title = screen.title
    end
    stdscr:mvaddstr(1, 1, title)
    for i, item in ipairs(screen.widgets) do

@@ -36,6 +36,7 @@ end
 
 function AbsGtk.new_wizard(title, w, h)
    local self = {
+      title = title,
       assistant = Gtk.Assistant {
          title = title,
          default_width = w,
@@ -699,7 +700,7 @@ function Wizard:add_page(id, screen)
 
    table.insert(self.pages, page)
    self.assistant:append_page(page.content)
-   self.assistant:set_page_title(page.content, screen.title)
+   self.assistant:set_page_title(page.content, screen.title or " ")
    self.assistant:set_page_complete(page.content, true)
    self.assistant:set_page_type(page.content, 'CONTENT')
 end
