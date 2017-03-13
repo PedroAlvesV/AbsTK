@@ -21,4 +21,11 @@ function util.make_list_items(make_item, list, default_value)
    return items
 end
 
+function util.append_blank_space(string, limit)
+   while utf8.len(string) < limit do
+      string = string.." "
+   end
+   return string
+end
+
 return util

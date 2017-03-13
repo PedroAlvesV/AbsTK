@@ -590,7 +590,8 @@ function AbsCursesCheckBox:draw(drawable, x, y, focus)
    if self.state then
       mark = "x"
    end
-   drawable:mvaddstr(y, x, "["..mark.."] "..self.label)
+   local label = util.append_blank_space(self.label, scr_w-utf8.len(self.label)-12)
+   drawable:mvaddstr(y, x, "["..mark.."] "..label)
 end
 
 function AbsCursesCheckBox:process_key(key, index)
@@ -746,7 +747,8 @@ function AbsCursesSelector:draw(drawable, x, y, focus)
          mark = "*"
       end
       if i < self.view_pos + self.visible then
-         drawable:mvaddstr(y+i-self.view_pos+1, x, "("..mark..") "..self.list[i])
+         local label = util.append_blank_space(self.list[i], scr_w-utf8.len(self.list[i])-12)
+         drawable:mvaddstr(y+i-self.view_pos+1, x, "("..mark..") "..label)
       end
    end
    if #self.list > self.visible then
@@ -881,9 +883,7 @@ function Screen:show_message_box(message, buttons)
       pad:copywin(stdscr, 0, 0, y, x, y+height-1, x+width-1, false)
       clear_tooltip_bar()
       local tooltip = bbox.buttons[bbox.subfocus].tooltip
-      while utf8.len(tooltip) < scr_w do
-         tooltip = tooltip.." "
-      end
+      tooltip = util.append_blank_space(tooltip, scr_w)
       stdscr:attrset(colors.widget)
       stdscr:mvaddstr(scr_h-1, 0, tooltip)
       local motion = bbox:process_key(stdscr:getch())
