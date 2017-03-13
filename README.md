@@ -58,10 +58,8 @@ There are two must call functions that AbsTK needs in order to start:
 local abstk = require 'abstk'
 abstk.set_mode(...)
 ```
-While the first one is pretty obvious, the second one is just as necessary as it.
-To determine whether UI is going to be constructed, AbsTK uses a function that asks for a string parameter.
-When nothing is passed, the toolkit decides which one to use based on `os.getenv("DISPLAY")` returning value.
-If it returns something, the OS runs in a GUI, so AbsTK runs in GUI as well. Otherwise, it runs in text-mode.
+
+While the first one is pretty obvious, the second one is just as necessary as it. To determine whether UI is going to be constructed, AbsTK uses a function that asks for a string parameter. When nothing is passed, the toolkit decides which one to use based on `os.getenv("DISPLAY")` returning value. If it returns something, the OS runs in a GUI, so AbsTK runs in GUI as well. Otherwise, it runs in text-mode.
 
 ### Widgets
 
@@ -96,19 +94,19 @@ The MIT License (MIT)
 
 Copyright (c) 2017 Pedro Alves Valentim
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of
+<p align="justify">Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in
 the Software without restriction, including without limitation the rights to
 use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
 the Software, and to permit persons to whom the Software is furnished to do so,
-subject to the following conditions:
+subject to the following conditions:</p>
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+<p align="justify">The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.</p>
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+<p align="justify">THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
 FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
 COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
 IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p>
