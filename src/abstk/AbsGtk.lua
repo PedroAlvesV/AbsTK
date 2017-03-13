@@ -226,7 +226,9 @@ function Screen:add_textbox(id, title, default_value, tooltip)
       title_widget:set_halign('START')
       item.widget:add(title_widget)
    end
-   item.widget:add(Gtk.ScrolledWindow {id = 'scrolled_window', textview})
+   local scrolled_window = Gtk.ScrolledWindow {id = 'scrolled_window', textview}
+   scrolled_window:set_min_content_height(105)
+   item.widget:add(scrolled_window)
    table.insert(self.widgets, item)
 end
 
@@ -320,6 +322,7 @@ function Screen:create_checklist(id, title, list, default_value, tooltip, callba
             },
          },
       }
+      scrolled_window:set_min_content_height(110)
       scrolled_window.child.view:set_headers_visible(false)
       function scrolled_window.child.checkbutton:on_toggled(path_str)
          local path = Gtk.TreePath.new_from_string(path_str)
@@ -418,6 +421,7 @@ function Screen:create_selector(id, title, list, default_value, tooltip, callbac
          hexpand = true,
          selector,
       }
+      scrolled_window:set_min_content_height(95)
       local title_widget = Gtk.Label { label = title }
       title_widget:set_halign('START')
       local item = {
