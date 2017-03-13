@@ -28,7 +28,7 @@ local AbsCursesCheckList = {}
 local AbsCursesSelector = {}
 
 local stdscr
-local scr_w, scr_h
+local scr_h, scr_w = curses.initscr():getmaxyx()
 local colors = {}
 local ASSIST_BUTTONS, NAV_BUTTONS = {}, {}
 local actions = {
@@ -123,9 +123,20 @@ function AbsCurses.new_wizard(title)
 end
 
 function AbsCursesLabel.new(label)
+   local size = utf8.len(label)
+   local limit = scr_w-8
+   local i = limit
+   while i < size do
+      label = label:sub(1, i-1).."\n"..label:sub(i)
+      i = i + limit
+   end
+   local text = {}
+   for line in label:gmatch("[^\n]*") do
+      table.insert(text, line)
+   end
    local self = {
-      height = 1,
-      label = label,
+      height = #text,
+      text = text,
       focusable = false,
    }
    return setmetatable(self, { __index = AbsCursesLabel })
@@ -133,7 +144,9 @@ end
 
 function AbsCursesLabel:draw(drawable, x, y)
    drawable:attrset(colors.default)
-   drawable:mvaddstr(y, x, self.label)
+   for i, line in ipairs(self.text) do
+      drawable:mvaddstr(y+i-1, x, line)
+   end
 end
 
 function AbsCursesLabel:process_key(key)
@@ -1096,7 +1109,6 @@ local function setup_screen(screen)
       curses.echo(false)
       curses.nl(false)
       stdscr:keypad(true)
-      scr_h, scr_w = stdscr:getmaxyx()
       scr_w = math.min(scr_w, 127)
       -- scr_h = math.min(scr_h, 24)
       curses.start_color()
