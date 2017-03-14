@@ -1,5 +1,5 @@
 local abstk = require 'abstk'
-
+local mm = require 'mm'
 abstk.set_mode(...)
 
 local scr = abstk.new_screen("AbsTK Minimalist Test")
@@ -37,4 +37,7 @@ scr:create_selector('sl2', "Selector2", l2, {false, true, false, false}, "Select
 scr:create_selector('sl3', "Selector3", l3, nil, "Selector", test_callback)
 scr:create_selector('sl4', "Selector4", l4, 3, "Selector", test_callback)
 scr:add_textbox('tbox', "TextBox", "lorem\nipsum\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\nlorem\nipsum\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17", "TextBox")
-scr:run()
+local data = scr:run()
+os.execute("clear")
+mm(data)
+local x = io.read()

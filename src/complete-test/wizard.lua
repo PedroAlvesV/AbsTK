@@ -1,5 +1,5 @@
 local abstk = require 'abstk'
-
+local mm = require 'mm'
 abstk.set_mode(...)
 
 local wizard = abstk.new_wizard("AbsTK Complete Test - Wizard", 800, 600)
@@ -17,4 +17,7 @@ scr2:add_button('button', "Lorem Ipsum")
 wizard:add_page('screen1', scr1)
 wizard:add_page('screen2', scr2)
 
-wizard:run()
+local data = wizard:run()
+os.execute("clear")
+mm(data)
+local x = io.read()
