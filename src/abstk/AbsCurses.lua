@@ -122,6 +122,7 @@ function AbsCurses.new_wizard(title)
 end
 
 function AbsCursesLabel.new(label)
+   local original_label = label
    local size = utf8.len(label)
    local limit = scr_w-8
    local i = limit
@@ -136,6 +137,7 @@ function AbsCursesLabel.new(label)
    local self = {
       height = #text,
       text = text,
+      label = original_label,
       focusable = false,
    }
    return setmetatable(self, { __index = AbsCursesLabel })
@@ -918,8 +920,6 @@ function Screen:set_value(id, value, index)
             item.widget.label = value
          elseif item.type == 'BUTTON_BOX' then
             item.widget.buttons[index].label = " "..value.." "
-         elseif item.type == 'IMAGE' then
-            return nil
          elseif item.type == 'TEXT_INPUT' then
             local entry = item.widget
             entry.text = value
@@ -954,8 +954,6 @@ function Screen:get_value(id, index)
                label = item.widget.buttons[index].label
             end
             return label
-         elseif item.type == 'IMAGE' then
-            return nil
          elseif item.type == 'TEXT_INPUT' then
             local entry = item.widget
             local text = entry.hidden_text_start..entry.text..entry.hidden_text_end
@@ -1146,23 +1144,30 @@ end
 local function collect_data(arg)
    local function iter_screen_items(screen)
       local data = {}
-      for i, item in ipairs(screen.widgets) do
-         if item.id ~= ASSIST_BUTTONS or item.id ~= NAV_BUTTONS then
-            data[i] = {}
-            data[i].id = item.id
+      for _, item in ipairs(screen.widgets) do
+         if item.id ~= ASSIST_BUTTONS and item.id ~= NAV_BUTTONS then
+            data[item.id] = {}
             if item.type == 'BUTTON_BOX' or item.type == 'CHECKLIST' then
-               local limit
                if item.type == 'BUTTON_BOX' then
-                  limit = #item.widget.buttons
+                  for j=1, #item.widget.buttons do
+                     data[item.id][j] = screen:get_value(item.id, j)
+                  end
                else
-                  limit = #item.widget.checklist
-               end
-               data[i].value = {}
-               for j=1, limit do
-                  data[i].value[j] = arg:get_value(item.id, j)
+                  for j=1, #item.widget.checklist do
+                     -- alternative construction (without fieldnames)
+                     --data[item.id][j] = {}
+                     --data[item.id][j][1], data[item.id][j][2] = arg:get_value(item.id, j)
+                     data[item.id][j] = {label = nil, state = nil}
+                     data[item.id][j].label, data[item.id][j].state = screen:get_value(item.id, j)
+                  end
                end
             else
-               data[i].value = arg:get_value(item.id)
+               local value = screen:get_value(item.id)
+               if item.type == 'CHECKBOX' then
+                  local _, v = screen:get_value(item.id)
+                  value = v
+               end
+               data[item.id] = value
             end
          end
       end
@@ -1172,9 +1177,8 @@ local function collect_data(arg)
       return iter_screen_items(arg)
    else
       local data = {}
-      for i, page in ipairs(arg.pages) do
-         data[i].id = "Screen"..i
-         data[i].value = iter_screen_items(page.screen)
+      for _, page in ipairs(arg.pages) do
+         data[page.id] = iter_screen_items(page.screen)
       end
       return data
    end
