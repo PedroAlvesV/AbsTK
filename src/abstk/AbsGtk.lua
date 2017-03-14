@@ -615,6 +615,28 @@ end
 
 function Screen:run()
    local vbox = create_vbox(self.widgets)
+   local function create_assist_buttons()
+      local bbox = Gtk.ButtonBox {
+         id = 'bbox',
+         orientation = 'HORIZONTAL',
+         layout_style = 'END',
+         spacing = 5,
+      }
+      local cancel = Gtk.Button { id = 'CANCEL', label = "Cancel" }
+      local done = Gtk.Button { id = 'DONE', label = "Done" }
+      cancel.on_clicked = function()
+         self.window:close()
+         -- TODO
+      end
+      done.on_clicked = function()
+         -- TODO
+      end
+      bbox:add(cancel)
+      bbox:add(done)
+      return bbox
+   end
+   local assist_buttons = create_assist_buttons()
+   vbox:pack_end(assist_buttons, false, false, 0)
    self.window:add(vbox)
    self.window:show_all()
    Gtk.main()
