@@ -113,7 +113,6 @@ function AbsCurses.new_wizard(title)
       title = title,
       pages = {},
       current_page = 1,
-      nav_buttons = {},
    }
    local mt = {
       __index = Wizard,
@@ -891,7 +890,7 @@ function Screen:show_message_box(message, buttons)
          stdscr:clear()
          stdscr:attrset(colors.default)
          stdscr:sub(scr_h-1, scr_w, 0, 0):box(0, 0)
-         stdscr:mvaddstr(scr_h-3, 2, "Tab: move focus   Enter: select")
+         stdscr:mvaddstr(scr_h-3, 2, "Tab/Arrows: move focus   Enter: select   Ctrl+Q: Quit")
          stdscr:refresh()
          return motion
       end
@@ -1137,27 +1136,59 @@ local function setup_screen(screen)
    stdscr = init_curses()
    stdscr:sub(scr_h-1, scr_w, 0, 0):box(0, 0)
    stdscr:attrset(colors.default)
-   stdscr:mvaddstr(scr_h-3, 2, "Tab: move focus   Enter: select")
+   stdscr:mvaddstr(scr_h-3, 2, "Tab/Arrows: move focus   Enter: select   Ctrl+Q: Quit")
    stdscr:refresh()
    screen.widgets[#screen.widgets].widget.subfocus = 1
    screen.focus = 1
    return screen
 end
 
+local function collect_data(arg)
+   local function iter_screen_items(screen)
+      local data = {}
+      for i, item in ipairs(screen.widgets) do
+         if item.id ~= ASSIST_BUTTONS or item.id ~= NAV_BUTTONS then
+            data[i] = {}
+            data[i].id = item.id
+            if item.type == 'BUTTON_BOX' or item.type == 'CHECKLIST' then
+               local limit
+               if item.type == 'BUTTON_BOX' then
+                  limit = #item.widget.buttons
+               else
+                  limit = #item.widget.checklist
+               end
+               data[i].value = {}
+               for j=1, limit do
+                  data[i].value[j] = arg:get_value(item.id, j)
+               end
+            else
+               data[i].value = arg:get_value(item.id)
+            end
+         end
+      end
+      return data
+   end
+   if arg.widgets then
+      return iter_screen_items(arg)
+   else
+      local data = {}
+      for i, page in ipairs(arg.pages) do
+         data[i].id = "Screen"..i
+         data[i].value = iter_screen_items(page.screen)
+      end
+      return data
+   end
+end
+
 function Screen:run()
    local function create_assistant_buttons()
       local labels, tooltips, callbacks
-      local quit_curses = function()
-         if self:show_message_box("Are you sure you want to quit?", 'YES_NO') == "YES" then
-            os.exit()
-         end
-      end
       local done_curses = function()
-         self:show_message_box("Press OK to proceed.", 'OK_CANCEL')
+         self.done = true
       end
-      labels = {'Done', 'Quit'}
-      tooltips = {"Done assistant", "Quit assistant"}
-      callbacks = {done_curses, quit_curses}
+      labels = {'Done'}
+      tooltips = {"Done assistant"}
+      callbacks = {done_curses}
       self:create_button_box(ASSIST_BUTTONS, labels, tooltips, callbacks)
    end
    self = setup_screen(self)
@@ -1167,6 +1198,9 @@ function Screen:run()
    create_assistant_buttons()
    while true do
       run_screen(self, pad)
+      if self.done then
+         return collect_data(self)
+      end
    end
 end
 
@@ -1191,26 +1225,28 @@ function Wizard:run()
       end
       local quit_curses = function()
          if self.pages[self.current_page].screen:show_message_box("Are you sure you want to quit?", 'YES_NO') == "YES" then
-            os.exit()
+            self.done = true
          end
       end
       local done_curses = function()
-         self.pages[self.current_page].screen:show_message_box("Press OK to proceed.", 'OK_CANCEL')
+         if self.pages[self.current_page].screen:show_message_box("Press OK to proceed.", 'OK_CANCEL') == "OK" then
+            self.done = true
+         end
       end
       for page_number, page in ipairs(pages) do
          local labels, tooltips, callbacks
          if page_number == 1 then
-            labels = {'Next >', 'Quit'}
-            tooltips = {"Go to next page", "Quit wizard"}
-            callbacks = {next_page, quit_curses}
+            labels = {'Next >'}
+            tooltips = {"Go to next page"}
+            callbacks = {next_page}
          elseif page_number == #pages then
-            labels = {'< Back', 'Done', 'Quit'}
-            tooltips = {"Go to previous page", "Done wizard", "Quit wizard"}
-            callbacks = {prev_page, done_curses, quit_curses}
+            labels = {'< Back', 'Done'}
+            tooltips = {"Go to previous page", "Done wizard"}
+            callbacks = {prev_page, done_curses}
          else
-            labels = {'< Back', 'Next >', 'Quit'}
-            tooltips = {"Go to previous page", "Go to next page", "Quit wizard"}
-            callbacks = {prev_page, next_page, quit_curses}
+            labels = {'< Back', 'Next >'}
+            tooltips = {"Go to previous page", "Go to next page"}
+            callbacks = {prev_page, next_page}
          end
          page.screen:create_button_box(NAV_BUTTONS, labels, tooltips, callbacks)
       end
@@ -1223,6 +1259,9 @@ function Wizard:run()
       current_screen.pad = actual_pad
       current_screen.pad:wbkgd(attr_code(colors.default))
       run_screen(current_screen, pad, self.title)
+      if self.done then
+         return collect_data(self)
+      end
    end
 end
 

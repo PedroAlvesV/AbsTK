@@ -345,7 +345,7 @@ function abstk.new_screen(title, w, h)
       -- @see Wizard:add_page
       -------------------------------------------------
       run = function(self)
-         obj:run()
+         return obj:run()
       end,
    }
    local mt = {
@@ -401,7 +401,7 @@ function abstk.new_wizard(title, w, h)
       -- @see Wizard:add_page
       -------------------------------------------------
       run = function(self)
-         obj:run()
+         return obj:run()
       end,
    }
    return self
