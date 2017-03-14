@@ -40,6 +40,7 @@ local actions = {
 local keys = {
    TAB = 9,
    ENTER = 13,
+   QUIT = 17,
    ESC = 27,
    SPACE = 32,
    DOWN = 258,
@@ -1010,25 +1011,29 @@ local function run_screen(screen, pad, wizard_title)
          return actions.HANDLED
       end
       local widget = item.widget
-      local motion = widget:process_key(key)
-      if motion == actions.PASSTHROUGH then
-         if key == keys.LEFT or key == keys.RIGHT then
-            screen.focus = #screen.widgets
-         end
-         if pad.total_h > pad.viewport_h then
-            if key == keys.HOME then
-               pad.min = 1
-               scroll_screen(item)
-            elseif key == keys.END then
-               pad.min = pad.last_pos
+      if key ~= keys.QUIT then
+         local motion = widget:process_key(key)
+         if motion == actions.PASSTHROUGH then
+            if key == keys.LEFT or key == keys.RIGHT then
+               screen.focus = #screen.widgets
             end
+            if pad.total_h > pad.viewport_h then
+               if key == keys.HOME then
+                  pad.min = 1
+                  scroll_screen(item)
+               elseif key == keys.END then
+                  pad.min = pad.last_pos
+               end
+            end
+            return motion
          end
-         return motion
-      end
-      if motion == actions.PREVIOUS then
-         move_focus(-1)
-      elseif motion == actions.NEXT then
-         move_focus(1)
+         if motion == actions.PREVIOUS then
+            move_focus(-1)
+         elseif motion == actions.NEXT then
+            move_focus(1)
+         end
+      else
+         return "QUIT"
       end
    end
    stdscr:attrset(colors.title)
@@ -1076,7 +1081,7 @@ local function run_screen(screen, pad, wizard_title)
       screen.pad:prefresh(pad.min, 0, 2, 1, pad.viewport_h, scr_w-2)
    end
    stdscr:move(scr_h-1,scr_w-1)
-   process_key(stdscr:getch(), screen.widgets[screen.focus])
+   return process_key(stdscr:getch(), screen.widgets[screen.focus])
 end
 
 local function create_pad(screen)
@@ -1103,6 +1108,7 @@ local function setup_screen(screen)
    local function init_curses()
       local stdscr = curses.initscr()
       curses.cbreak()
+      curses.raw()
       curses.echo(false)
       curses.nl(false)
       stdscr:keypad(true)
@@ -1201,7 +1207,9 @@ function Screen:run()
    self.pad:wbkgd(attr_code(colors.default))
    create_assistant_buttons()
    while true do
-      run_screen(self, pad)
+      if run_screen(self, pad) == "QUIT" then
+         self.done = true
+      end
       if self.done then
          return collect_data(self)
       end
@@ -1262,7 +1270,9 @@ function Wizard:run()
       local pad, actual_pad = create_pad(current_screen)
       current_screen.pad = actual_pad
       current_screen.pad:wbkgd(attr_code(colors.default))
-      run_screen(current_screen, pad, self.title)
+      if run_screen(current_screen, pad, self.title) == "QUIT" then
+         self.done = true
+      end
       if self.done then
          return collect_data(self)
       end
