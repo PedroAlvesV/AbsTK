@@ -28,4 +28,16 @@ function util.append_blank_space(string, limit)
    return string
 end
 
+function util.collect_data(arg, iter_screen_items)
+   if arg.widgets then
+      return iter_screen_items(arg)
+   else
+      local data = {}
+      for _, page in ipairs(arg.pages) do
+         data[page.id] = iter_screen_items(page.screen)
+      end
+      return data
+   end
+end
+
 return util

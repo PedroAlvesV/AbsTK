@@ -1147,47 +1147,36 @@ local function setup_screen(screen)
    return screen
 end
 
-local function collect_data(arg)
-   local function iter_screen_items(screen)
-      local data = {}
-      for _, item in ipairs(screen.widgets) do
-         if item.id ~= ASSIST_BUTTONS and item.id ~= NAV_BUTTONS then
-            data[item.id] = {}
-            if item.type == 'BUTTON_BOX' or item.type == 'CHECKLIST' then
-               if item.type == 'BUTTON_BOX' then
-                  for j=1, #item.widget.buttons do
-                     data[item.id][j] = screen:get_value(item.id, j)
-                  end
-               else
-                  for j=1, #item.widget.checklist do
-                     -- alternative construction (without fieldnames)
-                     --data[item.id][j] = {}
-                     --data[item.id][j][1], data[item.id][j][2] = arg:get_value(item.id, j)
-                     data[item.id][j] = {label = nil, state = nil}
-                     data[item.id][j].label, data[item.id][j].state = screen:get_value(item.id, j)
-                  end
+local function iter_screen_items(screen)
+   local data = {}
+   for _, item in ipairs(screen.widgets) do
+      if item.id ~= ASSIST_BUTTONS and item.id ~= NAV_BUTTONS then
+         data[item.id] = {}
+         if item.type == 'BUTTON_BOX' or item.type == 'CHECKLIST' then
+            if item.type == 'BUTTON_BOX' then
+               for j=1, #item.widget.buttons do
+                  data[item.id][j] = screen:get_value(item.id, j)
                end
             else
-               local value = screen:get_value(item.id)
-               if item.type == 'CHECKBOX' then
-                  local _, v = screen:get_value(item.id)
-                  value = v
+               for j=1, #item.widget.checklist do
+                  -- alternative construction (without fieldnames)
+                  --data[item.id][j] = {}
+                  --data[item.id][j][1], data[item.id][j][2] = arg:get_value(item.id, j)
+                  data[item.id][j] = {label = nil, state = nil}
+                  data[item.id][j].label, data[item.id][j].state = screen:get_value(item.id, j)
                end
-               data[item.id] = value
             end
+         else
+            local value = screen:get_value(item.id)
+            if item.type == 'CHECKBOX' then
+               local _, v = screen:get_value(item.id)
+               value = v
+            end
+            data[item.id] = value
          end
       end
-      return data
    end
-   if arg.widgets then
-      return iter_screen_items(arg)
-   else
-      local data = {}
-      for _, page in ipairs(arg.pages) do
-         data[page.id] = iter_screen_items(page.screen)
-      end
-      return data
-   end
+   return data
 end
 
 function Screen:run()
@@ -1211,7 +1200,7 @@ function Screen:run()
          self.done = true
       end
       if self.done then
-         return collect_data(self)
+         return util.collect_data(self, iter_screen_items)
       end
    end
 end
@@ -1274,7 +1263,7 @@ function Wizard:run()
          self.done = true
       end
       if self.done then
-         return collect_data(self)
+         return util.collect_data(self, iter_screen_items)
       end
    end
 end

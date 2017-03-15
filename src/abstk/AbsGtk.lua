@@ -110,6 +110,7 @@ function Screen:create_button_box(id, labels, tooltips, callbacks)
    local item = {
       id = id,
       type = 'BUTTON_BOX',
+      size = #labels,
       widget = Gtk.Box {
          orientation = 'VERTICAL',
          create_bbox('HORIZONTAL', 20, 'START'),
@@ -259,6 +260,7 @@ function Screen:create_checklist(id, title, list, default_value, tooltip, callba
       local item = {
          id = id,
          type = 'CHECKLIST',
+         size = #list,
          widget = Gtk.Box {
             title_widget,
             orientation = 'VERTICAL',
@@ -336,6 +338,7 @@ function Screen:create_checklist(id, title, list, default_value, tooltip, callba
       local item = {
          id = id,
          type = 'LIST',
+         size = #list,
          widget = Gtk.Box {
             title_widget,
             orientation = 'VERTICAL',
@@ -613,6 +616,40 @@ local function create_vbox(widgets)
    return vbox
 end
 
+local function iter_screen_items(screen)
+   local data = {}
+   for _, item in ipairs(screen.widgets) do
+      data[item.id] = {}
+      if item.type == 'BUTTON_BOX' or item.type == 'CHECKLIST' or item.type == 'LIST' then
+         for j=1, item.size do
+            if item.type == 'CHECKLIST' then
+               -- alternative construction (without fieldnames)
+               -- data[item.id][j] = {}
+               -- data[item.id][j][1], data[item.id][j][2] = arg:get_value(item.id, j)
+               data[item.id][j] = {label = nil, state = nil}
+               data[item.id][j].label, data[item.id][j].state = screen:get_value(item.id, j)
+            else
+               local value = screen:get_value(item.id, j)
+               if item.type == 'LIST' then
+                  local _, v = screen:get_value(item.id, j)
+                  value = v
+               end
+               data[item.id][j] = value
+            end
+         end
+      else
+         local value = screen:get_value(item.id)
+         print(value)
+         if item.type == 'CHECKBOX' then
+            local _, v = screen:get_value(item.id)
+            value = v
+         end
+         data[item.id] = value
+      end
+   end
+   return data
+end
+
 function Screen:run()
    local vbox = create_vbox(self.widgets)
    local function create_assist_buttons()
@@ -624,13 +661,12 @@ function Screen:run()
       }
       local cancel = Gtk.Button { id = 'CANCEL', label = "Cancel" }
       local done = Gtk.Button { id = 'DONE', label = "Done" }
-      cancel.on_clicked = function()
+      local function fdone()
+         self.done = true
          self.window:close()
-         -- TODO
       end
-      done.on_clicked = function()
-         -- TODO
-      end
+      cancel.on_clicked = fdone
+      done.on_clicked = fdone
       bbox:add(cancel)
       bbox:add(done)
       return bbox
@@ -640,6 +676,11 @@ function Screen:run()
    self.window:add(vbox)
    self.window:show_all()
    Gtk.main()
+   while true do
+      if self.done then
+         return util.collect_data(self, iter_screen_items)
+      end
+   end
 end
 
 function Wizard:add_page(id, screen)
@@ -681,7 +722,15 @@ function Wizard:run()
          if label == "_Apply" then
             button:set_label("Done")
             button.on_clicked = function()
-               self.pages[#self.pages].screen:show_message_box("Press OK to proceed.", 'OK_CANCEL')
+               if self.pages[#self.pages].screen:show_message_box("Press OK to proceed.", 'OK_CANCEL') == "OK" then
+                  self.done = true
+               end
+            end
+         elseif label == "_Cancel" then
+            button.on_clicked = function()
+               if self.pages[#self.pages].screen:show_message_box("Are you sure you want to quit?", 'YES_NO') == "YES" then
+                  self.done = true
+               end
             end
          elseif label == "_Finish" then
             get_footer():remove(button)
@@ -691,6 +740,11 @@ function Wizard:run()
    config_nav_buttons()
    self.assistant:show_all()
    Gtk.main()
+   while true do
+      if self.done then
+         return util.collect_data(self, iter_screen_items)
+      end
+   end
 end
 
 return AbsGtk
