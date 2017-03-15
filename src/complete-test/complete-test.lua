@@ -1,5 +1,5 @@
 local abstk = require 'abstk'
-local mm = require 'mm'
+
 abstk.set_mode(...)
 
 -- Create wizard
@@ -102,5 +102,4 @@ wizard:add_page('screen5', scr5)
 -- Run wizard and collect data
 local data = wizard:run()
 os.execute("clear")
-mm(data)
-local x = io.read()
+print(data)
