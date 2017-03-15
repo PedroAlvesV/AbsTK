@@ -99,6 +99,7 @@ function abstk.new_screen(title, w, h)
       -- Creates a dropdown menu and adds it to the screen widgets table.
       --
       -- @param id the id to reference the widget later on
+      -- @param title the title of the field
       -- @param labels the labels that will be written on the entries
       -- @param[opt='1'] default_value the index of the entry selected at start
       -- @param[opt] tooltip a tooltip to the combobox
