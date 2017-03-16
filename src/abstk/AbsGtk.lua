@@ -623,9 +623,6 @@ local function iter_screen_items(screen)
       if item.type == 'BUTTON_BOX' or item.type == 'CHECKLIST' or item.type == 'LIST' then
          for j=1, item.size do
             if item.type == 'CHECKLIST' then
-               -- alternative construction (without fieldnames)
-               -- data[item.id][j] = {}
-               -- data[item.id][j][1], data[item.id][j][2] = arg:get_value(item.id, j)
                data[item.id][j] = {label = nil, state = nil}
                data[item.id][j].label, data[item.id][j].state = screen:get_value(item.id, j)
             else
@@ -639,7 +636,6 @@ local function iter_screen_items(screen)
          end
       else
          local value = screen:get_value(item.id)
-         print(value)
          if item.type == 'CHECKBOX' then
             local _, v = screen:get_value(item.id)
             value = v
@@ -663,7 +659,9 @@ function Screen:run()
       local done = Gtk.Button { id = 'DONE', label = "Done" }
       local function fdone()
          self.done = true
+         self.data = util.collect_data(self, iter_screen_items)
          self.window:close()
+--         print("fdone")
       end
       cancel.on_clicked = fdone
       done.on_clicked = fdone
@@ -676,11 +674,7 @@ function Screen:run()
    self.window:add(vbox)
    self.window:show_all()
    Gtk.main()
-   while true do
-      if self.done then
-         return util.collect_data(self, iter_screen_items)
-      end
-   end
+   return self.data
 end
 
 function Wizard:add_page(id, screen)

@@ -28,7 +28,7 @@ local AbsCursesCheckList = {}
 local AbsCursesSelector = {}
 
 local stdscr
-local scr_h, scr_w = curses.initscr():getmaxyx()
+local scr_h, scr_w
 local colors = {}
 local ASSIST_BUTTONS, NAV_BUTTONS = {}, {}
 local actions = {
@@ -96,6 +96,49 @@ local function run_callback(self, ...)
    end
 end
 
+local function setup_screen(screen)
+   local function init_curses()
+      local stdscr = curses.initscr()
+      curses.cbreak()
+      curses.raw()
+      curses.echo(false)
+      curses.nl(false)
+      stdscr:keypad(true)
+      scr_h, scr_w = stdscr:getmaxyx()
+      scr_w = math.min(scr_w, 127)
+      -- scr_h = math.min(scr_h, 24)
+      curses.start_color()
+      curses.use_default_colors()
+      pcall(curses.init_pair, 1, curses.COLOR_WHITE, curses.COLOR_BLUE)
+      pcall(curses.init_pair, 2, curses.COLOR_BLACK, curses.COLOR_BLUE)
+      pcall(curses.init_pair, 3, curses.COLOR_YELLOW, curses.COLOR_BLUE)
+      pcall(curses.init_pair, 4, curses.COLOR_BLACK, curses.COLOR_WHITE)
+      pcall(curses.init_pair, 5, curses.COLOR_BLACK, curses.COLOR_CYAN)
+      pcall(curses.init_pair, 6, curses.COLOR_CYAN, curses.COLOR_BLUE)
+      pcall(curses.init_pair, 7, curses.COLOR_CYAN, curses.COLOR_BLACK)
+      colors.default = curses.color_pair(1)
+      colors.disabled = curses.color_pair(2) + curses.A_BOLD
+      colors.title = curses.color_pair(3) + curses.A_BOLD
+      colors.button = curses.color_pair(4)
+      colors.widget = curses.color_pair(5)
+      colors.widget_disabled = curses.color_pair(5) + curses.A_BOLD
+      colors.current = curses.color_pair(1) + curses.A_BOLD
+      colors.subcurrent = curses.color_pair(6) + curses.A_BOLD
+      colors.cursor = curses.color_pair(7) + curses.A_BOLD
+      stdscr:clear()
+      stdscr:wbkgd(attr_code(colors.default))
+      stdscr:attrset(colors.default)
+      return stdscr
+   end
+   stdscr = init_curses()
+   stdscr:sub(scr_h-1, scr_w, 0, 0):box(0, 0)
+   stdscr:attrset(colors.default)
+   stdscr:mvaddstr(scr_h-3, 2, "Tab/Arrows: move focus   Enter: select   Ctrl+Q: Quit")
+   stdscr:refresh()
+   screen.focus = 1
+   return screen
+end
+
 function AbsCurses.new_screen(title)
    local self = {
       title = title,
@@ -106,6 +149,7 @@ function AbsCurses.new_screen(title)
       __index = Screen,
    }
    setmetatable(self, mt)
+   self = setup_screen(self)
    return self
 end
 
@@ -1104,49 +1148,6 @@ local function create_pad(screen)
    return pad_data, actual_pad
 end
 
-local function setup_screen(screen)
-   local function init_curses()
-      local stdscr = curses.initscr()
-      curses.cbreak()
-      curses.raw()
-      curses.echo(false)
-      curses.nl(false)
-      stdscr:keypad(true)
-      scr_w = math.min(scr_w, 127)
-      -- scr_h = math.min(scr_h, 24)
-      curses.start_color()
-      curses.use_default_colors()
-      pcall(curses.init_pair, 1, curses.COLOR_WHITE, curses.COLOR_BLUE)
-      pcall(curses.init_pair, 2, curses.COLOR_BLACK, curses.COLOR_BLUE)
-      pcall(curses.init_pair, 3, curses.COLOR_YELLOW, curses.COLOR_BLUE)
-      pcall(curses.init_pair, 4, curses.COLOR_BLACK, curses.COLOR_WHITE)
-      pcall(curses.init_pair, 5, curses.COLOR_BLACK, curses.COLOR_CYAN)
-      pcall(curses.init_pair, 6, curses.COLOR_CYAN, curses.COLOR_BLUE)
-      pcall(curses.init_pair, 7, curses.COLOR_CYAN, curses.COLOR_BLACK)
-      colors.default = curses.color_pair(1)
-      colors.disabled = curses.color_pair(2) + curses.A_BOLD
-      colors.title = curses.color_pair(3) + curses.A_BOLD
-      colors.button = curses.color_pair(4)
-      colors.widget = curses.color_pair(5)
-      colors.widget_disabled = curses.color_pair(5) + curses.A_BOLD
-      colors.current = curses.color_pair(1) + curses.A_BOLD
-      colors.subcurrent = curses.color_pair(6) + curses.A_BOLD
-      colors.cursor = curses.color_pair(7) + curses.A_BOLD
-      stdscr:clear()
-      stdscr:wbkgd(attr_code(colors.default))
-      stdscr:attrset(colors.default)
-      return stdscr
-   end
-   stdscr = init_curses()
-   stdscr:sub(scr_h-1, scr_w, 0, 0):box(0, 0)
-   stdscr:attrset(colors.default)
-   stdscr:mvaddstr(scr_h-3, 2, "Tab/Arrows: move focus   Enter: select   Ctrl+Q: Quit")
-   stdscr:refresh()
-   screen.widgets[#screen.widgets].widget.subfocus = 1
-   screen.focus = 1
-   return screen
-end
-
 local function iter_screen_items(screen)
    local data = {}
    for _, item in ipairs(screen.widgets) do
@@ -1159,9 +1160,6 @@ local function iter_screen_items(screen)
                end
             else
                for j=1, #item.widget.checklist do
-                  -- alternative construction (without fieldnames)
-                  --data[item.id][j] = {}
-                  --data[item.id][j][1], data[item.id][j][2] = arg:get_value(item.id, j)
                   data[item.id][j] = {label = nil, state = nil}
                   data[item.id][j].label, data[item.id][j].state = screen:get_value(item.id, j)
                end
@@ -1180,24 +1178,24 @@ local function iter_screen_items(screen)
 end
 
 function Screen:run()
+   local done_curses = function()
+      self.done = true
+   end
    local function create_assistant_buttons()
       local labels, tooltips, callbacks
-      local done_curses = function()
-         self.done = true
-      end
       labels = {'Done'}
       tooltips = {"Done assistant"}
       callbacks = {done_curses}
       self:create_button_box(ASSIST_BUTTONS, labels, tooltips, callbacks)
    end
-   self = setup_screen(self)
+   self.widgets[#self.widgets].widget.subfocus = 1
    local pad, actual_pad = create_pad(self)
    self.pad = actual_pad
    self.pad:wbkgd(attr_code(colors.default))
    create_assistant_buttons()
    while true do
       if run_screen(self, pad) == "QUIT" then
-         self.done = true
+         done_curses()
       end
       if self.done then
          return util.collect_data(self, iter_screen_items)
@@ -1215,25 +1213,25 @@ function Wizard:add_page(id, screen)
 end
 
 function Wizard:run()
+   local prev_page = function()
+      self.current_page = self.current_page - 1
+      setup_screen(self.pages[self.current_page].screen)
+   end
+   local next_page = function()
+      self.current_page = self.current_page + 1
+      setup_screen(self.pages[self.current_page].screen)
+   end
+   local quit_curses = function()
+      if self.pages[self.current_page].screen:show_message_box("Are you sure you want to quit?", 'YES_NO') == "YES" then
+         self.done = true
+      end
+   end
+   local done_curses = function()
+      if self.pages[self.current_page].screen:show_message_box("Press OK to proceed.", 'OK_CANCEL') == "OK" then
+         self.done = true
+      end
+   end
    local function create_navigation_buttons(pages)
-      local prev_page = function()
-         self.current_page = self.current_page - 1
-         setup_screen(self.pages[self.current_page].screen)
-      end
-      local next_page = function()
-         self.current_page = self.current_page + 1
-         setup_screen(self.pages[self.current_page].screen)
-      end
-      local quit_curses = function()
-         if self.pages[self.current_page].screen:show_message_box("Are you sure you want to quit?", 'YES_NO') == "YES" then
-            self.done = true
-         end
-      end
-      local done_curses = function()
-         if self.pages[self.current_page].screen:show_message_box("Press OK to proceed.", 'OK_CANCEL') == "OK" then
-            self.done = true
-         end
-      end
       for page_number, page in ipairs(pages) do
          local labels, tooltips, callbacks
          if page_number == 1 then
@@ -1260,7 +1258,7 @@ function Wizard:run()
       current_screen.pad = actual_pad
       current_screen.pad:wbkgd(attr_code(colors.default))
       if run_screen(current_screen, pad, self.title) == "QUIT" then
-         self.done = true
+         quit_curses()
       end
       if self.done then
          return util.collect_data(self, iter_screen_items)
