@@ -18,5 +18,3 @@ wizard:add_page('screen1', scr1)
 wizard:add_page('screen2', scr2)
 
 local data = wizard:run()
-os.execute("clear")
-print(data)

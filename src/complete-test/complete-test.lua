@@ -101,5 +101,3 @@ wizard:add_page('screen5', scr5)
 
 -- Run wizard and collect data
 local data = wizard:run()
-os.execute("clear")
-print(data)
