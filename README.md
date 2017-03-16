@@ -9,8 +9,7 @@
 
 Documentation available at <https://pedroalvesv.github.io/AbsTK-Lua>.
 
-<!---
-## Usage
+##
 
 ![Curses UI](http://i.imgur.com/xAq4KJX.png) ![GTK UI](http://i.imgur.com/xAq4KJX.png)
 
@@ -18,29 +17,20 @@ Both UIs were produced by the following code:
 
 ```lua
 local abstk = require 'abstk'
-local scr = abstk.new_screen("AbsTK First UI")
+local scr = abstk.new_screen("My First AbsTK UI")
 scr:add_label('hellow', "Hello, World!")
 scr:run()
 ```
---->
 
+## Getting Started
 
-## Installation
+### Installation
 
-AbsTK can generate GUI and text-mode applications, with those being GTK and Curses. So, to install the dependencies:
-
-```
-$ [sudo] luarocks install lgi
-$ [sudo] luarocks install lcurses
-```
-
-And to install AbsTK:
+It's actually very easy to install AbsTK using [LuaRocks](https://github.com/luarocks/luarocks):
 
 ```
 $ [sudo] luarocks install --server=http://luarocks.org/dev abstk
 ```
-
-## Getting Started
 
 ### Routines
 
@@ -88,8 +78,7 @@ When nothing is passed, the toolkit decides which one to use based on `os.getenv
 
 To add widgets to a Screen, all that must be done is call its construction method with the desired Screen object.
 About the functions names, they are very clear and follow a golden rule:
->"add" refers to single widgets construction;
->"create" refers to groups of widgets construction.
+>"add" refers to single widgets construction; <p>"create" refers to groups of widgets construction.</p>
 
 For instance,
 
