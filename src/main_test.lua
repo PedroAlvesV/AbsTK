@@ -2,7 +2,22 @@ local abstk = require 'abstk'
 local mm = require 'mm'
 abstk.set_mode(...)
 
-local scr = abstk.new_screen("AbsTK Minimalist Test")
+local cb = function(exit, data, screen)
+   if exit == "QUIT" then
+      local r = screen:show_message_box("really?!?!?", 'YES_NO')
+      if r == "NO" then
+         return false
+      end
+   elseif exit == "DONE" then
+      local r = screen:show_message_box("really done?!?!?", 'YES_NO')
+      if r == "NO" then
+         return false
+      end
+   end
+   return true
+end
+
+local scr = abstk.new_screen("AbsTK Minimalist Test", nil, nil, cb)
 
 local test_callback = function(id, value, arg1, arg2)
 --   scr:set_enabled(id, false)
@@ -36,7 +51,7 @@ scr:create_selector('sl1', "Selector1", l1, nil, "Selector", test_callback)
 scr:create_selector('sl2', "Selector2", l2, {false, true, false, false}, "Selector", test_callback)
 scr:create_selector('sl3', "Selector3", l3, nil, "Selector", test_callback)
 scr:create_selector('sl4', "Selector4", l4, 3, "Selector", test_callback)
-scr:add_textbox('tbox', "TextBox", "lorem\nipsum\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\nlorem\nipsum\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17", "TextBox")
+scr:add_textbox('tbox', "TextBox", "imagine a long text", "TextBox")
 local data = scr:run()
 os.execute("clear")
 mm(data)
