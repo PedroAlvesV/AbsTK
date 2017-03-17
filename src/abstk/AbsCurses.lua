@@ -12,7 +12,6 @@
 local AbsCurses = {}
 
 local curses = require 'curses'
-
 local util = require 'abstk.util'
 
 local Screen = {}
@@ -153,11 +152,12 @@ function AbsCurses.new_screen(title)
    return self
 end
 
-function AbsCurses.new_wizard(title)
+function AbsCurses.new_wizard(title, dummy_w, dummy_h, exit_callback)
    local self = {
       title = title,
       pages = {},
       current_page = 1,
+      exit_callback = exit_callback,
    }
    local mt = {
       __index = Wizard,
@@ -523,9 +523,7 @@ function AbsCursesTextBox:draw(drawable, x, y, focus)
    end
    local pad = curses.newpad(self.inside_box_h+2, self.width-2)
    pad:wbkgd(attr_code(box_colors()))
-   for i=self.view_pos, self.view_pos + self.height - 1 do
-      pad:mvaddstr(i-self.view_pos+1, 1, self.text[i] or "")
-   end
+   pad:mvaddstr(self.view_pos, 1, self.text[1] or "")
    pad:attrset(colors.default)
    pad:border(0,0)
    pad:copywin(drawable, 0, 0, y, x, y+self.inside_box_h+1, self.width, false)
@@ -1221,14 +1219,13 @@ function Wizard:run()
       self.current_page = self.current_page + 1
       setup_screen(self.pages[self.current_page].screen)
    end
-   local quit_curses = function()
-      if self.pages[self.current_page].screen:show_message_box("Are you sure you want to quit?", 'YES_NO') == "YES" then
-         self.done = true
-      end
-   end
-   local done_curses = function()
-      if self.pages[self.current_page].screen:show_message_box("Press OK to proceed.", 'OK_CANCEL') == "OK" then
-         self.done = true
+   if not self.exit_callback then
+      self.exit_callback = function(exit, data, screen)
+         if exit == "QUIT" then
+            return screen:show_message_box("Are you sure you want to quit?", 'YES_NO') == "YES"
+         else
+            return screen:show_message_box("Press OK to proceed.", 'OK_CANCEL') == "OK"
+         end
       end
    end
    local function create_navigation_buttons(pages)
@@ -1241,7 +1238,9 @@ function Wizard:run()
          elseif page_number == #pages then
             labels = {'< Back', 'Done'}
             tooltips = {"Go to previous page", "Done wizard"}
-            callbacks = {prev_page, done_curses}
+            callbacks = {prev_page, function()
+               self.done = self.exit_callback("DONE", util.collect_data(self, iter_screen_items), self.pages[self.current_page].screen) 
+            end}
          else
             labels = {'< Back', 'Next >'}
             tooltips = {"Go to previous page", "Go to next page"}
@@ -1258,7 +1257,7 @@ function Wizard:run()
       current_screen.pad = actual_pad
       current_screen.pad:wbkgd(attr_code(colors.default))
       if run_screen(current_screen, pad, self.title) == "QUIT" then
-         quit_curses()
+         self.done = self.exit_callback("QUIT", util.collect_data(self, iter_screen_items), self.pages[self.current_page].screen)
       end
       if self.done then
          return util.collect_data(self, iter_screen_items)

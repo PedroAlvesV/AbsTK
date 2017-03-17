@@ -34,7 +34,7 @@ function AbsGtk.new_screen(title, w, h)
    return self
 end
 
-function AbsGtk.new_wizard(title, w, h)
+function AbsGtk.new_wizard(title, w, h, exit_callback)
    local self = {
       title = title,
       assistant = Gtk.Assistant {

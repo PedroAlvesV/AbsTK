@@ -367,7 +367,7 @@ end
 --
 -- @return  a Wizard table.
 -------------------------------------------------
-function abstk.new_wizard(title, w, h)
+function abstk.new_wizard(title, w, h, exit_callback)
    local obj
    if mode == 'gtk' then
       if w == nil then
@@ -376,9 +376,9 @@ function abstk.new_wizard(title, w, h)
       if h == nil then
          h = w*0.75
       end
-      obj = AbsGtk.new_wizard(title, w, h)
+      obj = AbsGtk.new_wizard(title, w, h, exit_callback)
    elseif mode == 'curses' then
-      obj = AbsCurses.new_wizard(title)
+      obj = AbsCurses.new_wizard(title, nil, nil, exit_callback)
    end
    local self = {
       -------------------------------------------------
