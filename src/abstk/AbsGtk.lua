@@ -214,6 +214,7 @@ function Screen:add_textbox(id, title, default_value, tooltip)
    buffer:set_text(default_value or "", -1)
    textview:set_tooltip_text(tooltip)
    textview:set_buffer(buffer)
+   textview:set_wrap_mode(Gtk.WrapMode.CHAR)
    textview:set_editable(false)
    local item = {
       id = id,
