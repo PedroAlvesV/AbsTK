@@ -40,4 +40,16 @@ function util.collect_data(arg, iter_screen_items)
    end
 end
 
+function util.set_default_exit_callback(wizard)
+   if not wizard.exit_callback then
+      wizard.exit_callback = function(exit, data, screen)
+         if exit == "QUIT" then
+            return screen:show_message_box("Are you sure you want to quit?", 'YES_NO') == "YES"
+         else
+            return screen:show_message_box("Press OK to proceed.", 'OK_CANCEL') == "OK"
+         end
+      end
+   end
+end
+
 return util

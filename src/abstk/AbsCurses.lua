@@ -1219,15 +1219,7 @@ function Wizard:run()
       self.current_page = self.current_page + 1
       setup_screen(self.pages[self.current_page].screen)
    end
-   if not self.exit_callback then
-      self.exit_callback = function(exit, data, screen)
-         if exit == "QUIT" then
-            return screen:show_message_box("Are you sure you want to quit?", 'YES_NO') == "YES"
-         else
-            return screen:show_message_box("Press OK to proceed.", 'OK_CANCEL') == "OK"
-         end
-      end
-   end
+   util.set_default_exit_callback(self)
    local function create_navigation_buttons(pages)
       for page_number, page in ipairs(pages) do
          local labels, tooltips, callbacks
