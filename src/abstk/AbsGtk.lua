@@ -42,10 +42,9 @@ function AbsGtk.new_wizard(title, w, h, exit_callback)
          default_width = w,
          default_height = h,
          on_destroy = Gtk.main_quit,
-         on_cancel = Gtk.main_quit,
-         on_close = Gtk.main_quit
       },
       pages = {},
+      exit_callback = exit_callback,
    }
    local mt = {
       __index = Wizard,
@@ -471,14 +470,17 @@ function Screen:show_message_box(message, buttons)
       buttons = buttons_constant,
       text = message,
    }
+   message_dialog:set_deletable(false)
    local result = message_dialog:run()
    if result == Gtk.ResponseType.OK then
       return "OK"
    elseif result == Gtk.ResponseType.CANCEL or result == Gtk.ResponseType.DELETE_EVENT or result == Gtk.ResponseType.CLOSE then
+      message_dialog:close()
       return "CANCEL"
    elseif result == Gtk.ResponseType.YES then
       return "YES"
    elseif result == Gtk.ResponseType.NO then
+      message_dialog:close()
       return "NO"
    end
 end
@@ -662,7 +664,6 @@ function Screen:run()
          self.done = true
          self.data = util.collect_data(self, iter_screen_items)
          self.window:close()
---         print("fdone")
       end
       cancel.on_clicked = fdone
       done.on_clicked = fdone
@@ -711,21 +712,32 @@ function Wizard:run()
          footer:remove(label)
          return footer
       end
+      util.set_default_exit_callback(self)
+      local function quit_gtk()
+         self.data = util.collect_data(self, iter_screen_items)
+         Gtk.main_quit()
+      end
+      local function quit_confirm()
+         self.done = self.exit_callback("QUIT", util.collect_data(self, iter_screen_items), self.pages[#self.pages].screen)
+         if self.done then
+            quit_gtk()
+         end
+      end
+      self.assistant.on_delete_event = quit_confirm
       local buttonset = get_footer():get_children()
       for i, button in ipairs(buttonset) do
          local label = button:get_label()
          if label == "_Apply" then
             button:set_label("Done")
             button.on_clicked = function()
-               if self.pages[#self.pages].screen:show_message_box("Press OK to proceed.", 'OK_CANCEL') == "OK" then
-                  self.done = true
+               self.done = self.exit_callback("DONE", util.collect_data(self, iter_screen_items), self.pages[#self.pages].screen)
+               if self.done then
+                  quit_gtk()
                end
             end
          elseif label == "_Cancel" then
             button.on_clicked = function()
-               if self.pages[#self.pages].screen:show_message_box("Are you sure you want to quit?", 'YES_NO') == "YES" then
-                  self.done = true
-               end
+               self.done = quit_confirm()
             end
          elseif label == "_Finish" then
             get_footer():remove(button)
@@ -735,11 +747,7 @@ function Wizard:run()
    config_nav_buttons()
    self.assistant:show_all()
    Gtk.main()
-   while true do
-      if self.done then
-         return util.collect_data(self, iter_screen_items)
-      end
-   end
+   return self.data
 end
 
 return AbsGtk
