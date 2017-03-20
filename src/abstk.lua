@@ -14,8 +14,8 @@ local AbsCurses = require 'abstk.AbsCurses'
 local mode = nil
 
 -------------------------------------------------
--- Sets mode to determine whether interface will be drawn,
--- text (curses) or GUI (GTK).
+-- Sets mode to determine whether UI will be drawn,
+-- TUI (Curses) or GUI (GTK).
 --
 -- @within abstk
 --
@@ -32,7 +32,7 @@ function abstk.set_mode(arg)
 end
 
 -------------------------------------------------
--- Constructs a screen. 
+-- Constructs a Screen. 
 --
 -- @param title the title of the screen
 -- @param w the width of the screen (only used in GUI)
@@ -40,7 +40,7 @@ end
 --
 -- @within abstk
 --
--- @return 	a Screen table.
+-- @return 	a Screen.
 -------------------------------------------------
 function abstk.new_screen(title, w, h)
    local obj
@@ -61,20 +61,20 @@ function abstk.new_screen(title, w, h)
       -------------------------------------------------
 
       -------------------------------------------------
-      -- Adds a label to the screen widgets table.
+      -- Adds a label to screen.
       --
-      -- @param id the id to reference the widget later on
-      -- @param label the label itself that will be written 
+      -- @param id the id of the object
+      -- @param label the text itself to be the label
       -------------------------------------------------
       add_label = function(self, id, label)
          obj:add_label(id, label)
       end,
       -------------------------------------------------
-      -- Creates a button and adds it to the screen widgets table.
+      -- Adds a button to screen.
       --
-      -- @param id the id to reference the widget later on
+      -- @param id the id of the object
       -- @param label the label that will be written over the button
-      -- @param[opt] tooltip a tooltip to the button
+      -- @param[opt] tooltip a tooltip text for the button
       -- @param[opt] callback a callback function to the button. This callback 
       -- function receives two arguments: the id (string) and the label of the
       -- button (string).
@@ -83,12 +83,12 @@ function abstk.new_screen(title, w, h)
          obj:add_button(id, label, tooltip, callback)
       end,
       -------------------------------------------------
-      -- Creates a buttonset and adds it to the screen widgets table.
+      -- Creates a buttonset and adds it to screen.
       --
-      -- @param id the id to reference the widget later on
-      -- @param labels the labels that will be written over the buttons
-      -- @param[opt] tooltip a tooltip to the buttons
-      -- @param[opt] callback a callback function to the buttons. This callback 
+      -- @param id the id of the object
+      -- @param labels a table containing the labels that will be written over the buttons
+      -- @param[opt] tooltips a table containing the tooltips texts for the buttons
+      -- @param[opt] callbacks a table containing the callback functions to the buttons. Every
       -- function receives three arguments: the id (string), the index of the
       -- clicked button (number) and its label (string).
       -------------------------------------------------
@@ -96,41 +96,45 @@ function abstk.new_screen(title, w, h)
          obj:create_button_box(id, labels, tooltips, callbacks)
       end,
       -------------------------------------------------
-      -- Creates a dropdown menu and adds it to the screen widgets table.
+      -- Creates a ComboBox and adds it to screen.
+      -- On GUI it's a dropdown menu, on TUI turns into a Selector.
       --
-      -- @param id the id to reference the widget later on
+      -- @see Screen:create_selector
+      --
+      -- @param id the id of the object
       -- @param title the title of the field
-      -- @param labels the labels that will be written on the entries
-      -- @param[opt='1'] default_value the index of the entry selected at start
-      -- @param[opt] tooltip a tooltip to the combobox
-      -- @param[opt] callback a callback function to the row. This callback 
-      -- function receives three arguments: the id (string), the index of the
-      -- clicked item (number) its label (string).
+      -- @param labels a table containing the labels that will be the entries
+      -- @param[opt='1'] default_value the index of the entry selected by default
+      -- @param[opt] tooltip a tooltip text for the object
+      -- @param[opt] callback a callback function. This callback function receives three
+      -- arguments: the id (string), the index of the clicked item (number) its label
+      -- (string).
       -------------------------------------------------
       create_combobox = function(self, id, title, labels, default_value, tooltip, callback)
          obj:create_combobox(id, title, labels, default_value, tooltip, callback)
       end,
       -------------------------------------------------
-      -- Creates an image widget and adds it to the screen widgets table.
+      -- Adds an image widget to screen.
+      -- Does nothing if running TUI.
       --
-      -- @param id the id to reference the widget later on
+      -- @param id the id of the object
       -- @param path the path of the image file
-      -- @param[opt] dimensions a table with the dimensions to resize the image
-      -- @param[opt] tooltip a tooltip to the image
+      -- @param[opt] dimensions a table containing the dimensions to resize the image
+      -- @param[opt] tooltip a tooltip text for the object
       --
-      -- @usage scr:add_image('lua_img', 'imgs/lua.png')
-      -- scr:add_image('batman_img', 'imgs/batman.png', {512, 384})
+      -- @usage scr:add_image('lua_img', 'images/lua.png')
+      -- scr:add_image('batman_img', 'images/batman.png', {512, 384})
       -------------------------------------------------
       add_image = function(self, id, path, dimensions, tooltip)
          obj:add_image(id, path, dimensions, tooltip)
       end,
       -------------------------------------------------
-      -- Creates a text input field and adds it to the screen widgets table.
+      -- Adds a text input field to screen.
       --
-      -- @param id the id to reference the widget later on
+      -- @param id the id of the object
       -- @param[opt] label a label that precedes the field
       -- @param[opt] default_value a placeholder
-      -- @param[opt] tooltip a tooltip to the text input field
+      -- @param[opt] tooltip a tooltip text for the object
       -- @param[opt] callback a callback function to the field. This callback 
       -- function receives two arguments: the id (string) and the text that is
       -- inside the field (string).
@@ -139,12 +143,15 @@ function abstk.new_screen(title, w, h)
          obj:add_text_input(id, label, true, default_value, tooltip, callback)
       end,
       -------------------------------------------------
-      -- Creates a password input field and adds it to the screen widgets table.
+      -- Adds a password input field to screen.
+      -- It's essentially a text input that covers the text on the UI.
       --
-      -- @param id the id to reference the widget later on
+      -- @see Screen:add_text_input
+      --
+      -- @param id the id of the object
       -- @param[opt] label a label that precedes the field
       -- @param[opt] default_value a placeholder
-      -- @param[opt] tooltip a tooltip to the text input field
+      -- @param[opt] tooltip a tooltip text for the object
       -- @param[opt] callback a callback function to the field. This callback 
       -- function receives two arguments: the id (string) and the text that is
       -- inside the field (string).
@@ -153,25 +160,25 @@ function abstk.new_screen(title, w, h)
          obj:add_text_input(id, label, false, default_value, tooltip, callback)
       end,
       -------------------------------------------------
-      -- Creates a textbox field and adds it to the screen widgets table.
+      -- Adds a TextBox field to the screen.
       --
-      -- @param id the id to reference the widget later on
-      -- @param[opt] title a title to the field
-      -- @param[opt] default_value a pre-written text
-      -- @param[opt] tooltip a tooltip to the textbox field
+      -- @param id the id of the object
+      -- @param[opt] title a title to the box
+      -- @param[opt] default_value the text
+      -- @param[opt] tooltip a tooltip text for the object
       -------------------------------------------------
       add_textbox = function(self, id, title, default_value, tooltip)
          obj:add_textbox(id, title, default_value, tooltip)
       end,
       -------------------------------------------------
-      -- Creates a single checkbox and adds it to the screen widgets table.
+      -- Adds a single checkbox to the screen.
       --
       -- @see Screen:create_checklist
       --
-      -- @param id the id to reference the widget later on
+      -- @param id the id of the object
       -- @param label the label of the checkbox
-      -- @param[opt] default_value a boolean to determine the initial state of the checkbox
-      -- @param[opt] tooltip a tooltip to the checkbox
+      -- @param[opt] default_value a boolean to determine the default state of the checkbox
+      -- @param[opt] tooltip a tooltip text for the object
       -- @param[opt] callback a callback function to the checkbox. This callback 
       -- function receives three arguments: the id (string), the state of the
       -- box (boolean) and its label (string).
@@ -181,23 +188,25 @@ function abstk.new_screen(title, w, h)
       end,
       -------------------------------------------------
       -- <p align="justify">
-      -- Creates a checkboxes list and adds it to the screen widgets table. 
-      -- There are 4 ways to call it via client. The first one is by passing 
-      -- just an array with the labels as the `list` parameter. The second one 
-      -- is similar, but you pass, also, an array of booleans, as 
-      -- `default_value`, representing the states of those buttons. The third 
-      -- one is an alternative to the second, since it's better readable: you 
-      -- pass an array of tables. Each table represents a box and its state.
-      -- Also, there's a fourth way of doing that. `default_value` can be just a
-      -- single index to mark an item.
+      -- Creates a checkboxes list and adds it to the screen. 
+      -- There are 4 ways to call it. The first one is by passing just an array
+      -- with the labels as the `list` parameter. The second one is similar, but
+      -- you pass, also, an array of booleans, as `default_value`, representing the
+      -- states of those buttons. The third one is an alternative to the second,
+      -- since it's better readable: you pass an array of tables. Each table
+      -- represents a box and its state. Also, there's a fourth way of doing that:
+      -- `default_value` can be just a single index to mark an item.
       -- </p>
       --
-      -- @param id the id to reference the widget later on
-      -- @param title the title of the group
+      -- @see Screen:add_checkbox
+      --
+      -- @param id the id of the object
+      -- @param title the title of the list
       -- @param list an array with the labels or an array of tables holding paired 
       -- info.
-      -- @param[opt] default_value a table containing the states of the boxes or the index to a single item
-      -- @param[opt] tooltip a tooltip to the list
+      -- @param[opt] default_value a table containing the states of the boxes or
+      -- the index to a single item
+      -- @param[opt] tooltip a tooltip text to the list
       -- @param[opt] callback a callback function to the boxes. This callback 
       -- function receives four arguments: the id (string), the index of the
       -- clicked checkbox (number), its index (number) and its label (string).
@@ -219,24 +228,24 @@ function abstk.new_screen(title, w, h)
       end,
       -------------------------------------------------
       -- <p align="justify">
-      -- Creates a list where just one item can be selected at a time and adds
-      -- it to the screen widgets table. Its calling is very similar to checkboxes. 
+      -- Creates a list in which just one item can be selected at a time and adds
+      -- it to the screen. Its calling is very similar to checkboxes. 
       -- There are 3 ways to do so. The first one is by passing just an array with 
-      -- the labels as the 'list' parameter. The second one is different from it's 
+      -- the labels as the `list` parameter. The second one is different from it's 
       -- equivalent in checkboxes, because selector items can only be active one at
       -- the time. So, the second way asks for a number — the index, more precisely 
-      -- —, as 'default_value', to activate that button. The third one is actually 
-      -- equal to it's equivalent in checkboxes.
+      -- —, as `default_value`, to activate that button. The third one is actually 
+      -- equal to it's equivalent in checkboxes (`list` being an array of tables).
       -- </p>
       --
       -- @see Screen:create_checklist
       --
-      -- @param id the id to reference the widget later on
-      -- @param title the title of the group
+      -- @param id the id of the object
+      -- @param title the title of the list
       -- @param list an array with the labels or an array of tables holding paired 
       -- info.
       -- @param[opt] default_value a index to refer the active button
-      -- @param[opt] tooltip a tooltip to the list
+      -- @param[opt] tooltip a tooltip text to the list
       -- @param[opt] callback a callback function to the list. This callback 
       -- function receives three arguments: the id (string), the index of the
       -- clicked item (number) and its label (string).
@@ -256,7 +265,7 @@ function abstk.new_screen(title, w, h)
          obj:create_selector(id, title, list, default_value, tooltip, callback)
       end,
       -------------------------------------------------
-      -- Creates and shows a message box. There are a few constants to determine 
+      -- Shows a message box. There are a few constants to determine 
       -- which buttonset is going to be used in a message box. Those are:
       --
       -- * `OK` - an OK button
@@ -264,7 +273,7 @@ function abstk.new_screen(title, w, h)
       -- * `YES_NO` - Yes and No buttons
       -- * `OK_CANCEL` - OK and Cancel buttons
       --
-      -- @param message the message that will be written over the new window
+      -- @param message the message that will be written over the message dialog
       -- @param[opt='OK'] buttons an constant that determines which buttonset is 
       -- going to be used
       -------------------------------------------------
@@ -272,22 +281,28 @@ function abstk.new_screen(title, w, h)
          return obj:show_message_box(message, buttons)
       end,
       -------------------------------------------------
-      -- Enable or disable an widget.
+      -- Enables or disables a widget.
       --
-      -- @param id the id of the required widget
-      -- @param bool the boolean value representing if it wil enable or disable 
+      -- @param id the id of the object
+      -- @param bool the boolean value representing if it will enable or disable 
       -- the widget
       -- @param[opt] index an index to target the child button of a buttonbox
       -------------------------------------------------
-      set_enabled = function(self, id, bool, ...)
-         obj:set_enabled(id, bool, ...)
+      set_enabled = function(self, id, bool, index)
+         obj:set_enabled(id, bool, index)
       end,
+      -------------------------------------------------
+      -- Deletes a widget from screen.
+      --
+      -- @param id the id of the object
+      --
+      -- @return `true` if successful, `false` if not
       -------------------------------------------------
       delete_widget = function(self, id)
          return obj:delete_widget(id)
       end,
       -------------------------------------------------
-      -- Sets a value to an widget. Each widget works with a type of value:
+      -- Sets a value to a widget. Each widget works with a type of value:
       --
       -- * `Label - string (label itself)`
       -- * `Button - string (button label)`
@@ -299,15 +314,15 @@ function abstk.new_screen(title, w, h)
       -- * `CheckList - boolean (state of button)`
       -- * `Selector - boolean (state of button)`
       --
-      -- Note that, since Selector items can only be active one at the time per group,
+      -- Note: Since Selector items can only be active one at the time per group,
       -- the value parameter passed is the index representing which one must be set active.
       --
-      -- @param id the id of the required widget
-      -- @param value the value that will be assigned to the widget. 
+      -- @param id the id of the object
+      -- @param value the value that will be assigned to the widget
       -- @param[opt] index an index to target the child of the widget. Must be 
-      -- passed to refer to set ButtonBoxes, ComboBoxes, CheckLists and Lists.
+      -- passed to refer to set ButtonBoxes, ComboBoxes and CheckLists.
       --
-      -- @usage scr:set_value('label', "New Label"
+      -- @usage scr:set_value('label', "New Label")
       -- scr:set_value('button', "New Button Label")
       -- scr:set_value('button_box', "New Button Label", 2)
       -- scr:set_value('combobox', 2)
@@ -323,9 +338,9 @@ function abstk.new_screen(title, w, h)
          obj:set_value(id, value, index)
       end,
       -------------------------------------------------
-      -- Gets the value of an widget.
+      -- Gets the value of a widget.
       --
-      -- @param id the id of the required widget
+      -- @param id the id of the object
       -- @param[opt] index an index to target the child of the widget, if it
       -- has children
       --
@@ -344,10 +359,12 @@ function abstk.new_screen(title, w, h)
       end,
       -------------------------------------------------
       -- Runs a single screen. Doing so, presumes a single screen window. If it 
-      -- needs more than a single screen, must set them all into a wizard and run 
+      -- needs more than a single screen, must add them all to a wizard and run 
       -- only the wizard.
       --
       -- @see Wizard:add_page
+      --
+      -- @return a table containing all widgets data
       -------------------------------------------------
       run = function(self)
          return obj:run()
@@ -369,7 +386,7 @@ end
 --
 -- @within abstk
 --
--- @return  a Wizard table.
+-- @return  a Wizard.
 -------------------------------------------------
 function abstk.new_wizard(title, w, h, exit_callback)
    local obj
@@ -388,22 +405,23 @@ function abstk.new_wizard(title, w, h, exit_callback)
       -------------------------------------------------
       -- @type Wizard
       -------------------------------------------------
-
+      --
       -------------------------------------------------
       -- Adds a screen to a wizard. The screen turns into a page with footer navigation 
       -- buttons. 
       --
-      -- @param id the id to reference the screen later on
+      -- @param id the id of the object
       -- @param screen the screen that will be added
       -------------------------------------------------
       add_page = function(self, id, screen)
          obj:add_page(id, screen)
       end,
       -------------------------------------------------
-      -- Runs a wizard. Must be called in the end of the code, because depends 
-      -- that all its pages have been set.
+      -- Runs a wizard. Must be called in the end of the UI construction.
       --
       -- @see Wizard:add_page
+      --
+      -- @return a table containing all widgets data
       -------------------------------------------------
       run = function(self)
          return obj:run()

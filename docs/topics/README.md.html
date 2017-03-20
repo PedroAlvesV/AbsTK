@@ -32,7 +32,6 @@
 
 <h2>Contents</h2>
 <ul>
-<li><a href="#Installation">Installation </a></li>
 <li><a href="#Getting_Started">Getting Started </a></li>
 <li><a href="#License">License </a></li>
 </ul>
@@ -57,69 +56,83 @@
 <div id="content">
 
 
-<h1><img src="logo/232x72.png?raw=true" alt="AbsTK-Lua"/></h1>
+<h1><a href="https://github.com/PedroAlvesV/AbsTK-Lua"><img src="logo/232x72.png?raw=true" alt="AbsTK"/></a></h1>
 
 <p><a href="https://gitter.im/AbsTK-Lua/Lobby?utm_source=badge&amp;utm_medium=badge&amp;utm_campaign=pr-badge&amp;utm_content=badge"><img src="https://badges.gitter.im/AbsTK-Lua/Lobby.svg" alt="Join the chat at https://gitter.im/AbsTK-Lua/Lobby"/></a>
 <a href="http://doge.mit-license.org"><img src="http://img.shields.io/:license-mit-blue.svg" alt="MIT License"/></a></p>
 
-<blockquote>
-    <p>The Abstract Toolkit – a widget toolkit for GUI and text-mode applications. It allows you to write an UI and, depending on the OS having or not a desktop environment, it runs on GUI (GTK) or text-mode (Curses).</p>
+<p>The Abstract ToolKit is a widget toolkit for GUI and text-mode applications. It allows you to, with the same source code, build an UI that runs on GUI (GTK) and text-mode (Curses).</p>
 
-    <p>(Lua version of <a href="https://github.com/gobolinux/AbsTK">https://github.com/gobolinux/AbsTK</a>)</p>
-</blockquote>
-
-<p>Documentation available at <a href="https://pedroalvesv.github.io/AbsTK-Lua">https://pedroalvesv.github.io/AbsTK-Lua</a>.</p>
-
-<p><a name="Installation"></a></p>
-<h2>Installation</h2>
-
-<p>AbsTK can generate GUI and text-mode applications, with those being GTK and Ncurses. So, it's correct to presume that both are
-required to run the toolkit.
-The good news is that it isn't hard to install them:</p>
-
-<pre><code> $ [sudo] luarocks install lgi
- $ [sudo] luarocks install lcurses
-</code></pre>
-
-
-<p>And to finally install AbsTK:</p>
-
-<pre><code> $ [sudo] luarocks install --server=http://luarocks.org/dev abstk
-</code></pre>
-
+<p><img src="http://i.imgur.com/3yx9zof.png" alt="AbsTK Sample"/></p>
 
 <p><a name="Getting_Started"></a></p>
 <h2>Getting Started</h2>
 
-<h3>Routines</h3>
+<h3>Installation</h3>
 
-<p>AbsTK routines are simple.</p>
+<p>The easiest way to install AbsTK is through <a href="https://github.com/luarocks/luarocks">LuaRocks</a>:</p>
 
-<h4>Single Screen</h4>
+<pre><code> $ luarocks install --server=http://luarocks.org/dev abstk
+</code></pre>
 
-<ol>
-    <li>Create a Screen</li>
-    <li>Populate Screen with widgets</li>
-    <li>Run Screen</li>
-</ol>
 
-<p>As you can see <a href="https://github.com/PedroAlvesV/AbsTK-Lua/blob/master/src/minimalist-test/minimalist-test.lua">here</a>.</p>
+<h3>Concepts</h3>
 
-<h4>Wizard</h4>
 
-<ol>
-    <li>Create Wizard</li>
-    <li>Create Screens</li>
-    <li>Populate Screens with widgets</li>
-    <li>Add Screens to Wizard</li>
-    <li>Run Wizard</li>
-</ol>
+<p align="justify">AbsTK goal is to produce form-like applications that can run with and without a desktop environment (DE). It's worth it for machines that doesn't have any DE installed, but, also, for instance, when the application is an installer, in which you may prefer a light-weight text-mode (curses) interface, instead of using GUI.</p>
 
-<p>As you can see <a href="https://github.com/PedroAlvesV/AbsTK-Lua/blob/master/src/complete-test/wizard.lua">here</a>.</p>
 
-<h3>First steps</h3>
 
-<p>There are two must call functions that AbsTK needs in order to start:</p>
+<p align="justify">Although the toolkit focus is on building Wizards, individual Screens can also be produced. Actually, building Screens is the main part of building a Wizard. Wizards are nothing more than a group of ordered Screens.</p>
+
+
+
+<p align="justify">The routine is really minimalistic, but, as stated in the previous paragraph, has two ways. To create a Screen, you initialize it and populate it with widgets. If your UI is a single Screen, just run it. If it's a Wizard, repeat the previous process to produce all the Screens. When done, simply create the Wizard, populate it with the Screens and run the Wizard.</p>
+
+
+
+<p align="justify">About widgets, it's construction functions are quite similar to one another in terms of parameters. Also, there's an important pattern: if the widget is a singular object (like a button), its construction function name will start with "add", like in <code>add_button()</code>. Otherwise, if the widget is, in fact, a group of objets (like a button box), its construction function will start with "create", like in <code>create_button_box()</code>.</p>
+
+
+<p>Functions reference at <a href="https://pedroalvesv.github.io/AbsTK-Lua/">https://pedroalvesv.github.io/AbsTK-Lua/</a>.</p>
+
+
+<!--
+
+### Examples
+
+#### Screen
+
+HASH018X
+
+![Curses UI](http://i.imgur.com/xAq4KJX.png) ![GTK UI](http://i.imgur.com/xAq4KJX.png)
+
+#### Wizard
+
+
+<pre>
+<span class="keyword">local</span> abstk = <span class="global">require</span> <span class="string">'abstk'</span>
+<span class="keyword">local</span> wizard = abstk.new_wizard(<span class="string">"First AbsTK Wizard"</span>)
+<span class="keyword">local</span> scr1 = abstk.new_screen(<span class="string">"Page 1"</span>)
+<span class="keyword">local</span> scr2 = abstk.new_screen(<span class="string">"Page 2"</span>)
+scr1:add_label(<span class="string">'label'</span>, <span class="string">"While I'm at the first page, [...]"</span>)
+scr2:add_label(<span class="string">'label'</span>, <span class="string">"[...] I'm at the second page."</span>)
+wizard:add_page(<span class="string">'page1'</span>, scr1)
+wizard:add_page(<span class="string">'page2'</span>, scr2)
+wizard:run()
+</pre>
+
+
+![Curses UI](http://i.imgur.com/xAq4KJX.png) ![GTK UI](http://i.imgur.com/xAq4KJX.png)
+
+You can see a complete list of examples on [src/complete-test/](src/complete-test/).
+
+-->
+
+
+<h3>Usage</h3>
+
+<p>There are two lines that you will put on the top of most of your codes that use AbsTK:</p>
 
 
 <pre>
@@ -128,40 +141,17 @@ abstk.set_mode(...)
 </pre>
 
 
-<p>While the first one is pretty obvious, the second one is just as necessary as it. To determine whether UI is going to be constructed, AbsTK uses a function that asks for a string parameter. When nothing is passed, the toolkit decides which one to use based on <code>os.getenv(&quot;DISPLAY&quot;)</code> returning value. If it returns something, the OS runs in a GUI, so AbsTK runs in GUI as well. Otherwise, it runs in text-mode.</p>
 
-<h3>Widgets</h3>
-
-<h4>Screen</h4>
-
-<p>To add widgets to a Screen, all that must be done is call its construction method with the desired Screen object.
-About the functions names, they are very clear and follow a golden rule:</p>
-<blockquote>
-    <p>"add" refers to single widgets construction;</p>
-
-    <p>"create" refers to groups of widgets construction.</p>
-</blockquote>
-
-<p>For instance,</p>
+<p align="justify">The first one is pretty obvious, it's just the usual lib requirement. The second one is not, actually, necessary, but you'll probably want to use it to, manually, set in which mode the UI will run and see how it looks like. This line gets the args passed when running the application. Like:</p>
 
 
-<pre>
-scr:add_button(<span class="string">'button'</span>, <span class="string">"I'm a Button!"</span>)
-scr:create_button_box(<span class="string">'bbox'</span>, {<span class="string">"We"</span>, <span class="string">"Are"</span>, <span class="string">"A"</span>, <span class="string">"Button"</span>, <span class="string">"Group."</span>})
-</pre>
+<pre><code> $ lua minimalist-test.lua curses
+</code></pre>
 
 
-<h4>Wizard</h4>
 
-<p>As Screens for widgets, Wizards follow the same pattern:</p>
+<p align="justify">All it accepts is "curses" and "gtk", because it's not the kind of thing that should be on the final version of your code. When nothing is passed, the toolkit decides which one to use based on <code>os.getenv("DISPLAY")</code> returning value. If it returns something, the OS runs in a GUI, so AbsTK runs in GUI as well. Otherwise, it runs in text-mode.</p>
 
-
-<pre>
-wizard:add_page(<span class="string">'screen'</span>, scr)
-</pre>
-
-
-<p>You can see more examples in <a href="src/complete-test/">src/complete-test/</a> and a list with every function at the <a href="https://pedroalvesv.github.io/AbsTK-Lua">documentation</a>.</p>
 
 <p><a name="License"></a></p>
 <h2>License</h2>
@@ -198,7 +188,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p>
 </div> <!-- id="main" -->
 <div id="about">
 <i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
-<i style="float:right;">Last updated 2017-03-15 11:27:18 </i>
+<i style="float:right;">Last updated 2017-03-20 12:49:33 </i>
 </div> <!-- id="about" -->
 </div> <!-- id="container" -->
 </body>

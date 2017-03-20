@@ -72,12 +72,12 @@
 <table class="function_list">
 	<tr>
 	<td class="name" nowrap><a href="#set_mode">set_mode (arg)</a></td>
-	<td class="summary">Sets mode to determine whether interface will be drawn,
- text (curses) or GUI (GTK).</td>
+	<td class="summary">Sets mode to determine whether UI will be drawn,
+ TUI (Curses) or GUI (GTK).</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#new_screen">new_screen (title, w, h)</a></td>
-	<td class="summary">Constructs a screen.</td>
+	<td class="summary">Constructs a Screen.</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#new_wizard">new_wizard (title, w, h)</a></td>
@@ -88,66 +88,70 @@
 <table class="function_list">
 	<tr>
 	<td class="name" nowrap><a href="#Screen:add_label">Screen:add_label (id, label)</a></td>
-	<td class="summary">Adds a label to the screen widgets table.</td>
+	<td class="summary">Adds a label to screen.</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#Screen:add_button">Screen:add_button (id, label[, tooltip[, callback]])</a></td>
-	<td class="summary">Creates a button and adds it to the screen widgets table.</td>
+	<td class="summary">Adds a button to screen.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#Screen:create_button_box">Screen:create_button_box (id, labels[, tooltip[, callback]])</a></td>
-	<td class="summary">Creates a buttonset and adds it to the screen widgets table.</td>
+	<td class="name" nowrap><a href="#Screen:create_button_box">Screen:create_button_box (id, labels[, tooltips[, callbacks]])</a></td>
+	<td class="summary">Creates a buttonset and adds it to screen.</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#Screen:create_combobox">Screen:create_combobox (id, title, labels[, default_value='1'[, tooltip[, callback]]])</a></td>
-	<td class="summary">Creates a dropdown menu and adds it to the screen widgets table.</td>
+	<td class="summary">Creates a ComboBox and adds it to screen.</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#Screen:add_image">Screen:add_image (id, path[, dimensions[, tooltip]])</a></td>
-	<td class="summary">Creates an image widget and adds it to the screen widgets table.</td>
+	<td class="summary">Adds an image widget to screen.</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#Screen:add_text_input">Screen:add_text_input (id[, label[, default_value[, tooltip[, callback]]]])</a></td>
-	<td class="summary">Creates a text input field and adds it to the screen widgets table.</td>
+	<td class="summary">Adds a text input field to screen.</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#Screen:add_password">Screen:add_password (id[, label[, default_value[, tooltip[, callback]]]])</a></td>
-	<td class="summary">Creates a password input field and adds it to the screen widgets table.</td>
+	<td class="summary">Adds a password input field to screen.</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#Screen:add_textbox">Screen:add_textbox (id[, title[, default_value[, tooltip]]])</a></td>
-	<td class="summary">Creates a textbox field and adds it to the screen widgets table.</td>
+	<td class="summary">Adds a TextBox field to the screen.</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#Screen:add_checkbox">Screen:add_checkbox (id, label[, default_value[, tooltip[, callback]]])</a></td>
-	<td class="summary">Creates a single checkbox and adds it to the screen widgets table.</td>
+	<td class="summary">Adds a single checkbox to the screen.</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#Screen:create_checklist">Screen:create_checklist (id, title, list[, default_value[, tooltip[, callback]]])</a></td>
 	<td class="summary"><p align="justify">
- Creates a checkboxes list and adds it to the screen widgets table.</td>
+ Creates a checkboxes list and adds it to the screen.</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#Screen:create_selector">Screen:create_selector (id, title, list[, default_value[, tooltip[, callback]]])</a></td>
 	<td class="summary"><p align="justify">
- Creates a list where just one item can be selected at a time and adds
- it to the screen widgets table.</td>
+ Creates a list in which just one item can be selected at a time and adds
+ it to the screen.</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#Screen:show_message_box">Screen:show_message_box (message[, buttons='OK'])</a></td>
-	<td class="summary">Creates and shows a message box.</td>
+	<td class="summary">Shows a message box.</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#Screen:set_enabled">Screen:set_enabled (id, bool[, index])</a></td>
-	<td class="summary">Enable or disable an widget.</td>
+	<td class="summary">Enables or disables a widget.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Screen:delete_widget">Screen:delete_widget (id)</a></td>
+	<td class="summary">Deletes a widget from screen.</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#Screen:set_value">Screen:set_value (id, value[, index])</a></td>
-	<td class="summary">Sets a value to an widget.</td>
+	<td class="summary">Sets a value to a widget.</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#Screen:get_value">Screen:get_value (id[, index])</a></td>
-	<td class="summary">Gets the value of an widget.</td>
+	<td class="summary">Gets the value of a widget.</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#Screen:run">Screen:run (self)</a></td>
@@ -156,10 +160,6 @@
 </table>
 <h2><a href="#Class_Wizard">Class Wizard </a></h2>
 <table class="function_list">
-	<tr>
-	<td class="name" nowrap><a href="#Wizard:add_page">Wizard:add_page (id, screen)</a></td>
-	<td class="summary">Adds a screen to a wizard.</td>
-	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#Wizard:run">Wizard:run (self)</a></td>
 	<td class="summary">Runs a wizard.</td>
@@ -178,8 +178,8 @@
     <strong>set_mode (arg)</strong>
     </dt>
     <dd>
-    Sets mode to determine whether interface will be drawn,
- text (curses) or GUI (GTK).
+    Sets mode to determine whether UI will be drawn,
+ TUI (Curses) or GUI (GTK).
 
 
     <h3>Parameters:</h3>
@@ -199,7 +199,7 @@
     <strong>new_screen (title, w, h)</strong>
     </dt>
     <dd>
-    Constructs a screen.
+    Constructs a Screen.
 
 
     <h3>Parameters:</h3>
@@ -218,7 +218,7 @@
     <h3>Returns:</h3>
     <ol>
 
-        a Screen table.
+        a Screen.
     </ol>
 
 
@@ -249,7 +249,7 @@
     <h3>Returns:</h3>
     <ol>
 
-        a Wizard table.
+        a Wizard.
     </ol>
 
 
@@ -265,16 +265,16 @@
     <strong>Screen:add_label (id, label)</strong>
     </dt>
     <dd>
-    Adds a label to the screen widgets table.
+    Adds a label to screen.
 
 
     <h3>Parameters:</h3>
     <ul>
         <li><span class="parameter">id</span>
-         the id to reference the widget later on
+         the id of the object
         </li>
         <li><span class="parameter">label</span>
-         the label itself that will be written
+         the text itself to be the label
         </li>
     </ul>
 
@@ -288,19 +288,19 @@
     <strong>Screen:add_button (id, label[, tooltip[, callback]])</strong>
     </dt>
     <dd>
-    Creates a button and adds it to the screen widgets table.
+    Adds a button to screen.
 
 
     <h3>Parameters:</h3>
     <ul>
         <li><span class="parameter">id</span>
-         the id to reference the widget later on
+         the id of the object
         </li>
         <li><span class="parameter">label</span>
          the label that will be written over the button
         </li>
         <li><span class="parameter">tooltip</span>
-         a tooltip to the button
+         a tooltip text for the button
          (<em>optional</em>)
         </li>
         <li><span class="parameter">callback</span>
@@ -318,26 +318,26 @@
 </dd>
     <dt>
     <a name = "Screen:create_button_box"></a>
-    <strong>Screen:create_button_box (id, labels[, tooltip[, callback]])</strong>
+    <strong>Screen:create_button_box (id, labels[, tooltips[, callbacks]])</strong>
     </dt>
     <dd>
-    Creates a buttonset and adds it to the screen widgets table.
+    Creates a buttonset and adds it to screen.
 
 
     <h3>Parameters:</h3>
     <ul>
         <li><span class="parameter">id</span>
-         the id to reference the widget later on
+         the id of the object
         </li>
         <li><span class="parameter">labels</span>
-         the labels that will be written over the buttons
+         a table containing the labels that will be written over the buttons
         </li>
-        <li><span class="parameter">tooltip</span>
-         a tooltip to the buttons
+        <li><span class="parameter">tooltips</span>
+         a table containing the tooltips texts for the buttons
          (<em>optional</em>)
         </li>
-        <li><span class="parameter">callback</span>
-         a callback function to the buttons. This callback
+        <li><span class="parameter">callbacks</span>
+         a table containing the callback functions to the buttons. Every
  function receives three arguments: the id (string), the index of the
  clicked button (number) and its label (string).
          (<em>optional</em>)
@@ -354,38 +354,43 @@
     <strong>Screen:create_combobox (id, title, labels[, default_value='1'[, tooltip[, callback]]])</strong>
     </dt>
     <dd>
-    Creates a dropdown menu and adds it to the screen widgets table.
+    Creates a ComboBox and adds it to screen.
+ On GUI it's a dropdown menu, on TUI turns into a Selector.
 
 
     <h3>Parameters:</h3>
     <ul>
         <li><span class="parameter">id</span>
-         the id to reference the widget later on
+         the id of the object
         </li>
         <li><span class="parameter">title</span>
          the title of the field
         </li>
         <li><span class="parameter">labels</span>
-         the labels that will be written on the entries
+         a table containing the labels that will be the entries
         </li>
         <li><span class="parameter">default_value</span>
-         the index of the entry selected at start
+         the index of the entry selected by default
          (<em>default</em> '1')
         </li>
         <li><span class="parameter">tooltip</span>
-         a tooltip to the combobox
+         a tooltip text for the object
          (<em>optional</em>)
         </li>
         <li><span class="parameter">callback</span>
-         a callback function to the row. This callback
- function receives three arguments: the id (string), the index of the
- clicked item (number) its label (string).
+         a callback function. This callback function receives three
+ arguments: the id (string), the index of the clicked item (number) its label
+ (string).
          (<em>optional</em>)
         </li>
     </ul>
 
 
 
+    <h3>See also:</h3>
+    <ul>
+         <a href="../modules/abstk.html#Screen:create_selector">Screen:create_selector</a>
+    </ul>
 
 
 </dd>
@@ -394,23 +399,24 @@
     <strong>Screen:add_image (id, path[, dimensions[, tooltip]])</strong>
     </dt>
     <dd>
-    Creates an image widget and adds it to the screen widgets table.
+    Adds an image widget to screen.
+ Does nothing if running TUI.
 
 
     <h3>Parameters:</h3>
     <ul>
         <li><span class="parameter">id</span>
-         the id to reference the widget later on
+         the id of the object
         </li>
         <li><span class="parameter">path</span>
          the path of the image file
         </li>
         <li><span class="parameter">dimensions</span>
-         a table with the dimensions to resize the image
+         a table containing the dimensions to resize the image
          (<em>optional</em>)
         </li>
         <li><span class="parameter">tooltip</span>
-         a tooltip to the image
+         a tooltip text for the object
          (<em>optional</em>)
         </li>
     </ul>
@@ -420,8 +426,8 @@
 
     <h3>Usage:</h3>
     <ul>
-        <pre class="example">scr:add_image(<span class="string">'lua_img'</span>, <span class="string">'imgs/lua.png'</span>)
-scr:add_image(<span class="string">'batman_img'</span>, <span class="string">'imgs/batman.png'</span>, {<span class="number">512</span>, <span class="number">384</span>})</pre>
+        <pre class="example">scr:add_image(<span class="string">'lua_img'</span>, <span class="string">'images/lua.png'</span>)
+scr:add_image(<span class="string">'batman_img'</span>, <span class="string">'images/batman.png'</span>, {<span class="number">512</span>, <span class="number">384</span>})</pre>
     </ul>
 
 </dd>
@@ -430,13 +436,13 @@ scr:add_image(<span class="string">'batman_img'</span>, <span class="string">'im
     <strong>Screen:add_text_input (id[, label[, default_value[, tooltip[, callback]]]])</strong>
     </dt>
     <dd>
-    Creates a text input field and adds it to the screen widgets table.
+    Adds a text input field to screen.
 
 
     <h3>Parameters:</h3>
     <ul>
         <li><span class="parameter">id</span>
-         the id to reference the widget later on
+         the id of the object
         </li>
         <li><span class="parameter">label</span>
          a label that precedes the field
@@ -447,7 +453,7 @@ scr:add_image(<span class="string">'batman_img'</span>, <span class="string">'im
          (<em>optional</em>)
         </li>
         <li><span class="parameter">tooltip</span>
-         a tooltip to the text input field
+         a tooltip text for the object
          (<em>optional</em>)
         </li>
         <li><span class="parameter">callback</span>
@@ -468,13 +474,14 @@ scr:add_image(<span class="string">'batman_img'</span>, <span class="string">'im
     <strong>Screen:add_password (id[, label[, default_value[, tooltip[, callback]]]])</strong>
     </dt>
     <dd>
-    Creates a password input field and adds it to the screen widgets table.
+    Adds a password input field to screen.
+ It's essentially a text input that covers the text on the UI.
 
 
     <h3>Parameters:</h3>
     <ul>
         <li><span class="parameter">id</span>
-         the id to reference the widget later on
+         the id of the object
         </li>
         <li><span class="parameter">label</span>
          a label that precedes the field
@@ -485,7 +492,7 @@ scr:add_image(<span class="string">'batman_img'</span>, <span class="string">'im
          (<em>optional</em>)
         </li>
         <li><span class="parameter">tooltip</span>
-         a tooltip to the text input field
+         a tooltip text for the object
          (<em>optional</em>)
         </li>
         <li><span class="parameter">callback</span>
@@ -498,6 +505,10 @@ scr:add_image(<span class="string">'batman_img'</span>, <span class="string">'im
 
 
 
+    <h3>See also:</h3>
+    <ul>
+         <a href="../modules/abstk.html#Screen:add_text_input">Screen:add_text_input</a>
+    </ul>
 
 
 </dd>
@@ -506,24 +517,24 @@ scr:add_image(<span class="string">'batman_img'</span>, <span class="string">'im
     <strong>Screen:add_textbox (id[, title[, default_value[, tooltip]]])</strong>
     </dt>
     <dd>
-    Creates a textbox field and adds it to the screen widgets table.
+    Adds a TextBox field to the screen.
 
 
     <h3>Parameters:</h3>
     <ul>
         <li><span class="parameter">id</span>
-         the id to reference the widget later on
+         the id of the object
         </li>
         <li><span class="parameter">title</span>
-         a title to the field
+         a title to the box
          (<em>optional</em>)
         </li>
         <li><span class="parameter">default_value</span>
-         a pre-written text
+         the text
          (<em>optional</em>)
         </li>
         <li><span class="parameter">tooltip</span>
-         a tooltip to the textbox field
+         a tooltip text for the object
          (<em>optional</em>)
         </li>
     </ul>
@@ -538,23 +549,23 @@ scr:add_image(<span class="string">'batman_img'</span>, <span class="string">'im
     <strong>Screen:add_checkbox (id, label[, default_value[, tooltip[, callback]]])</strong>
     </dt>
     <dd>
-    Creates a single checkbox and adds it to the screen widgets table.
+    Adds a single checkbox to the screen.
 
 
     <h3>Parameters:</h3>
     <ul>
         <li><span class="parameter">id</span>
-         the id to reference the widget later on
+         the id of the object
         </li>
         <li><span class="parameter">label</span>
          the label of the checkbox
         </li>
         <li><span class="parameter">default_value</span>
-         a boolean to determine the initial state of the checkbox
+         a boolean to determine the default state of the checkbox
          (<em>optional</em>)
         </li>
         <li><span class="parameter">tooltip</span>
-         a tooltip to the checkbox
+         a tooltip text for the object
          (<em>optional</em>)
         </li>
         <li><span class="parameter">callback</span>
@@ -582,15 +593,14 @@ scr:add_image(<span class="string">'batman_img'</span>, <span class="string">'im
 
 
 <p align="justify">
- Creates a checkboxes list and adds it to the screen widgets table.
- There are 4 ways to call it via client. The first one is by passing
- just an array with the labels as the <code>list</code> parameter. The second one
- is similar, but you pass, also, an array of booleans, as
- <code>default\_value</code>, representing the states of those buttons. The third
- one is an alternative to the second, since it's better readable: you
- pass an array of tables. Each table represents a box and its state.
- Also, there's a fourth way of doing that. <code>default\_value</code> can be just a
- single index to mark an item.
+ Creates a checkboxes list and adds it to the screen.
+ There are 4 ways to call it. The first one is by passing just an array
+ with the labels as the <code>list</code> parameter. The second one is similar, but
+ you pass, also, an array of booleans, as <code>default\_value</code>, representing the
+ states of those buttons. The third one is an alternative to the second,
+ since it's better readable: you pass an array of tables. Each table
+ represents a box and its state. Also, there's a fourth way of doing that:
+ <code>default\_value</code> can be just a single index to mark an item.
  </p>
 
 
@@ -600,21 +610,22 @@ scr:add_image(<span class="string">'batman_img'</span>, <span class="string">'im
     <h3>Parameters:</h3>
     <ul>
         <li><span class="parameter">id</span>
-         the id to reference the widget later on
+         the id of the object
         </li>
         <li><span class="parameter">title</span>
-         the title of the group
+         the title of the list
         </li>
         <li><span class="parameter">list</span>
          an array with the labels or an array of tables holding paired
  info.
         </li>
         <li><span class="parameter">default_value</span>
-         a table containing the states of the boxes or the index to a single item
+         a table containing the states of the boxes or
+ the index to a single item
          (<em>optional</em>)
         </li>
         <li><span class="parameter">tooltip</span>
-         a tooltip to the list
+         a tooltip text to the list
          (<em>optional</em>)
         </li>
         <li><span class="parameter">callback</span>
@@ -627,6 +638,10 @@ scr:add_image(<span class="string">'batman_img'</span>, <span class="string">'im
 
 
 
+    <h3>See also:</h3>
+    <ul>
+         <a href="../modules/abstk.html#Screen:add_checkbox">Screen:add_checkbox</a>
+    </ul>
 
     <h3>Usage:</h3>
     <ul>
@@ -652,14 +667,14 @@ scr:create_checklist(<span class="string">'style4'</span>, <span class="string">
 
 
 <p align="justify">
- Creates a list where just one item can be selected at a time and adds
- it to the screen widgets table.  Its calling is very similar to checkboxes.
+ Creates a list in which just one item can be selected at a time and adds
+ it to the screen.  Its calling is very similar to checkboxes.
  There are 3 ways to do so. The first one is by passing just an array with
- the labels as the 'list' parameter. The second one is different from it's
+ the labels as the <code>list</code> parameter. The second one is different from it's
  equivalent in checkboxes, because selector items can only be active one at
  the time. So, the second way asks for a number — the index, more precisely
- —, as 'default_value', to activate that button. The third one is actually
- equal to it's equivalent in checkboxes.
+ —, as <code>default\_value</code>, to activate that button. The third one is actually
+ equal to it's equivalent in checkboxes (<code>list</code> being an array of tables).
  </p>
 
 
@@ -669,10 +684,10 @@ scr:create_checklist(<span class="string">'style4'</span>, <span class="string">
     <h3>Parameters:</h3>
     <ul>
         <li><span class="parameter">id</span>
-         the id to reference the widget later on
+         the id of the object
         </li>
         <li><span class="parameter">title</span>
-         the title of the group
+         the title of the list
         </li>
         <li><span class="parameter">list</span>
          an array with the labels or an array of tables holding paired
@@ -683,7 +698,7 @@ scr:create_checklist(<span class="string">'style4'</span>, <span class="string">
          (<em>optional</em>)
         </li>
         <li><span class="parameter">tooltip</span>
-         a tooltip to the list
+         a tooltip text to the list
          (<em>optional</em>)
         </li>
         <li><span class="parameter">callback</span>
@@ -722,7 +737,7 @@ scr:create_selector(<span class="string">'style3'</span>, <span class="string">"
     </dt>
     <dd>
 
-<p>Creates and shows a message box.  There are a few constants to determine
+<p>Shows a message box.  There are a few constants to determine
  which buttonset is going to be used in a message box. Those are:</p>
 
 <ul>
@@ -738,7 +753,7 @@ scr:create_selector(<span class="string">'style3'</span>, <span class="string">"
     <h3>Parameters:</h3>
     <ul>
         <li><span class="parameter">message</span>
-         the message that will be written over the new window
+         the message that will be written over the message dialog
         </li>
         <li><span class="parameter">buttons</span>
          an constant that determines which buttonset is
@@ -757,16 +772,16 @@ scr:create_selector(<span class="string">'style3'</span>, <span class="string">"
     <strong>Screen:set_enabled (id, bool[, index])</strong>
     </dt>
     <dd>
-    Enable or disable an widget.
+    Enables or disables a widget.
 
 
     <h3>Parameters:</h3>
     <ul>
         <li><span class="parameter">id</span>
-         the id of the required widget
+         the id of the object
         </li>
         <li><span class="parameter">bool</span>
-         the boolean value representing if it wil enable or disable
+         the boolean value representing if it will enable or disable
  the widget
         </li>
         <li><span class="parameter">index</span>
@@ -781,11 +796,36 @@ scr:create_selector(<span class="string">'style3'</span>, <span class="string">"
 
 </dd>
     <dt>
+    <a name = "Screen:delete_widget"></a>
+    <strong>Screen:delete_widget (id)</strong>
+    </dt>
+    <dd>
+    Deletes a widget from screen.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">id</span>
+         the id of the object
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        <code>true</code> if successful, <code>false</code> if not
+    </ol>
+
+
+
+
+</dd>
+    <dt>
     <a name = "Screen:set_value"></a>
     <strong>Screen:set_value (id, value[, index])</strong>
     </dt>
     <dd>
-    Sets a value to an widget.  Each widget works with a type of value:</p>
+    Sets a value to a widget.  Each widget works with a type of value:</p>
 
 <ul>
     <li><code>Label - string (label itself)</code></li>
@@ -799,21 +839,21 @@ scr:create_selector(<span class="string">'style3'</span>, <span class="string">"
     <li><code>Selector - boolean (state of button)</code></li>
 </ul>
 
-<p> Note that, since Selector items can only be active one at the time per group,
+<p> Note: Since Selector items can only be active one at the time per group,
  the value parameter passed is the index representing which one must be set active.
 
 
     <h3>Parameters:</h3>
     <ul>
         <li><span class="parameter">id</span>
-         the id of the required widget
+         the id of the object
         </li>
         <li><span class="parameter">value</span>
-         the value that will be assigned to the widget.
+         the value that will be assigned to the widget
         </li>
         <li><span class="parameter">index</span>
          an index to target the child of the widget. Must be
- passed to refer to set ButtonBoxes, ComboBoxes, CheckLists and Lists.
+ passed to refer to set ButtonBoxes, ComboBoxes and CheckLists.
          (<em>optional</em>)
         </li>
     </ul>
@@ -823,7 +863,7 @@ scr:create_selector(<span class="string">'style3'</span>, <span class="string">"
 
     <h3>Usage:</h3>
     <ul>
-        <pre class="example">scr:set_value(<span class="string">'label'</span>, <span class="string">"New Label"</span>
+        <pre class="example">scr:set_value(<span class="string">'label'</span>, <span class="string">"New Label"</span>)
 scr:set_value(<span class="string">'button'</span>, <span class="string">"New Button Label"</span>)
 scr:set_value(<span class="string">'button_box'</span>, <span class="string">"New Button Label"</span>, <span class="number">2</span>)
 scr:set_value(<span class="string">'combobox'</span>, <span class="number">2</span>)
@@ -842,13 +882,13 @@ scr:set_value(<span class="string">'selector'</span>, <span class="number">2</sp
     <strong>Screen:get_value (id[, index])</strong>
     </dt>
     <dd>
-    Gets the value of an widget.
+    Gets the value of a widget.
 
 
     <h3>Parameters:</h3>
     <ul>
         <li><span class="parameter">id</span>
-         the id of the required widget
+         the id of the object
         </li>
         <li><span class="parameter">index</span>
          an index to target the child of the widget, if it
@@ -886,7 +926,7 @@ scr:set_value(<span class="string">'selector'</span>, <span class="number">2</sp
     </dt>
     <dd>
     Runs a single screen.  Doing so, presumes a single screen window. If it
- needs more than a single screen, must set them all into a wizard and run
+ needs more than a single screen, must add them all to a wizard and run
  only the wizard.
 
 
@@ -899,11 +939,15 @@ scr:set_value(<span class="string">'selector'</span>, <span class="number">2</sp
         </li>
     </ul>
 
+    <h3>Returns:</h3>
+    <ol>
+
+        a table containing all widgets data
+    </ol>
 
 
     <h3>See also:</h3>
     <ul>
-         <a href="../modules/abstk.html#Wizard:add_page">Wizard:add_page</a>
     </ul>
 
 
@@ -913,36 +957,11 @@ scr:set_value(<span class="string">'selector'</span>, <span class="number">2</sp
 
     <dl class="function">
     <dt>
-    <a name = "Wizard:add_page"></a>
-    <strong>Wizard:add_page (id, screen)</strong>
-    </dt>
-    <dd>
-    Adds a screen to a wizard.  The screen turns into a page with footer navigation
- buttons.
-
-
-    <h3>Parameters:</h3>
-    <ul>
-        <li><span class="parameter">id</span>
-         the id to reference the screen later on
-        </li>
-        <li><span class="parameter">screen</span>
-         the screen that will be added
-        </li>
-    </ul>
-
-
-
-
-
-</dd>
-    <dt>
     <a name = "Wizard:run"></a>
     <strong>Wizard:run (self)</strong>
     </dt>
     <dd>
-    Runs a wizard.  Must be called in the end of the code, because depends
- that all its pages have been set.
+    Runs a wizard.  Must be called in the end of the UI construction.
 
 
     <h3>Parameters:</h3>
@@ -954,11 +973,15 @@ scr:set_value(<span class="string">'selector'</span>, <span class="number">2</sp
         </li>
     </ul>
 
+    <h3>Returns:</h3>
+    <ol>
+
+        a table containing all widgets data
+    </ol>
 
 
     <h3>See also:</h3>
     <ul>
-         <a href="../modules/abstk.html#Wizard:add_page">Wizard:add_page</a>
     </ul>
 
 
@@ -970,7 +993,7 @@ scr:set_value(<span class="string">'selector'</span>, <span class="number">2</sp
 </div> <!-- id="main" -->
 <div id="about">
 <i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
-<i style="float:right;">Last updated 2017-03-15 11:27:18 </i>
+<i style="float:right;">Last updated 2017-03-20 12:49:33 </i>
 </div> <!-- id="about" -->
 </div> <!-- id="container" -->
 </body>
