@@ -476,9 +476,10 @@ end
 function AbsCursesTextBox.new(title, default_value, tooltip, callback)
    local self = {
       height = 12,
-      width = 0,
+      width = scr_w-5,
       view_pos = 1,
       title = title,
+      original_text = default_value,
       focusable = true,
       inside = false,
       tooltip = tooltip,
@@ -489,6 +490,14 @@ function AbsCursesTextBox.new(title, default_value, tooltip, callback)
       self.height = self.height + 1
    end
    self.text, self.text_height = "", 0
+   local size = utf8.len(default_value)
+   local limit = scr_w-9
+   local i = limit
+   while i < size do
+      default_value = default_value:sub(1, i-1).."\n"..default_value:sub(i)
+      i = i + limit
+   end
+   default_value = default_value.."\n"
    if default_value then
       self.text = {}
       for line in default_value:gmatch("[^\n]*") do
@@ -499,7 +508,6 @@ function AbsCursesTextBox.new(title, default_value, tooltip, callback)
 end
 
 function AbsCursesTextBox:draw(drawable, x, y, focus)
-   self.width = scr_w-5
    self.inside_box_h = self.height - 2
    if type(self.title) == 'string' then
       self.inside_box_h = self.inside_box_h - 1
@@ -523,7 +531,9 @@ function AbsCursesTextBox:draw(drawable, x, y, focus)
    end
    local pad = curses.newpad(self.inside_box_h+2, self.width-2)
    pad:wbkgd(attr_code(box_colors()))
-   pad:mvaddstr(self.view_pos, 1, self.text[1] or "")
+   for i=self.view_pos, self.view_pos + self.height - 1 do
+      pad:mvaddstr(i-self.view_pos+1, 1, self.text[i] or "")
+   end
    pad:attrset(colors.default)
    pad:border(0,0)
    pad:copywin(drawable, 0, 0, y, x, y+self.inside_box_h+1, self.width, false)
@@ -1002,12 +1012,7 @@ function Screen:get_value(id, index)
             local text = entry.hidden_text_start..entry.text..entry.hidden_text_end
             return text
          elseif item.type == 'TEXTBOX' then
-            local textbox = item.widget
-            local text = ""
-            for _, line in ipairs(textbox.text) do
-               text = text..line.."\n"
-            end
-            return text
+            return item.widget.original_text
          elseif item.type == 'CHECKBOX' then
             return item.widget.label, item.widget.state
          elseif item.type == 'CHECKLIST' then
