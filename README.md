@@ -27,7 +27,7 @@ $ luarocks install --server=http://luarocks.org/dev abstk
 
 <p align="justify">About widgets, it's construction functions are quite similar to one another in terms of parameters. Also, there's an important pattern: if the widget is a singular object (like a button), its construction function name will start with "add", like in <code>add_button()</code>. Otherwise, if the widget is, in fact, a group of objets (like a button box), its construction function will start with "create", like in <code>create_button_box()</code>.</p>
 
-Functions reference at [https://pedroalvesv.github.io/AbsTK/](https://pedroalvesv.github.io/AbsTK/).
+You can check API at [https://pedroalvesv.github.io/AbsTK/](https://pedroalvesv.github.io/AbsTK/).
 
 ### Examples
 
@@ -90,6 +90,17 @@ $ lua minimalist-test.lua curses
 ```
 
 <p align="justify">All it accepts is "curses" and "gtk", because it's not the kind of thing that should be on the final version of your code. When nothing is passed, the toolkit decides which one to use based on <code>os.getenv("DISPLAY")</code> returning value. If it returns something, the OS runs in a GUI, so AbsTK runs in GUI as well. Otherwise, it runs in text-mode.</p>
+
+
+## Contributing
+
+1. Create an issue and describe your contribution
+2. [Fork it](https://github.com/PedroAlvesV/AbsTK/fork)
+3. Create a new branch for your contribution (`git checkout -b my-contribution`)
+4. Commit your changes (`git commit -am 'New feature added'`)
+5. Publish the branch (`git push origin my-contribution`)
+6. Create a Pull Request
+7. Done :white_check_mark:
 
 ## License
 
