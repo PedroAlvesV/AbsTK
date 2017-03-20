@@ -56,14 +56,14 @@
 <div id="content">
 
 
-<h1><a href="https://github.com/PedroAlvesV/AbsTK-Lua"><img src="logo/232x72.png?raw=true" alt="AbsTK"/></a></h1>
+<h1><a href="https://github.com/PedroAlvesV/AbsTK"><img src="src/images/abstk_logo.png?raw=true" alt="AbsTK"/></a></h1>
 
 <p><a href="https://gitter.im/AbsTK-Lua/Lobby?utm_source=badge&amp;utm_medium=badge&amp;utm_campaign=pr-badge&amp;utm_content=badge"><img src="https://badges.gitter.im/AbsTK-Lua/Lobby.svg" alt="Join the chat at https://gitter.im/AbsTK-Lua/Lobby"/></a>
 <a href="http://doge.mit-license.org"><img src="http://img.shields.io/:license-mit-blue.svg" alt="MIT License"/></a></p>
 
 <p>The Abstract ToolKit is a widget toolkit for GUI and text-mode applications. It allows you to, with the same source code, build an UI that runs on GUI (GTK) and text-mode (Curses).</p>
 
-<p><img src="http://i.imgur.com/3yx9zof.png" alt="AbsTK Sample"/></p>
+<p><img src="src/imagesm/comparison.png" alt="AbsTK UI Comparison"/></p>
 
 <p><a name="Getting_Started"></a></p>
 <h2>Getting Started</h2>
@@ -94,41 +94,52 @@
 <p align="justify">About widgets, it's construction functions are quite similar to one another in terms of parameters. Also, there's an important pattern: if the widget is a singular object (like a button), its construction function name will start with "add", like in <code>add_button()</code>. Otherwise, if the widget is, in fact, a group of objets (like a button box), its construction function will start with "create", like in <code>create_button_box()</code>.</p>
 
 
-<p>Functions reference at <a href="https://pedroalvesv.github.io/AbsTK-Lua/">https://pedroalvesv.github.io/AbsTK-Lua/</a>.</p>
+<p>Functions reference at <a href="https://pedroalvesv.github.io/AbsTK/">https://pedroalvesv.github.io/AbsTK/</a>.</p>
 
+<h3>Examples</h3>
 
-<!--
-
-### Examples
-
-#### Screen
-
-HASH018X
-
-![Curses UI](http://i.imgur.com/xAq4KJX.png) ![GTK UI](http://i.imgur.com/xAq4KJX.png)
-
-#### Wizard
+<h4>Screen</h4>
 
 
 <pre>
 <span class="keyword">local</span> abstk = <span class="global">require</span> <span class="string">'abstk'</span>
-<span class="keyword">local</span> wizard = abstk.new_wizard(<span class="string">"First AbsTK Wizard"</span>)
+<span class="keyword">local</span> scr = abstk.new_screen(<span class="string">"My First AbsTK UI"</span>)
+scr:add_image(<span class="string">'logo'</span>, <span class="string">'images/abstk_logo.png'</span>)
+scr:add_label(<span class="string">'hellow'</span>, <span class="string">"Hello, World!"</span>)
+scr:add_label(<span class="string">'msg1'</span>, <span class="string">"This is a minimal example to demonstrate AbsTK."</span>)
+scr:add_label(<span class="string">'msg2'</span>, <span class="string">"The Screen is the main object of the toolkit. It can run as standalone or added to a Wizard. Its routine consists in creating it (line 2), populating it (lines 3 to 7) and running it (line 8)."</span>)
+scr:run()
+</pre>
+
+
+<p><a href="src/example1.lua"><img src="src/images/examples/ex1-curses.png" alt="Curses UI"/> <img src="src/images/examples/ex1-gtk.png" alt="GTK UI"/></a></p>
+
+<h4>Wizard</h4>
+
+
+<pre>
+<span class="keyword">local</span> abstk = <span class="global">require</span> <span class="string">'abstk'</span>
+<span class="keyword">local</span> wizard = abstk.new_wizard(<span class="string">"My First AbsTK Wizard"</span>)
 <span class="keyword">local</span> scr1 = abstk.new_screen(<span class="string">"Page 1"</span>)
 <span class="keyword">local</span> scr2 = abstk.new_screen(<span class="string">"Page 2"</span>)
-scr1:add_label(<span class="string">'label'</span>, <span class="string">"While I'm at the first page, [...]"</span>)
-scr2:add_label(<span class="string">'label'</span>, <span class="string">"[...] I'm at the second page."</span>)
+<span class="keyword">local</span> scr3 = abstk.new_screen(<span class="string">"Page 3"</span>)
+scr1:add_image(<span class="string">'logo'</span>, <span class="string">'images/abstk_logo.png'</span>)
+scr1:add_label(<span class="string">'hellow'</span>, <span class="string">"Hello, World!"</span>)
+scr1:add_label(<span class="string">'msg1'</span>, <span class="string">"This is a minimal example to demonstrate AbsTK."</span>)
+scr2:add_image(<span class="string">'logo'</span>, <span class="string">'images/abstk_logo.png'</span>)
+scr2:add_label(<span class="string">'msg2'</span>, <span class="string">"The Wizard is what AbsTK was firstly developed. Instead of running Screens, it insert them into an assistant-like interface.Its routine consists on creating it (line 2), creating screens (lines 3 to 5), populating the screens (lines 6 to 12), adding screens to wizard (lines 13 to 15) and running the wizard (line 16)."</span>)
+scr3:add_image(<span class="string">'logo'</span>, <span class="string">'images/abstk_logo.png'</span>)
+scr3:add_label(<span class="string">'thanks_label'</span>, <span class="string">"Thank you &lt;3"</span>)
 wizard:add_page(<span class="string">'page1'</span>, scr1)
 wizard:add_page(<span class="string">'page2'</span>, scr2)
+wizard:add_page(<span class="string">'page3'</span>, scr3)
 wizard:run()
 </pre>
 
 
-![Curses UI](http://i.imgur.com/xAq4KJX.png) ![GTK UI](http://i.imgur.com/xAq4KJX.png)
+<p><a href="src/example2.lua"><img src="http://i.imgur.com/xAq4KJX.png" alt="Curses UI"/> <img src="http://i.imgur.com/xAq4KJX.png" alt="GTK UI"/></a></p>
 
-You can see a complete list of examples on [src/complete-test/](src/complete-test/).
-
--->
-
+<p>You can see a complete list of examples on <a href="src/complete-test/">src/complete-test/</a>.</p>
 
 <h3>Usage</h3>
 
@@ -188,7 +199,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p>
 </div> <!-- id="main" -->
 <div id="about">
 <i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
-<i style="float:right;">Last updated 2017-03-20 12:49:33 </i>
+<i style="float:right;">Last updated 2017-03-20 14:30:16 </i>
 </div> <!-- id="about" -->
 </div> <!-- id="container" -->
 </body>

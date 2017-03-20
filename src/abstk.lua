@@ -1,5 +1,5 @@
 -------------------------------------------------
--- Main module to AbsTK-Lua
+-- Main module to AbsTK
 --
 -- @module abstk
 -- @author Pedro Alves

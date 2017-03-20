@@ -1,5 +1,5 @@
 -------------------------------------------------
--- AbsGtk (GUI) to AbsTK-Lua
+-- AbsGtk (GUI) to AbsTK
 -- 
 -- @classmod AbsGtk
 -- @author Pedro Alves

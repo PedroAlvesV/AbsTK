@@ -1,5 +1,5 @@
 -------------------------------------------------
--- AbsCurses (text-mode) to AbsTK-Lua
+-- AbsCurses (text-mode) to AbsTK
 -- 
 -- @classmod AbsCurses
 -- @author Pedro Alves
