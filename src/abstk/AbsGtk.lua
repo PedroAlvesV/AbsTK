@@ -499,6 +499,17 @@ function Screen:set_enabled(id, bool, index)
    end
 end
 
+function Screen:delete_widget(id)
+   for i, item in ipairs(self.widgets) do
+      if item.id == id then
+         item.widget:destroy()
+         table.remove(self.widgets, i)
+         return true
+      end
+   end
+   return false
+end
+
 function Screen:set_value(id, value, index)
    for _, item in ipairs(self.widgets) do
       if item.id == id then
@@ -610,6 +621,7 @@ end
 
 local function create_vbox(widgets)
    local vbox = Gtk.VBox{
+      id = 'vbox',
       border_width = 10,
       spacing = 10,
    }

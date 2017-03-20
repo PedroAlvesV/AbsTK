@@ -966,6 +966,16 @@ function Screen:set_enabled(id, bool, index)
    end
 end
 
+function Screen:delete_widget(id)
+   for i, item in ipairs(self.widgets) do
+      if item.id == id then
+         table.remove(self.widgets, i)
+         return true
+      end
+   end
+   return false
+end
+
 function Screen:set_value(id, value, index)
    for _, item in ipairs(self.widgets) do
       if item.id == id then
@@ -1236,8 +1246,8 @@ function Wizard:run()
             labels = {'< Back', 'Done'}
             tooltips = {"Go to previous page", "Done wizard"}
             callbacks = {prev_page, function()
-               self.done = self.exit_callback("DONE", util.collect_data(self, iter_screen_items), self.pages[self.current_page].screen) 
-            end}
+                  self.done = self.exit_callback("DONE", util.collect_data(self, iter_screen_items), self.pages[self.current_page].screen) 
+               end}
          else
             labels = {'< Back', 'Next >'}
             tooltips = {"Go to previous page", "Go to next page"}

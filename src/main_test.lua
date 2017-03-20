@@ -28,10 +28,14 @@ local test_callback = function(id, value, arg1, arg2)
    arg2 = tostring(arg2)
 end
 
+local bt_callback = function(id, value)
+   scr1:delete_widget('label2')
+end
+
 scr1:add_label('label1', 'Parameter 1:\t\t1234')
 scr1:add_label('label2', 'Parameter 2:\t\tABCD')
 scr1:add_label('label3', 'Parameter 3:\t\tWXYZ')
-scr1:add_button('button', "Test Button", "Button", test_callback)
+scr1:add_button('button', "Test Button", "Button", bt_callback)
 scr1:create_button_box('bbox', {"ABC", "DEF", "LOREM IPSUM", "G"}, {"Button1", "Button2", "Button3", "Button4"}, {test_callback, test_callback, test_callback, test_callback})
 scr1:add_text_input('tinput', "Text Input:", "placeholder", "Entry", test_callback)
 scr1:add_password('tpassword', "Password Input:", "place", "Password Entry", test_callback)

@@ -283,6 +283,10 @@ function abstk.new_screen(title, w, h)
          obj:set_enabled(id, bool, ...)
       end,
       -------------------------------------------------
+      delete_widget = function(self, id)
+         return obj:delete_widget(id)
+      end,
+      -------------------------------------------------
       -- Sets a value to an widget. Each widget works with a type of value:
       --
       -- * `Label - string (label itself)`
