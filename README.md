@@ -1,11 +1,11 @@
-# [![AbsTK](logo/232x72.png?raw=true)](https://github.com/PedroAlvesV/AbsTK-Lua)
+# [![AbsTK](src/images/abstk_logo.png?raw=true)](https://github.com/PedroAlvesV/AbsTK)
 
 [![Join the chat at https://gitter.im/AbsTK-Lua/Lobby](https://badges.gitter.im/AbsTK-Lua/Lobby.svg)](https://gitter.im/AbsTK-Lua/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![MIT License](http://img.shields.io/:license-mit-blue.svg)](http://doge.mit-license.org)
 
 The Abstract ToolKit is a widget toolkit for GUI and text-mode applications. It allows you to, with the same source code, build an UI that runs on GUI (GTK) and text-mode (Curses).
 
-![AbsTK Sample](http://i.imgur.com/3yx9zof.png)
+[![AbsTK UI Comparison](src/images/comparison.png)](src/big_image_source.lua)
 
 ## Getting Started
 
@@ -27,9 +27,7 @@ $ luarocks install --server=http://luarocks.org/dev abstk
 
 <p align="justify">About widgets, it's construction functions are quite similar to one another in terms of parameters. Also, there's an important pattern: if the widget is a singular object (like a button), its construction function name will start with "add", like in <code>add_button()</code>. Otherwise, if the widget is, in fact, a group of objets (like a button box), its construction function will start with "create", like in <code>create_button_box()</code>.</p>
 
-Functions reference at [https://pedroalvesv.github.io/AbsTK-Lua/](https://pedroalvesv.github.io/AbsTK-Lua/).
-
-<!--
+Functions reference at [https://pedroalvesv.github.io/AbsTK/](https://pedroalvesv.github.io/AbsTK/).
 
 ### Examples
 
@@ -38,31 +36,39 @@ Functions reference at [https://pedroalvesv.github.io/AbsTK-Lua/](https://pedroa
 ```lua
 local abstk = require 'abstk'
 local scr = abstk.new_screen("My First AbsTK UI")
+scr:add_image('logo', 'images/abstk_logo.png')
 scr:add_label('hellow', "Hello, World!")
+scr:add_label('msg1', "This is a minimal example to demonstrate AbsTK.")
+scr:add_label('msg2', "The Screen is the main object of the toolkit. It can run as standalone or added to a Wizard. Its routine consists in creating it (line 2), populating it (lines 3 to 7) and running it (line 8).")
 scr:run()
 ```
 
-![Curses UI](http://i.imgur.com/xAq4KJX.png) ![GTK UI](http://i.imgur.com/xAq4KJX.png)
+[![Curses UI](src/images/examples/ex1-curses.png) ![GTK UI](src/images/examples/ex1-gtk.png)](src/example1.lua)
 
 #### Wizard
 
 ```lua
 local abstk = require 'abstk'
-local wizard = abstk.new_wizard("First AbsTK Wizard")
+local wizard = abstk.new_wizard("My First AbsTK Wizard")
 local scr1 = abstk.new_screen("Page 1")
 local scr2 = abstk.new_screen("Page 2")
-scr1:add_label('label', "While I'm at the first page, [...]")
-scr2:add_label('label', "[...] I'm at the second page.")
+local scr3 = abstk.new_screen("Page 3")
+scr1:add_image('logo', 'images/abstk_logo.png')
+scr1:add_label('hellow', "Hello, World!")
+scr1:add_label('msg1', "This is a minimal example to demonstrate AbsTK.")
+scr2:add_image('logo', 'images/abstk_logo.png')
+scr2:add_label('msg2', "The Wizard is what AbsTK was firstly developed. Instead of running Screens, it insert them into an assistant-like interface.Its routine consists on creating it (line 2), creating screens (lines 3 to 5), populating the screens (lines 6 to 12), adding screens to wizard (lines 13 to 15) and running the wizard (line 16).")
+scr3:add_image('logo', 'images/abstk_logo.png')
+scr3:add_label('thanks_label', "Thank you <3")
 wizard:add_page('page1', scr1)
 wizard:add_page('page2', scr2)
+wizard:add_page('page3', scr3)
 wizard:run()
 ```
 
-![Curses UI](http://i.imgur.com/xAq4KJX.png) ![GTK UI](http://i.imgur.com/xAq4KJX.png)
+[![Curses UI](http://i.imgur.com/xAq4KJX.png) ![GTK UI](http://i.imgur.com/xAq4KJX.png)](src/example2.lua)
 
 You can see a complete list of examples on [src/complete-test/](src/complete-test/).
-
--->
 
 ### Usage
 
