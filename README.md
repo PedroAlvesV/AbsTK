@@ -43,7 +43,9 @@ scr:add_label('msg2', "The Screen is the main object of the toolkit. It can run 
 scr:run()
 ```
 
-[![Curses UI](src/images/examples/ex1-curses.png) ![GTK UI](src/images/examples/ex1-gtk.png)](src/example1.lua)
+(I will add some screenshots here)
+
+[![Curses UI](http://i.imgur.com/xAq4KJX.png) ![GTK UI](http://i.imgur.com/xAq4KJX.png)](src/example2.lua)
 
 #### Wizard
 
@@ -65,6 +67,8 @@ wizard:add_page('page2', scr2)
 wizard:add_page('page3', scr3)
 wizard:run()
 ```
+
+(I will add some screenshots here)
 
 [![Curses UI](http://i.imgur.com/xAq4KJX.png) ![GTK UI](http://i.imgur.com/xAq4KJX.png)](src/example2.lua)
 
