@@ -215,21 +215,27 @@ function Screen:add_textbox(id, title, default_value, tooltip)
    textview:set_buffer(buffer)
    textview:set_wrap_mode(Gtk.WrapMode.CHAR)
    textview:set_editable(false)
+   local scrolled_window = Gtk.ScrolledWindow {id = 'scrolled_window', textview}
+   scrolled_window:set_min_content_height(105)
+   local box = Gtk.Box {
+      orientation = 'VERTICAL',
+      border_width = 10,
+      scrolled_window,
+   }
+   local widget
+   if title then
+      widget = Gtk.Frame {
+         label = title,
+         box,
+      }
+   else
+      widget = box
+   end
    local item = {
       id = id,
       type = 'TEXTBOX',
-      widget = Gtk.Box { 
-         orientation = 'VERTICAL',
-      }
+      widget = widget,
    }
-   if title then
-      local title_widget = Gtk.Label { label = title }
-      title_widget:set_halign('START')
-      item.widget:add(title_widget)
-   end
-   local scrolled_window = Gtk.ScrolledWindow {id = 'scrolled_window', textview}
-   scrolled_window:set_min_content_height(105)
-   item.widget:add(scrolled_window)
    table.insert(self.widgets, item)
 end
 
