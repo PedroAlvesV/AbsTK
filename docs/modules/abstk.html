@@ -81,7 +81,7 @@
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#new_wizard">new_wizard (title, w, h)</a></td>
-	<td class="summary">Constructs a wizard.</td>
+	<td class="summary">Constructs a Wizard.</td>
 	</tr>
 </table>
 <h2><a href="#Class_Screen">Class Screen </a></h2>
@@ -161,6 +161,10 @@
 <h2><a href="#Class_Wizard">Class Wizard </a></h2>
 <table class="function_list">
 	<tr>
+	<td class="name" nowrap><a href="#Wizard:add_page">Wizard:add_page (id, screen)</a></td>
+	<td class="summary">Adds a screen to a wizard.</td>
+	</tr>
+	<tr>
 	<td class="name" nowrap><a href="#Wizard:run">Wizard:run (self)</a></td>
 	<td class="summary">Runs a wizard.</td>
 	</tr>
@@ -170,7 +174,7 @@
 <br/>
 
 
-    <h2 class="section-header "><a name="abstk"></a>abstk</h2>
+    <h2><a name="abstk"></a>abstk</h2>
 
     <dl class="function">
     <dt>
@@ -230,7 +234,7 @@
     <strong>new_wizard (title, w, h)</strong>
     </dt>
     <dd>
-    Constructs a wizard.
+    Constructs a Wizard.
 
 
     <h3>Parameters:</h3>
@@ -257,7 +261,8 @@
 
 </dd>
 </dl>
-    <h2 class="section-header "><a name="Class_Screen"></a>Class Screen </h2>
+    <h2><a name="Class_Screen"></a>Class Screen </h2>
+
 
     <dl class="function">
     <dt>
@@ -426,8 +431,8 @@
 
     <h3>Usage:</h3>
     <ul>
-        <pre class="example">scr:add_image(<span class="string">'lua_img'</span>, <span class="string">'images/lua.png'</span>)
-scr:add_image(<span class="string">'batman_img'</span>, <span class="string">'images/batman.png'</span>, {<span class="number">512</span>, <span class="number">384</span>})</pre>
+        <pre class="example"> scr:add_image(<span class="string">'lua_img'</span>, <span class="string">'images/lua.png'</span>)
+ scr:add_image(<span class="string">'batman_img'</span>, <span class="string">'images/batman.png'</span>, {<span class="number">512</span>, <span class="number">384</span>})</pre>
     </ul>
 
 </dd>
@@ -645,17 +650,17 @@ scr:add_image(<span class="string">'batman_img'</span>, <span class="string">'im
 
     <h3>Usage:</h3>
     <ul>
-        <pre class="example">scr:create_checklist(<span class="string">'style1'</span>, <span class="string">"Checklist 1:"</span>, {<span class="string">'a'</span>, <span class="string">'b'</span>, <span class="string">'c'</span>}, <span class="keyword">nil</span>, tooltip, chk_callback)
+        <pre class="example"> scr:create_checklist(<span class="string">'style1'</span>, <span class="string">"Checklist 1:"</span>, {<span class="string">'a'</span>, <span class="string">'b'</span>, <span class="string">'c'</span>}, <span class="keyword">nil</span>, tooltip, chk_callback)
 
-scr:create_checklist(<span class="string">'style2'</span>, <span class="string">"Checklist 2:"</span>, {<span class="string">'7'</span>, <span class="string">'8'</span>, <span class="string">'9'</span>}, {<span class="keyword">true</span>, <span class="keyword">false</span>, <span class="keyword">true</span>}, tooltip, chk_callback)
+ scr:create_checklist(<span class="string">'style2'</span>, <span class="string">"Checklist 2:"</span>, {<span class="string">'7'</span>, <span class="string">'8'</span>, <span class="string">'9'</span>}, {<span class="keyword">true</span>, <span class="keyword">false</span>, <span class="keyword">true</span>}, tooltip, chk_callback)
 
-<span class="keyword">local</span> check_table = {
-  {<span class="string">'z'</span>, <span class="keyword">false</span>},
-  {<span class="string">'x'</span>, <span class="keyword">true</span>},
-  {<span class="string">'c'</span>, <span class="keyword">true</span>},
-}
-scr:create_checklist(<span class="string">'style3'</span>, <span class="string">"Checklist 3:"</span>, check_table, <span class="keyword">nil</span>, tooltip, chk_callback)
-scr:create_checklist(<span class="string">'style4'</span>, <span class="string">"Checklist 4:"</span>, {<span class="string">'x'</span>, <span class="string">'y'</span>, <span class="string">'z'</span>}, <span class="number">3</span>, tooltip, chk_callback)</pre>
+ <span class="keyword">local</span> check_table = {
+   {<span class="string">'z'</span>, <span class="keyword">false</span>},
+   {<span class="string">'x'</span>, <span class="keyword">true</span>},
+   {<span class="string">'c'</span>, <span class="keyword">true</span>},
+ }
+ scr:create_checklist(<span class="string">'style3'</span>, <span class="string">"Checklist 3:"</span>, check_table, <span class="keyword">nil</span>, tooltip, chk_callback)
+ scr:create_checklist(<span class="string">'style4'</span>, <span class="string">"Checklist 4:"</span>, {<span class="string">'x'</span>, <span class="string">'y'</span>, <span class="string">'z'</span>}, <span class="number">3</span>, tooltip, chk_callback)</pre>
     </ul>
 
 </dd>
@@ -718,16 +723,16 @@ scr:create_checklist(<span class="string">'style4'</span>, <span class="string">
 
     <h3>Usage:</h3>
     <ul>
-        <pre class="example">scr:create_selector(<span class="string">'style1'</span>, <span class="string">"Selector 1:"</span>, {<span class="string">'x'</span>, <span class="string">'y'</span>, <span class="string">'z'</span>}, <span class="keyword">nil</span>, tooltip, slct_callback)
+        <pre class="example"> scr:create_selector(<span class="string">'style1'</span>, <span class="string">"Selector 1:"</span>, {<span class="string">'x'</span>, <span class="string">'y'</span>, <span class="string">'z'</span>}, <span class="keyword">nil</span>, tooltip, slct_callback)
 
-scr:create_selector(<span class="string">'style2'</span>, <span class="string">"Selector 2:"</span>, {<span class="string">'a'</span>, <span class="string">'s'</span>, <span class="string">'d'</span>}, <span class="number">3</span>, tooltip, slct_callback)
+ scr:create_selector(<span class="string">'style2'</span>, <span class="string">"Selector 2:"</span>, {<span class="string">'a'</span>, <span class="string">'s'</span>, <span class="string">'d'</span>}, <span class="number">3</span>, tooltip, slct_callback)
 
-<span class="keyword">local</span> selector_values = {
-  {<span class="string">'q'</span>, <span class="keyword">false</span>},
-  {<span class="string">'w'</span>, <span class="keyword">true</span>},
-  {<span class="string">'e'</span>, <span class="keyword">false</span>},
-}
-scr:create_selector(<span class="string">'style3'</span>, <span class="string">"Selector 3:"</span>, selector_values, <span class="keyword">nil</span>, tooltip, slct_callback)</pre>
+ <span class="keyword">local</span> selector_values = {
+   {<span class="string">'q'</span>, <span class="keyword">false</span>},
+   {<span class="string">'w'</span>, <span class="keyword">true</span>},
+   {<span class="string">'e'</span>, <span class="keyword">false</span>},
+ }
+ scr:create_selector(<span class="string">'style3'</span>, <span class="string">"Selector 3:"</span>, selector_values, <span class="keyword">nil</span>, tooltip, slct_callback)</pre>
     </ul>
 
 </dd>
@@ -863,17 +868,17 @@ scr:create_selector(<span class="string">'style3'</span>, <span class="string">"
 
     <h3>Usage:</h3>
     <ul>
-        <pre class="example">scr:set_value(<span class="string">'label'</span>, <span class="string">"New Label"</span>)
-scr:set_value(<span class="string">'button'</span>, <span class="string">"New Button Label"</span>)
-scr:set_value(<span class="string">'button_box'</span>, <span class="string">"New Button Label"</span>, <span class="number">2</span>)
-scr:set_value(<span class="string">'combobox'</span>, <span class="number">2</span>)
-scr:set_value(<span class="string">'image'</span>, <span class="string">'imgs/image.png'</span>)
-scr:set_value(<span class="string">'text_input'</span>, <span class="string">"New Text"</span>)
-scr:set_value(<span class="string">'password_input'</span>, <span class="string">"New Password"</span>)
-scr:set_value(<span class="string">'textbox'</span>, <span class="string">"New Text"</span>)
-scr:set_value(<span class="string">'checkbox'</span>, <span class="keyword">true</span>)
-scr:set_value(<span class="string">'checklist'</span>, <span class="keyword">true</span>, <span class="number">1</span>)
-scr:set_value(<span class="string">'selector'</span>, <span class="number">2</span>)</pre>
+        <pre class="example"> scr:set_value(<span class="string">'label'</span>, <span class="string">"New Label"</span>)
+ scr:set_value(<span class="string">'button'</span>, <span class="string">"New Button Label"</span>)
+ scr:set_value(<span class="string">'button_box'</span>, <span class="string">"New Button Label"</span>, <span class="number">2</span>)
+ scr:set_value(<span class="string">'combobox'</span>, <span class="number">2</span>)
+ scr:set_value(<span class="string">'image'</span>, <span class="string">'imgs/image.png'</span>)
+ scr:set_value(<span class="string">'text_input'</span>, <span class="string">"New Text"</span>)
+ scr:set_value(<span class="string">'password_input'</span>, <span class="string">"New Password"</span>)
+ scr:set_value(<span class="string">'textbox'</span>, <span class="string">"New Text"</span>)
+ scr:set_value(<span class="string">'checkbox'</span>, <span class="keyword">true</span>)
+ scr:set_value(<span class="string">'checklist'</span>, <span class="keyword">true</span>, <span class="number">1</span>)
+ scr:set_value(<span class="string">'selector'</span>, <span class="number">2</span>)</pre>
     </ul>
 
 </dd>
@@ -948,14 +953,40 @@ scr:set_value(<span class="string">'selector'</span>, <span class="number">2</sp
 
     <h3>See also:</h3>
     <ul>
+         <a href="../modules/abstk.html#Wizard:add_page">Wizard:add_page</a>
     </ul>
 
 
 </dd>
 </dl>
-    <h2 class="section-header "><a name="Class_Wizard"></a>Class Wizard </h2>
+    <h2><a name="Class_Wizard"></a>Class Wizard </h2>
+
 
     <dl class="function">
+    <dt>
+    <a name = "Wizard:add_page"></a>
+    <strong>Wizard:add_page (id, screen)</strong>
+    </dt>
+    <dd>
+    Adds a screen to a wizard.  The screen turns into a page with footer navigation
+ buttons.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">id</span>
+         the id of the object
+        </li>
+        <li><span class="parameter">screen</span>
+         the screen that will be added
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
     <dt>
     <a name = "Wizard:run"></a>
     <strong>Wizard:run (self)</strong>
@@ -982,6 +1013,7 @@ scr:set_value(<span class="string">'selector'</span>, <span class="number">2</sp
 
     <h3>See also:</h3>
     <ul>
+         <a href="../modules/abstk.html#Wizard:add_page">Wizard:add_page</a>
     </ul>
 
 
@@ -992,8 +1024,8 @@ scr:set_value(<span class="string">'selector'</span>, <span class="number">2</sp
 </div> <!-- id="content" -->
 </div> <!-- id="main" -->
 <div id="about">
-<i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
-<i style="float:right;">Last updated 2017-03-20 14:30:16 </i>
+<i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.3</a></i>
+<i style="float:right;">Last updated 2017-03-21 18:52:46 </i>
 </div> <!-- id="about" -->
 </div> <!-- id="container" -->
 </body>

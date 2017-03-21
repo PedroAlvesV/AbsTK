@@ -33,6 +33,7 @@
 <h2>Contents</h2>
 <ul>
 <li><a href="#Getting_Started">Getting Started </a></li>
+<li><a href="#Contributing">Contributing </a></li>
 <li><a href="#License">License </a></li>
 </ul>
 
@@ -63,7 +64,7 @@
 
 <p>The Abstract ToolKit is a widget toolkit for GUI and text-mode applications. It allows you to, with the same source code, build an UI that runs on GUI (GTK) and text-mode (Curses).</p>
 
-<p><img src="src/imagesm/comparison.png" alt="AbsTK UI Comparison"/></p>
+<p><a href="src/big_image_source.lua"><img src="src/images/comparison.png" alt="AbsTK UI Comparison"/></a></p>
 
 <p><a name="Getting_Started"></a></p>
 <h2>Getting Started</h2>
@@ -79,7 +80,7 @@
 <h3>Concepts</h3>
 
 
-<p align="justify">AbsTK goal is to produce form-like applications that can run with and without a desktop environment (DE). It's worth it for machines that doesn't have any DE installed, but, also, for instance, when the application is an installer, in which you may prefer a light-weight text-mode (curses) interface, instead of using GUI.</p>
+<p align="justify">AbsTK goal is to produce form-like applications that can run with and without a desktop environment (DE). It's worth it for machines that doesn't have any DE installed, but, also, for instance, installers in which you may prefer a light-weight text-mode (curses) interface, instead of using GUI.</p>
 
 
 
@@ -87,14 +88,14 @@
 
 
 
-<p align="justify">The routine is really minimalistic, but, as stated in the previous paragraph, has two ways. To create a Screen, you initialize it and populate it with widgets. If your UI is a single Screen, just run it. If it's a Wizard, repeat the previous process to produce all the Screens. When done, simply create the Wizard, populate it with the Screens and run the Wizard.</p>
+<p align="justify">The routine is really minimalistic, but, as stated in the previous paragraph, has two ways. To create a Screen, you initialize it and populate it with widgets. If your UI is a single Screen, just run it. If it's a Wizard, repeat the first process to produce all the Screens. When done, simply create the Wizard, populate it with the Screens and run the Wizard.</p>
 
 
 
-<p align="justify">About widgets, it's construction functions are quite similar to one another in terms of parameters. Also, there's an important pattern: if the widget is a singular object (like a button), its construction function name will start with "add", like in <code>add_button()</code>. Otherwise, if the widget is, in fact, a group of objets (like a button box), its construction function will start with "create", like in <code>create_button_box()</code>.</p>
+<p align="justify">About widgets, its construction functions are quite similar to one another in terms of parameters. Also, there's an important naming pattern: if the widget is a single object (like a button), its construction function name will start with "add", like <code>add_button()</code>. Otherwise, if the widget is, actually, a group of objets (like a button box), its construction function will start with "create", like <code>create_button_box()</code>.</p>
 
 
-<p>Functions reference at <a href="https://pedroalvesv.github.io/AbsTK/">https://pedroalvesv.github.io/AbsTK/</a>.</p>
+<p>You can check API at <a href="https://pedroalvesv.github.io/AbsTK/">https://pedroalvesv.github.io/AbsTK/</a>.</p>
 
 <h3>Examples</h3>
 
@@ -112,7 +113,9 @@ scr:run()
 </pre>
 
 
-<p><a href="src/example1.lua"><img src="src/images/examples/ex1-curses.png" alt="Curses UI"/> <img src="src/images/examples/ex1-gtk.png" alt="GTK UI"/></a></p>
+<p>(I will add some screenshots here)</p>
+
+<p><a href="src/example2.lua"><img src="http://i.imgur.com/xAq4KJX.png" alt="Curses UI"/> <img src="http://i.imgur.com/xAq4KJX.png" alt="GTK UI"/></a></p>
 
 <h4>Wizard</h4>
 
@@ -136,6 +139,8 @@ wizard:add_page(<span class="string">'page3'</span>, scr3)
 wizard:run()
 </pre>
 
+
+<p>(I will add some screenshots here)</p>
 
 <p><a href="src/example2.lua"><img src="http://i.imgur.com/xAq4KJX.png" alt="Curses UI"/> <img src="http://i.imgur.com/xAq4KJX.png" alt="GTK UI"/></a></p>
 
@@ -163,6 +168,20 @@ abstk.set_mode(...)
 
 <p align="justify">All it accepts is "curses" and "gtk", because it's not the kind of thing that should be on the final version of your code. When nothing is passed, the toolkit decides which one to use based on <code>os.getenv("DISPLAY")</code> returning value. If it returns something, the OS runs in a GUI, so AbsTK runs in GUI as well. Otherwise, it runs in text-mode.</p>
 
+
+
+<p><a name="Contributing"></a></p>
+<h2>Contributing</h2>
+
+<ol>
+    <li>Create an issue and describe your contribution</li>
+    <li><a href="https://github.com/PedroAlvesV/AbsTK/fork">Fork it</a></li>
+    <li>Create a new branch for your contribution (<code>git checkout -b my-contribution</code>)</li>
+    <li>Commit your changes (<code>git commit -am &apos;New feature added&apos;</code>)</li>
+    <li>Publish the branch (<code>git push origin my-contribution</code>)</li>
+    <li>Create a Pull Request</li>
+    <li>Done :white<em>check</em>mark:</li>
+</ol>
 
 <p><a name="License"></a></p>
 <h2>License</h2>
@@ -198,8 +217,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p>
 </div> <!-- id="content" -->
 </div> <!-- id="main" -->
 <div id="about">
-<i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
-<i style="float:right;">Last updated 2017-03-20 14:30:16 </i>
+<i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.3</a></i>
+<i style="float:right;">Last updated 2017-03-21 18:52:46 </i>
 </div> <!-- id="about" -->
 </div> <!-- id="container" -->
 </body>

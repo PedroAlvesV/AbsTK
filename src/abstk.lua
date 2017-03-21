@@ -378,7 +378,7 @@ function abstk.new_screen(title, w, h)
 end
 
 -------------------------------------------------
--- Constructs a wizard.
+-- Constructs a Wizard.
 --
 -- @param title the title of the window
 -- @param w the width of the window (only used in GUI)
@@ -405,7 +405,7 @@ function abstk.new_wizard(title, w, h, exit_callback)
       -------------------------------------------------
       -- @type Wizard
       -------------------------------------------------
-      --
+
       -------------------------------------------------
       -- Adds a screen to a wizard. The screen turns into a page with footer navigation 
       -- buttons. 
