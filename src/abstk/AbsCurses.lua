@@ -934,7 +934,7 @@ function Screen:show_message_box(message, buttons)
    pad:mvaddstr(math.floor(y/2)-1, math.floor((width/2)-(utf8.len(message)/2)), message or "")
    while true do
       bbox:draw(pad, math.floor((width/2)-(bbox.width/2)), math.floor(y/2)+1, true)
-      pad:copywin(stdscr, 0, 0, y, x, y+height-1, x+width-1, false)
+      pad:prefresh(0, 0, y, x, y+height-1, x+width-1, false)
       clear_tooltip_bar()
       local tooltip = bbox.buttons[bbox.subfocus].tooltip
       tooltip = util.append_blank_space(tooltip, scr_w)
