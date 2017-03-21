@@ -14,7 +14,7 @@ The Abstract ToolKit is a widget toolkit for GUI and text-mode applications. It 
 The easiest way to install AbsTK is through [LuaRocks](https://github.com/luarocks/luarocks):
 
 ```
-$ luarocks install --server=http://luarocks.org/dev abstk
+$ luarocks install abstk
 ```
 
 ### Concepts
