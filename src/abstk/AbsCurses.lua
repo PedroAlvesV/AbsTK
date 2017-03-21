@@ -7,8 +7,6 @@
 -- @see abstk
 -------------------------------------------------
 
--- fix bbox starting subfocus (when first button is disabled)
-
 local AbsCurses = {}
 
 local curses = require 'curses'
@@ -177,6 +175,9 @@ function AbsCursesLabel.new(label)
    end
    local text = {}
    for line in label:gmatch("[^\n]*") do
+      if line:sub(1,1) == " " then
+         line = line:sub(2)
+      end
       table.insert(text, line)
    end
    local self = {
