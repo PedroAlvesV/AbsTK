@@ -56,6 +56,7 @@ end
 function Screen:add_label(id, label)
    local label_widget = Gtk.Label { label = label }
    label_widget:set_halign('START')
+   label_widget:set_line_wrap(true)
    local item = {
       id = id,
       type = 'LABEL',
@@ -699,11 +700,13 @@ end
 
 function Wizard:add_page(id, screen)
    local vbox = create_vbox(screen.widgets)
+   local content = Gtk.ScrolledWindow{vbox}
+   content:set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
    local page = {
       id = id,
       screen = screen,
       complete = true,
-      content = Gtk.ScrolledWindow{vbox},
+      content = content,
    }
 
    -- work arround bug where scrolled window BG goes black
