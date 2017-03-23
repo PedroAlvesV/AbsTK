@@ -29,6 +29,23 @@ $ luarocks install abstk
 
 You can check API at [https://pedroalvesv.github.io/AbsTK/](https://pedroalvesv.github.io/AbsTK/).
 
+### Usage
+
+There are two lines that you will put on the top of most of your codes that use AbsTK:
+
+```lua
+local abstk = require 'abstk'
+abstk.set_mode(...)
+```
+
+<p align="justify">The first one is pretty obvious, it's just the usual lib requirement. The second one is not, actually, necessary, but you'll probably want to use it to, manually, set in which mode the UI will run and see how it looks like. This line gets the args passed when running the application. Like:</p>
+
+```
+$ lua minimalist-test.lua curses
+```
+
+<p align="justify">All it accepts is "curses" and "gtk", because it's not the kind of thing that should be on the final version of your code. When nothing is passed, the toolkit decides which one to use based on <code>os.getenv("DISPLAY")</code> returning value. If it returns something, the OS runs in a GUI, so AbsTK runs in GUI as well. Otherwise, it runs in text-mode.</p>
+
 ### Examples
 
 #### Screen
@@ -71,23 +88,6 @@ wizard:run()
 [![Curses UI](http://i.imgur.com/xAq4KJX.png) ![GTK UI](http://i.imgur.com/xAq4KJX.png)](src/example2.lua)
 
 You can see a complete list of examples on [src/complete-test/](src/complete-test/).
-
-### Usage
-
-There are two lines that you will put on the top of most of your codes that use AbsTK:
-
-```lua
-local abstk = require 'abstk'
-abstk.set_mode(...)
-```
-
-<p align="justify">The first one is pretty obvious, it's just the usual lib requirement. The second one is not, actually, necessary, but you'll probably want to use it to, manually, set in which mode the UI will run and see how it looks like. This line gets the args passed when running the application. Like:</p>
-
-```
-$ lua minimalist-test.lua curses
-```
-
-<p align="justify">All it accepts is "curses" and "gtk", because it's not the kind of thing that should be on the final version of your code. When nothing is passed, the toolkit decides which one to use based on <code>os.getenv("DISPLAY")</code> returning value. If it returns something, the OS runs in a GUI, so AbsTK runs in GUI as well. Otherwise, it runs in text-mode.</p>
 
 
 ## Contributing
