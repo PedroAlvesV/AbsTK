@@ -43,9 +43,7 @@ scr:add_label('msg2', "The Screen is the main object of the toolkit. It can run 
 scr:run()
 ```
 
-(I will add some screenshots here)
-
-[![Curses UI](http://i.imgur.com/xAq4KJX.png) ![GTK UI](http://i.imgur.com/xAq4KJX.png)](src/example2.lua)
+[![Curses UI](http://i.imgur.com/V9PeWtD.png) ![GTK UI](http://i.imgur.com/3tzGyba.png)](src/example2.lua)
 
 #### Wizard
 
