@@ -170,19 +170,22 @@ function AbsCursesLabel.new(label)
    local limit = scr_w-8
    local i = limit
    while i < size do
+      while label:sub(i, i) ~= " " do
+         i = i - 1
+      end
       label = label:sub(1, i-1).."\n"..label:sub(i)
       i = i + limit
    end
-   local text = {}
+   local lines = {}
    for line in label:gmatch("[^\n]*") do
       if line:sub(1,1) == " " then
          line = line:sub(2)
       end
-      table.insert(text, line)
+      table.insert(lines, line)
    end
    local self = {
-      height = #text,
-      text = text,
+      height = #lines,
+      lines = lines,
       label = original_label,
       focusable = false,
    }
@@ -191,7 +194,7 @@ end
 
 function AbsCursesLabel:draw(drawable, x, y)
    drawable:attrset(colors.default)
-   for i, line in ipairs(self.text) do
+   for i, line in ipairs(self.lines) do
       drawable:mvaddstr(y+i-1, x, line)
    end
 end
