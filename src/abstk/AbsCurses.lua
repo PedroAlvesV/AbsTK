@@ -745,6 +745,18 @@ function AbsCursesCheckList:process_key(key)
       elseif self.subfocus == 1 then
          return actions.PREVIOUS
       end
+   elseif key == keys.HOME then
+      self.subfocus = 1
+      if self.scrollable then
+         self.view_pos = 1
+      end
+      return actions.HANDLED
+   elseif key == keys.END then
+      self.subfocus = #self.checklist
+      if self.scrollable then
+         self.view_pos = self.subfocus - self.visible + 1
+      end
+      return actions.HANDLED
    else
       return self.checklist[self.subfocus]:process_key(key, self.subfocus)
    end
@@ -842,6 +854,18 @@ function AbsCursesSelector:process_key(key)
       elseif self.subfocus == 1 then
          return actions.PREVIOUS
       end
+   elseif key == keys.HOME then
+      self.subfocus = 1
+      if self.scrollable then
+         self.view_pos = 1
+      end
+      return actions.HANDLED
+   elseif key == keys.END then
+      self.subfocus = #self.list
+      if self.scrollable then
+         self.view_pos = self.subfocus - self.visible + 1
+      end
+      return actions.HANDLED
    end
    return actions.PASSTHROUGH
 end
