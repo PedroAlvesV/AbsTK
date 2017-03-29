@@ -763,7 +763,7 @@ function Wizard:run()
       page.content:override_background_color(Gtk.StateFlags.NORMAL, bg_color)
       -------
       self.assistant:append_page(page.content)
-      self.assistant:set_page_title(page.content, page.screen.title or page_number)
+      self.assistant:set_page_title(page.content, page.screen.title or "Page "..page_number)
       self.assistant:set_page_complete(page.content, true)
       self.assistant:set_page_type(page.content, 'CONTENT')
    end

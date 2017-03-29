@@ -1067,7 +1067,7 @@ function Screen:get_value(id, index)
    end
 end
 
-local function run_screen(screen, pad, wizard_title)
+local function run_screen(screen, pad, wizard)
    local function scroll_screen(item)
       local widget = item.widget
       if item.y > pad.min and item.y <= pad.max then
@@ -1123,10 +1123,10 @@ local function run_screen(screen, pad, wizard_title)
    end
    stdscr:attrset(colors.title)
    local title
-   if wizard_title and screen.title then
-      title = wizard_title.." - "..screen.title
+   if wizard.title and screen.title then
+      title = wizard.title.." - "..screen.title
    elseif not screen.title then
-      title = wizard_title
+      title = wizard.title.." - Page "..wizard.current_page
    else
       title = screen.title
    end
@@ -1291,7 +1291,7 @@ function Wizard:run()
       local pad, actual_pad = create_pad(current_screen)
       current_screen.pad = actual_pad
       current_screen.pad:wbkgd(attr_code(colors.default))
-      if run_screen(current_screen, pad, self.title) == "QUIT" then
+      if run_screen(current_screen, pad, self) == "QUIT" then
          self.done = self.exit_callback("QUIT", util.collect_data(self, iter_screen_items), self.pages[self.current_page].screen)
       end
       if self.done then

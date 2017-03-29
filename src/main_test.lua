@@ -17,7 +17,7 @@ local cb = function(exit, data, screen)
    return true
 end
 
-local wizard = abstk.new_wizard("AbsTK Main Test", nil, nil, cb)
+local wizard = abstk.new_wizard("AbsTK Main Test", 800, 600, cb)
 
 local scr1 = abstk.new_screen("First Screen")
 local scr2 = abstk.new_screen("Second Screen")
