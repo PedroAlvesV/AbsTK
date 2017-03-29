@@ -19,12 +19,9 @@ $ luarocks install abstk
 
 ### Concepts
 
-<p align="justify">AbsTK goal is to produce form-like applications that can run with and without a desktop environment (DE). It's worth it for machines that doesn't have any DE installed, but, also, for instance, installers in which you may prefer a light-weight text-mode (curses) interface, instead of using GUI.</p>
-
-<p align="justify">Although the toolkit focus is on building Wizards, individual Screens can also be produced. Actually, building Screens is the main part of building a Wizard. Wizards are nothing more than a group of ordered Screens.</p>
-
+<p align="justify">AbsTK goal is producing wizard-like applications that can run with and without a desktop environment (DE). It's worth it for machines that doesn't have any DE installed, but, also, for instance, installers in which you may prefer a light-weight text-mode (curses) interface, instead of using GUI.</p>
+<p align="justify">Although the toolkit focus is on building Wizards, individual Screens can also be produced. Actually, building Screens is the main part of building a Wizard. Wizards are no much more than a group of ordered Screens.</p>
 <p align="justify">The routine is really minimalistic, but, as stated in the previous paragraph, has two ways. To create a Screen, you initialize it and populate it with widgets. If your UI is a single Screen, just run it. If it's a Wizard, repeat the first process to produce all the Screens. When done, simply create the Wizard, populate it with the Screens and run the Wizard.</p>
-
 <p align="justify">About widgets, its construction functions are quite similar to one another in terms of parameters. Also, there's an important naming pattern: if the widget is a single object (like a button), its construction function name will start with "add", like <code>add_button()</code>. Otherwise, if the widget is, actually, a group of objets (like a button box), its construction function will start with "create", like <code>create_button_box()</code>.</p>
 
 You can check API at [https://pedroalvesv.github.io/AbsTK/](https://pedroalvesv.github.io/AbsTK/).
