@@ -85,8 +85,7 @@ wizard:run()
 
 [![Wizard UI Example](src/images/examples/example2.gif)](src/example2.lua)
 
-You can see a complete list of examples on [src/complete-test/](src/complete-test/).
-
+You can see a more examples at [src/complete-test/](src/complete-test/) and [wiki/Examples](https://github.com/PedroAlvesV/AbsTK/wiki/Examples).
 
 ## Contributing
 
