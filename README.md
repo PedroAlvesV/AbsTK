@@ -24,7 +24,7 @@ $ luarocks install abstk
 <p align="justify">The routine is really minimalistic, but, as stated in the previous paragraph, has two ways. To create a Screen, you initialize it and populate it with widgets. If your UI is a single Screen, just run it. If it's a Wizard, repeat the first process to produce all the Screens. When done, simply create the Wizard, populate it with the Screens and run the Wizard.</p>
 <p align="justify">About widgets, its construction functions are quite similar to one another in terms of parameters. Also, there's an important naming pattern: if the widget is a single object (like a button), its construction function name will start with "add", like <code>add_button()</code>. Otherwise, if the widget is, actually, a group of objets (like a button box), its construction function will start with "create", like <code>create_button_box()</code>.</p>
 
-You can check API at [https://pedroalvesv.github.io/AbsTK/](https://pedroalvesv.github.io/AbsTK/).
+You can check API reference at [https://pedroalvesv.github.io/AbsTK/](https://pedroalvesv.github.io/AbsTK/).
 
 ### Usage
 
