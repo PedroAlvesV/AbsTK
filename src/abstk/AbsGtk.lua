@@ -699,27 +699,12 @@ function Screen:run()
 end
 
 function Wizard:add_page(id, screen)
-   local vbox = create_vbox(screen.widgets)
-   local content = Gtk.ScrolledWindow{vbox}
-   content:set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
    local page = {
       id = id,
       screen = screen,
       complete = true,
-      content = content,
    }
-
-   -- work arround bug where scrolled window BG goes black
-   -- http://stackoverflow.com/questions/27592603
-   -- https://git.gnome.org/browse/california/commit/?id=3442b3
-   local bg_color = self.assistant:get_toplevel():get_style_context():get_background_color(Gtk.StateFlags.NORMAL)
-   page.content:override_background_color(Gtk.StateFlags.NORMAL, bg_color)
-
    table.insert(self.pages, page)
-   self.assistant:append_page(page.content)
-   self.assistant:set_page_title(page.content, screen.title or " ")
-   self.assistant:set_page_complete(page.content, true)
-   self.assistant:set_page_type(page.content, 'CONTENT')
 end
 
 function Wizard:run()
@@ -764,6 +749,23 @@ function Wizard:run()
             get_footer():remove(button)
          end
       end
+   end
+   for page_number, page in ipairs(self.pages) do
+      local vbox = create_vbox(page.screen.widgets)
+      local content = Gtk.ScrolledWindow{vbox}
+      content:set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+      page.content = content
+      -------
+      -- work arround bug where scrolled window BG goes black
+      -- http://stackoverflow.com/questions/27592603
+      -- https://git.gnome.org/browse/california/commit/?id=3442b3
+      local bg_color = self.assistant:get_toplevel():get_style_context():get_background_color(Gtk.StateFlags.NORMAL)
+      page.content:override_background_color(Gtk.StateFlags.NORMAL, bg_color)
+      -------
+      self.assistant:append_page(page.content)
+      self.assistant:set_page_title(page.content, page.screen.title or page_number)
+      self.assistant:set_page_complete(page.content, true)
+      self.assistant:set_page_type(page.content, 'CONTENT')
    end
    config_nav_buttons()
    self.assistant:show_all()
