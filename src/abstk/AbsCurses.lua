@@ -1154,7 +1154,7 @@ local function run_screen(screen, pad, wizard)
    end
    stdscr:attrset(colors.title)
    local title
-   if wizard.title and screen.title then
+   if wizard and screen.title then
       title = wizard.title.." - "..screen.title
    elseif not screen.title then
       title = wizard.title.." - Page "..wizard.current_page
