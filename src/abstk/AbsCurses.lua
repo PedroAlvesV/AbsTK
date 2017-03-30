@@ -642,21 +642,21 @@ end
 
 function AbsCursesCheckBox:draw(drawable, x, y, focus)
    if not focus then
-      if self.focusable then
-         drawable:attrset(colors.default)
-      else
-         drawable:attrset(colors.widget_disabled)
-      end
+      drawable:attrset(colors.default)
    else
       if type(focus) == 'table' then
-         if focus[1] then
+         if focus.widget then
             drawable:attrset(colors.current)
          end
-         if focus[2] then
-            drawable:attrset(colors.subcurrent)
+         if focus.subitem then
+            if self.focusable then
+               drawable:attrset(colors.subcurrent)
+            end
          end
       else
-         drawable:attrset(colors.subcurrent)
+         if self.focusable then
+            drawable:attrset(colors.subcurrent)
+         end
       end
    end
    local mark = " "
@@ -668,16 +668,17 @@ function AbsCursesCheckBox:draw(drawable, x, y, focus)
 end
 
 function AbsCursesCheckBox:process_key(key, index)
-   if key == keys.ENTER or key == keys.SPACE then
-      self.state = not self.state
-      if index then
-         run_callback(self, index, self.state, self.label)
-      else
-         run_callback(self, self.state, self.label)
+   if self.focusable then
+      if key == keys.ENTER or key == keys.SPACE then
+         self.state = not self.state
+         if index then
+            run_callback(self, index, self.state, self.label)
+         else
+            run_callback(self, self.state, self.label)
+         end
       end
-   elseif key == keys.TAB then
-      return actions.NEXT
-   elseif key == keys.DOWN then
+   end
+   if key == keys.TAB or key == keys.DOWN then
       return actions.NEXT
    elseif key == keys.UP then
       return actions.PREVIOUS
@@ -711,23 +712,19 @@ end
 
 function AbsCursesCheckList:draw(drawable, x, y, focus)
    self.width = scr_w-8
-   if focus then
+   if focus and self.focusable then
       drawable:attrset(colors.current)
    else
-      if self.focusable then
-         drawable:attrset(colors.default)
-      else
-         drawable:attrset(colors.widget_disabled)
-      end
+      drawable:attrset(colors.default)
    end
    drawable:mvaddstr(y, x, self.title)
    for i=self.view_pos, #self.checklist do
       local attr = false
-      if focus then
+      if focus and self.focusable then
          if i == self.subfocus then
-            attr = {true, true}
+            attr = {widget = true, subitem = true}
          else
-            attr = {true, false}
+            attr = {widget = true, subitem = false}
          end
       end
       if i < self.view_pos + self.visible then
@@ -740,40 +737,50 @@ function AbsCursesCheckList:draw(drawable, x, y, focus)
 end
 
 function AbsCursesCheckList:process_key(key)
-   if key == keys.DOWN then
-      if self.subfocus < #self.checklist then
-         self.subfocus = self.subfocus + 1
-         if self.scrollable and self.subfocus - self.view_pos + 1 == self.visible + 1 then
-            self.view_pos = self.view_pos + 1
+   if self.focusable then
+      if key == keys.DOWN then
+         if self.subfocus < #self.checklist then
+            self.subfocus = self.subfocus + 1
+            if self.scrollable and self.subfocus - self.view_pos + 1 == self.visible + 1 then
+               self.view_pos = self.view_pos + 1
+            end
+            return actions.HANDLED
+         elseif self.subfocus == #self.checklist then
+            return actions.NEXT
+         end
+      elseif key == keys.UP then
+         if self.subfocus > 1 then
+            self.subfocus = self.subfocus - 1
+            if self.scrollable and self.subfocus == self.view_pos - 1 then
+               self.view_pos = self.view_pos - 1
+            end
+            return actions.HANDLED
+         elseif self.subfocus == 1 then
+            return actions.PREVIOUS
+         end
+      elseif key == keys.HOME then
+         self.subfocus = 1
+         if self.scrollable then
+            self.view_pos = 1
          end
          return actions.HANDLED
-      elseif self.subfocus == #self.checklist then
-         return actions.NEXT
-      end
-   elseif key == keys.UP then
-      if self.subfocus > 1 then
-         self.subfocus = self.subfocus - 1
-         if self.scrollable and self.subfocus == self.view_pos - 1 then
-            self.view_pos = self.view_pos - 1
+      elseif key == keys.END then
+         self.subfocus = #self.checklist
+         if self.scrollable then
+            self.view_pos = self.subfocus - self.visible + 1
          end
          return actions.HANDLED
-      elseif self.subfocus == 1 then
-         return actions.PREVIOUS
+      else
+         return self.checklist[self.subfocus]:process_key(key, self.subfocus)
       end
-   elseif key == keys.HOME then
-      self.subfocus = 1
-      if self.scrollable then
-         self.view_pos = 1
-      end
-      return actions.HANDLED
-   elseif key == keys.END then
-      self.subfocus = #self.checklist
-      if self.scrollable then
-         self.view_pos = self.subfocus - self.visible + 1
-      end
-      return actions.HANDLED
    else
-      return self.checklist[self.subfocus]:process_key(key, self.subfocus)
+      if key == keys.DOWN or key == keys.TAB then
+         return actions.NEXT
+      elseif key == keys.UP then
+         return actions.PREVIOUS
+      else
+         return actions.PASSTHROUGH
+      end
    end
 end
 
