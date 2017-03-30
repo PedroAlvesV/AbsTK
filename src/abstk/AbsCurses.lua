@@ -532,7 +532,7 @@ function AbsCursesTextBox:draw(drawable, x, y, focus)
       self.inside_box_h = self.inside_box_h - 1
    end
    local function title_colors()
-      if focus then
+      if focus and self.focusable then
          return colors.current
       end
       return colors.default
@@ -556,72 +556,81 @@ function AbsCursesTextBox:draw(drawable, x, y, focus)
    pad:attrset(colors.default)
    pad:border(0,0)
    pad:copywin(drawable, 0, 0, y, x, y+self.inside_box_h+1, self.width, false)
-   if self.inside and #self.text > self.inside_box_h then
+   if #self.text > self.inside_box_h then
       draw_scrollbar(drawable, self.width, y, self.inside_box_h, #self.text, self.view_pos)
    end
 end
 
 function AbsCursesTextBox:process_key(key)
-   if key == keys.ENTER then
-      self.inside = not self.inside
-      return actions.HANDLED
-   elseif key == keys.ESC then -- must fix delay
-      self.inside = false
-      return actions.HANDLED
-   elseif key == keys.TAB then
+   if key == keys.TAB then
       self.inside = false
       return actions.NEXT
-   elseif key == keys.DOWN then
-      if self.inside and #self.text > self.inside_box_h then
-         if self.view_pos <= #self.text - self.inside_box_h then
-            self.view_pos = self.view_pos + 1
-         end
+   end
+   if self.focusable then
+      if key == keys.ENTER then
+         self.inside = not self.inside
          return actions.HANDLED
-      end
-      self.inside = false
-      return actions.NEXT
-   elseif key == keys.UP then
-      if self.inside and #self.text > self.inside_box_h then
-         if self.view_pos > 1 then
-            self.view_pos = self.view_pos - 1
-         end
+      elseif key == keys.ESC then -- must fix delay
+         self.inside = false
          return actions.HANDLED
-      end
-      self.inside = false
-      return actions.PREVIOUS
-   elseif key == keys.PAGE_DOWN then
-      if self.inside and #self.text > self.inside_box_h then
-         if self.view_pos <= #self.text - self.inside_box_h then
-            local temp_vpos = self.view_pos + 5
-            if temp_vpos > #self.text - self.inside_box_h then
-               self.view_pos = #self.text - self.inside_box_h + 1
-            else
-               self.view_pos = temp_vpos
+      elseif key == keys.DOWN then
+         if self.inside and #self.text > self.inside_box_h then
+            if self.view_pos <= #self.text - self.inside_box_h then
+               self.view_pos = self.view_pos + 1
             end
+            return actions.HANDLED
          end
-         return actions.HANDLED
-      end
-   elseif key == keys.PAGE_UP then
-      if self.inside and #self.text > self.inside_box_h then
-         if self.view_pos > 1 then
-            local temp_vpos = self.view_pos - 5
-            if temp_vpos < 1 then
-               self.view_pos = 1
-            else
-               self.view_pos = temp_vpos
+         self.inside = false
+         return actions.NEXT
+      elseif key == keys.UP then
+         if self.inside and #self.text > self.inside_box_h then
+            if self.view_pos > 1 then
+               self.view_pos = self.view_pos - 1
             end
+            return actions.HANDLED
          end
-         return actions.HANDLED
+         self.inside = false
+         return actions.PREVIOUS
+      elseif key == keys.PAGE_DOWN then
+         if self.inside and #self.text > self.inside_box_h then
+            if self.view_pos <= #self.text - self.inside_box_h then
+               local temp_vpos = self.view_pos + 5
+               if temp_vpos > #self.text - self.inside_box_h then
+                  self.view_pos = #self.text - self.inside_box_h + 1
+               else
+                  self.view_pos = temp_vpos
+               end
+            end
+            return actions.HANDLED
+         end
+      elseif key == keys.PAGE_UP then
+         if self.inside and #self.text > self.inside_box_h then
+            if self.view_pos > 1 then
+               local temp_vpos = self.view_pos - 5
+               if temp_vpos < 1 then
+                  self.view_pos = 1
+               else
+                  self.view_pos = temp_vpos
+               end
+            end
+            return actions.HANDLED
+         end
+      elseif key == keys.HOME then
+         if self.inside then
+            self.view_pos = 1
+            return actions.HANDLED
+         end
+      elseif key == keys.END then
+         if self.inside then
+            self.view_pos = #self.text - self.inside_box_h + 1
+            return actions.HANDLED
+         end
       end
-   elseif key == keys.HOME then
-      if self.inside then
-         self.view_pos = 1
-         return actions.HANDLED
-      end
-   elseif key == keys.END then
-      if self.inside then
-         self.view_pos = #self.text - self.inside_box_h + 1
-         return actions.HANDLED
+   else
+      if key == keys.DOWN then
+         return actions.NEXT
+      elseif key == keys.UP then
+         return actions.PREVIOUS
       end
    end
    return actions.PASSTHROUGH
