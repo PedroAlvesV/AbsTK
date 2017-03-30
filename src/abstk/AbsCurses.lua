@@ -360,7 +360,7 @@ function AbsCursesTextInput:draw(drawable, x, y, focus)
       end
    end
    drawable:mvaddstr(y, gap, placeholder)
-   if focus then
+   if focus and self.focusable then
       drawable:attrset(colors.cursor)
       local ch_pos_x = self.cursor-utf8.len(self.label)-utf8.len(self.text)-5
       if self.visibility then
@@ -397,90 +397,93 @@ function AbsCursesTextInput:process_key(key)
    if utf8.len(self.text) >= self.max_text-1 then
       last_position = last_position - 1
    end
-   if key == keys.LEFT then
-      if self.cursor > first_position then
-         self.cursor = self.cursor - 1
-      elseif has_hidden_text_at_start then
-         local iter = 0
-         while utf8.len(self.text) < self.max_text-1 do
-            self.text = self.hidden_text_start:sub(-iter)..self.text
-            iter = iter + 1
-         end
-         self.hidden_text_end = self.text:sub(-1)..self.hidden_text_end
-         self.text = self.text:sub(1,-2)
-         self.text = self.hidden_text_start:sub(-1)..self.text
-         self.hidden_text_start = self.hidden_text_start:sub(1,-2)
-      end
-      return actions.HANDLED
-   elseif key == keys.RIGHT then
-      if self.cursor < last_position then
-         self.cursor = self.cursor + 1
-      elseif utf8.len(self.text) >= self.max_text-1 then
-         self.hidden_text_start = self.hidden_text_start..self.text:sub(1,1)
-         self.text = self.text:sub(2)
-         bring_char()
-      end
-      return actions.HANDLED
-   elseif key == keys.TAB or key == keys.DOWN then
+   if key == keys.TAB or key == keys.DOWN then
       return actions.NEXT
    elseif key == keys.UP then
       return actions.PREVIOUS
-   elseif key == keys.HOME then
-      self.cursor = first_position
-      return actions.HANDLED
-   elseif key == keys.END then
-      self.cursor = last_position
-      return actions.HANDLED
    elseif key == keys.PAGE_UP or key == keys.PAGE_DOWN then
       return actions.PASSTHROUGH
-   elseif key >= 32 and key <= 382 then
-      local pos_x = self.cursor-utf8.len(self.label)-utf8.len(self.text)-5
-      if key == curses.KEY_BACKSPACE then
-         if self.cursor == first_position then
-            if has_hidden_text_at_start then
-               self.hidden_text_start = self.hidden_text_start:sub(1,-2)
+   end
+   if self.focusable then
+      if key == keys.LEFT then
+         if self.cursor > first_position then
+            self.cursor = self.cursor - 1
+         elseif has_hidden_text_at_start then
+            local iter = 0
+            while utf8.len(self.text) < self.max_text-1 do
+               self.text = self.hidden_text_start:sub(-iter)..self.text
+               iter = iter + 1
             end
-         else
-            if self.cursor == last_position then
-               self.text = self.text:sub(1,-2)
-               bring_char()
-            else
-               self.text = self.text:sub(1, pos_x-2)..self.text:sub(pos_x)
-               bring_char()
-            end
-            self.cursor = self.cursor-1
+            self.hidden_text_end = self.text:sub(-1)..self.hidden_text_end
+            self.text = self.text:sub(1,-2)
+            self.text = self.hidden_text_start:sub(-1)..self.text
+            self.hidden_text_start = self.hidden_text_start:sub(1,-2)
          end
-         run_callback(self, self.text)
          return actions.HANDLED
-      elseif key == curses.KEY_DC then
+      elseif key == keys.RIGHT then
          if self.cursor < last_position then
-            if self.cursor == last_position - 1 then
-               self.text = self.text:sub(1,-2)
-            else
-               self.text = self.text:sub(1, pos_x-1)..self.text:sub(pos_x+1)
-            end
+            self.cursor = self.cursor + 1
+         elseif utf8.len(self.text) >= self.max_text-1 then
+            self.hidden_text_start = self.hidden_text_start..self.text:sub(1,1)
+            self.text = self.text:sub(2)
             bring_char()
          end
-         run_callback(self, self.text)
          return actions.HANDLED
-      else
-         if self.cursor == last_position then
-            self.text = self.text..string.char(key)
-            self.cursor = self.cursor + 1
-            if self.cursor > self.field_limit then
-               self.cursor = self.cursor - 1
-               self.hidden_text_start = self.hidden_text_start..self.text:sub(1,1)
-               self.text = self.text:sub(2)
+      elseif key == keys.HOME then
+         self.cursor = first_position
+         return actions.HANDLED
+      elseif key == keys.END then
+         self.cursor = last_position
+         return actions.HANDLED
+      elseif key >= 32 and key <= 382 then
+         local pos_x = self.cursor-utf8.len(self.label)-utf8.len(self.text)-5
+         if key == curses.KEY_BACKSPACE then
+            if self.cursor == first_position then
+               if has_hidden_text_at_start then
+                  self.hidden_text_start = self.hidden_text_start:sub(1,-2)
+               end
+            else
+               if self.cursor == last_position then
+                  self.text = self.text:sub(1,-2)
+                  bring_char()
+               else
+                  self.text = self.text:sub(1, pos_x-2)..self.text:sub(pos_x)
+                  bring_char()
+               end
+               self.cursor = self.cursor-1
             end
+            run_callback(self, self.text)
+            return actions.HANDLED
+         elseif key == curses.KEY_DC then
+            if self.cursor < last_position then
+               if self.cursor == last_position - 1 then
+                  self.text = self.text:sub(1,-2)
+               else
+                  self.text = self.text:sub(1, pos_x-1)..self.text:sub(pos_x+1)
+               end
+               bring_char()
+            end
+            run_callback(self, self.text)
+            return actions.HANDLED
          else
-            self.text = self.text:sub(1, pos_x-1)..string.char(key)..self.text:sub(pos_x)
-            if utf8.len(self.text) >= self.max_text then
-               self.hidden_text_end = self.text:sub(-1)..self.hidden_text_end
-               self.text = self.text:sub(1,-2)
+            if self.cursor == last_position then
+               self.text = self.text..string.char(key)
+               self.cursor = self.cursor + 1
+               if self.cursor > self.field_limit then
+                  self.cursor = self.cursor - 1
+                  self.hidden_text_start = self.hidden_text_start..self.text:sub(1,1)
+                  self.text = self.text:sub(2)
+               end
+            else
+               self.text = self.text:sub(1, pos_x-1)..string.char(key)..self.text:sub(pos_x)
+               if utf8.len(self.text) >= self.max_text then
+                  self.hidden_text_end = self.text:sub(-1)..self.hidden_text_end
+                  self.text = self.text:sub(1,-2)
+               end
             end
+            run_callback(self, self.text)
+            return actions.HANDLED
          end
-         run_callback(self, self.text)
-         return actions.HANDLED
       end
    end
    return actions.PASSTHROUGH
