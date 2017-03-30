@@ -229,7 +229,7 @@ function AbsCursesButton:draw(drawable, x, y, focus)
    local label = " "..self.label.." "
    drawable:mvaddstr(y, x+1, label)
    local left, right = " ", " "
-   if focus then
+   if focus and self.focusable then
       left, right = ">", "<"
    end
    drawable:attrset(colors.title)
@@ -238,13 +238,16 @@ function AbsCursesButton:draw(drawable, x, y, focus)
 end
 
 function AbsCursesButton:process_key(key, index)
-   if key == keys.ENTER or key == keys.SPACE then
-      if index then
-         return run_callback(self, index, self.label)
-      else
-         return run_callback(self, self.label)
+   if self.focusable then
+      if key == keys.ENTER or key == keys.SPACE then
+         if index then
+            return run_callback(self, index, self.label)
+         else
+            return run_callback(self, self.label)
+         end
       end
-   elseif key == keys.TAB or key == keys.DOWN then
+   end
+   if key == keys.TAB or key == keys.DOWN then
       return actions.NEXT
    elseif key == keys.UP then
       return actions.PREVIOUS
