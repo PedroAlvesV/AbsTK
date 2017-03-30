@@ -52,4 +52,11 @@ function util.set_default_exit_callback(wizard)
    end
 end
 
+function util.debug(debug_message)
+   debug_message = tostring(debug_message)
+   local file = io.open("debug.txt", 'w')
+   file:write("\n"..debug_message.."\n")
+   file:close()
+end
+
 return util
