@@ -746,6 +746,9 @@ function AbsCursesCheckList:draw(drawable, x, y, focus)
 end
 
 function AbsCursesCheckList:process_key(key)
+   if key == keys.TAB then
+      return actions.NEXT
+   end
    if self.focusable then
       if key == keys.DOWN then
          if self.subfocus < #self.checklist then
@@ -783,14 +786,13 @@ function AbsCursesCheckList:process_key(key)
          return self.checklist[self.subfocus]:process_key(key, self.subfocus)
       end
    else
-      if key == keys.DOWN or key == keys.TAB then
+      if key == keys.DOWN then
          return actions.NEXT
       elseif key == keys.UP then
          return actions.PREVIOUS
-      else
-         return actions.PASSTHROUGH
       end
    end
+   return actions.PASSTHROUGH
 end
 
 function AbsCursesSelector.new(title, list, default_value, tooltip, callback)
@@ -823,18 +825,14 @@ end
 
 function AbsCursesSelector:draw(drawable, x, y, focus)
    self.width = scr_w-8
-   if focus then
+   if focus and self.focusable then
       drawable:attrset(colors.current)
    else
-      if self.focusable then
-         drawable:attrset(colors.default)
-      else
-         drawable:attrset(colors.widget_disabled)
-      end
+      drawable:attrset(colors.default)
    end
    drawable:mvaddstr(y, x, self.title)
    for i=self.view_pos, #self.list do
-      if focus then
+      if focus and self.focusable then
          if i == self.subfocus then
             drawable:attrset(colors.subcurrent)
          else
@@ -858,45 +856,54 @@ function AbsCursesSelector:draw(drawable, x, y, focus)
 end
 
 function AbsCursesSelector:process_key(key)
-   if key == keys.ENTER or key == keys.SPACE then
-      if self.marked ~= self.subfocus then
-         self.marked = self.subfocus
-         run_callback(self, self.marked, self.list[self.marked])
-      end
-   elseif key == keys.TAB then
+   if key == keys.TAB then
       return actions.NEXT
-   elseif key == keys.DOWN then
-      if self.subfocus < #self.list then
-         self.subfocus = self.subfocus + 1
-         if self.scrollable and self.subfocus - self.view_pos + 1 == self.visible + 1 then
-            self.view_pos = self.view_pos + 1
+   end
+   if self.focusable then
+      if key == keys.ENTER or key == keys.SPACE then
+         if self.marked ~= self.subfocus then
+            self.marked = self.subfocus
+            run_callback(self, self.marked, self.list[self.marked])
+         end
+      elseif key == keys.DOWN then
+         if self.subfocus < #self.list then
+            self.subfocus = self.subfocus + 1
+            if self.scrollable and self.subfocus - self.view_pos + 1 == self.visible + 1 then
+               self.view_pos = self.view_pos + 1
+            end
+            return actions.HANDLED
+         elseif self.subfocus == #self.list then
+            return actions.NEXT
+         end
+      elseif key == keys.UP then
+         if self.subfocus > 1 then
+            self.subfocus = self.subfocus - 1
+            if self.scrollable and self.subfocus == self.view_pos - 1 then
+               self.view_pos = self.view_pos - 1
+            end
+            return actions.HANDLED
+         elseif self.subfocus == 1 then
+            return actions.PREVIOUS
+         end
+      elseif key == keys.HOME then
+         self.subfocus = 1
+         if self.scrollable then
+            self.view_pos = 1
          end
          return actions.HANDLED
-      elseif self.subfocus == #self.list then
-         return actions.NEXT
+      elseif key == keys.END then
+         self.subfocus = #self.list
+         if self.scrollable then
+            self.view_pos = self.subfocus - self.visible + 1
+         end
+         return actions.HANDLED
       end
-   elseif key == keys.UP then
-      if self.subfocus > 1 then
-         self.subfocus = self.subfocus - 1
-         if self.scrollable and self.subfocus == self.view_pos - 1 then
-            self.view_pos = self.view_pos - 1
-         end
-         return actions.HANDLED
-      elseif self.subfocus == 1 then
+   else
+      if key == keys.DOWN then
+         return actions.NEXT
+      elseif key == keys.UP then
          return actions.PREVIOUS
       end
-   elseif key == keys.HOME then
-      self.subfocus = 1
-      if self.scrollable then
-         self.view_pos = 1
-      end
-      return actions.HANDLED
-   elseif key == keys.END then
-      self.subfocus = #self.list
-      if self.scrollable then
-         self.view_pos = self.subfocus - self.visible + 1
-      end
-      return actions.HANDLED
    end
    return actions.PASSTHROUGH
 end
