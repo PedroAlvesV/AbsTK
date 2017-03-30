@@ -1,3 +1,13 @@
+-------------------------------------------------
+-- util functions to both AbsCurses and AbsGtk
+-- 
+-- @classmod util
+-- @author Pedro Alves
+-- @license MIT
+-- @see AbsCurses
+-- @see AbsGtk
+-------------------------------------------------
+
 local util = {}
 
 function util.make_list_items(make_item, list, default_value)
