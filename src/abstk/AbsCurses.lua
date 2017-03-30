@@ -303,6 +303,15 @@ function AbsCursesButtonBox:process_key(key)
    elseif key == keys.RIGHT then
       return move_focus(1)
    end
+   if self.subfocus == 0 then
+      if key == keys.UP then
+         return actions.PREVIOUS
+      elseif key == keys.DOWN then
+         return actions.NEXT
+      else
+         return actions.HANDLED
+      end
+   end
    return self.buttons[self.subfocus]:process_key(key, self.subfocus)
 end
 
@@ -985,10 +994,19 @@ function Screen:set_enabled(id, bool, index)
       if item.id == id then
          local widget = item.widget
          if item.type == 'BUTTON_BOX' then
-            widget = widget.buttons[index]
-         end
-         if item.type ~= 'LABEL' then
-            widget.focusable = bool
+            widget.buttons[index].focusable = bool
+            widget.subfocus = 1
+            while not widget.buttons[widget.subfocus].focusable and widget.subfocus < #widget.buttons do
+               widget.subfocus = widget.subfocus + 1
+            end
+            widget.focusable = widget.buttons[widget.subfocus].focusable
+            if not widget.focusable then
+               widget.subfocus = 0
+            end
+         else
+            if item.type ~= 'LABEL' then
+               widget.focusable = bool
+            end
          end
       end
    end
@@ -1136,7 +1154,7 @@ local function run_screen(screen, pad, wizard)
       if i == screen.focus then
          if type(item.widget.tooltip) == 'string' then
             local tooltip = item.widget.tooltip
-            if item.type == 'BUTTON_BOX' then
+            if item.type == 'BUTTON_BOX' and item.widget.focusable then
                tooltip = item.widget.buttons[item.widget.subfocus].tooltip or ""
             end
             while utf8.len(tooltip) < scr_w do
