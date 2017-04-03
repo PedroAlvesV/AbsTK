@@ -46,7 +46,7 @@ function abstk.new_screen(title, w, h)
    local obj
    if mode == 'gtk' then
       if w == nil then
-         w = 400
+         w = 600
       end
       if h == nil then
          h = w*0.75
@@ -392,7 +392,7 @@ function abstk.new_wizard(title, w, h, exit_callback)
    local obj
    if mode == 'gtk' then
       if w == nil then
-         w = 400
+         w = 600
       end
       if h == nil then
          h = w*0.75
