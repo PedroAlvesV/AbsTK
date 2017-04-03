@@ -104,7 +104,7 @@ function abstk.new_screen(title, w, h)
       -- @param id the id of the object
       -- @param title the title of the field
       -- @param labels a table containing the labels that will be the entries
-      -- @param[opt='1'] default_value the index of the entry selected by default
+      -- @param[opt=<code>1</code>] default_value the index of the entry selected by default
       -- @param[opt] tooltip a tooltip text for the object
       -- @param[opt] callback a callback function. This callback function receives three
       -- arguments: the id (string), the index of the clicked item (number) its label
@@ -274,7 +274,7 @@ function abstk.new_screen(title, w, h)
       -- * `OK_CANCEL` - OK and Cancel buttons
       --
       -- @param message the message that will be written over the message dialog
-      -- @param[opt='OK'] buttons an constant that determines which buttonset is 
+      -- @param[opt=<code>'OK'</code>] buttons an constant that determines which buttonset is 
       -- going to be used
       -------------------------------------------------
       show_message_box = function(self, message, buttons)
@@ -381,8 +381,11 @@ end
 -- Constructs a Wizard.
 --
 -- @param title the title of the window
--- @param w the width of the window (only used in GUI)
--- @param h the height of the window (only used in GUI)
+-- @param[opt=<code>600</code>] w the width of the window (only used in GUI)
+-- @param[opt=<code>w*0.75</code>] h the height of the window (only used in GUI)
+-- @param exit_callback a callback function to override the default confirmation messagebox.
+-- Receives `exit` (`"DONE"` or `"QUIT"`), `data` and `screen`. Must return `true` or `false`.
+-- More info at [https://github.com/PedroAlvesV/AbsTK/wiki/Callbacks#exit-callback](https://github.com/PedroAlvesV/AbsTK/wiki/Callbacks#exit-callback)
 --
 -- @within abstk
 --
