@@ -274,8 +274,10 @@ function abstk.new_screen(title, w, h)
       -- * `OK_CANCEL` - OK and Cancel buttons
       --
       -- @param message the message that will be written over the message dialog
-      -- @param[opt=<code>'OK'</code>] buttons an constant that determines which buttonset is 
-      -- going to be used
+      -- @param[opt=<code>'OK'</code>] buttons an constant that determines which buttonset 
+      -- is going to be used
+      --
+      -- @return the clicked button label in uppercase
       -------------------------------------------------
       show_message_box = function(self, message, buttons)
          return obj:show_message_box(message, buttons)
@@ -383,7 +385,8 @@ end
 -- @param title the title of the window
 -- @param[opt=<code>600</code>] w the width of the window (only used in GUI)
 -- @param[opt=<code>w*0.75</code>] h the height of the window (only used in GUI)
--- @param exit_callback a callback function to override the default confirmation messagebox.
+-- @param exit_callback a callback function to override the default confirmation
+-- messagebox.
 -- Receives `exit` (`"DONE"` or `"QUIT"`), `data` and `screen`. Must return `true` or `false`.
 -- More info at [https://github.com/PedroAlvesV/AbsTK/wiki/Callbacks#exit-callback](https://github.com/PedroAlvesV/AbsTK/wiki/Callbacks#exit-callback)
 --
