@@ -277,7 +277,8 @@ function abstk.new_screen(title, w, h)
       -- @param[opt=<code>'OK'</code>] buttons an constant that determines which buttonset 
       -- is going to be used
       --
-      -- @return the clicked button label in uppercase
+      -- @return usually, the clicked button label in uppercase. However, `CLOSE` button 
+      -- returns "CANCEL".
       -------------------------------------------------
       show_message_box = function(self, message, buttons)
          return obj:show_message_box(message, buttons)
