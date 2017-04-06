@@ -310,20 +310,20 @@ function abstk.new_screen(title, w, h)
       -- * `Label - string (label itself)`
       -- * `Button - string (button label)`
       -- * `ButtonBox - string (single button label)`
-      -- * `ComboBox - string (entry to be set active)`
+      -- * `ComboBox - integer (item to be set active index)`
       -- * `Image - string (image path)`
       -- * `Text Input - string (text to be insert)`
+      -- * `Password Input - string (text to be insert)`
       -- * `TextBox - string (text to be insert)`
-      -- * `CheckList - boolean (state of button)`
-      -- * `Selector - boolean (state of button)`
-      --
-      -- Note: Since Selector items can only be active one at the time per group,
-      -- the value parameter passed is the index representing which one must be set active.
+      -- * `CheckBox - boolean (state of button)`
+      -- * `CheckList - boolean (state of button) and integer (item index)`
+      -- * `Selector - table (the new items list) and integer (default value)`
       --
       -- @param id the id of the object
       -- @param value the value that will be assigned to the widget
       -- @param[opt] index an index to target the child of the widget. Must be 
-      -- passed to refer to set ButtonBoxes, ComboBoxes and CheckLists.
+      -- passed to refer to set ButtonBoxes, ComboBoxes and CheckLists. To Selectors
+      -- it becames new list's `default_value` and is optional.
       --
       -- @usage scr:set_value('label', "New Label")
       -- scr:set_value('button', "New Button Label")
@@ -335,7 +335,7 @@ function abstk.new_screen(title, w, h)
       -- scr:set_value('textbox', "New Text")
       -- scr:set_value('checkbox', true)
       -- scr:set_value('checklist', true, 1)
-      -- scr:set_value('selector', 2)
+      -- scr:set_value('selector', {'item1', 'item2', 'item3'}, 2)
       -------------------------------------------------
       set_value = function(self, id, value, index)
          obj:set_value(id, value, index)
