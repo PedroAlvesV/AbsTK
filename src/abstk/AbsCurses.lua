@@ -87,6 +87,26 @@ local function draw_scrollbar(drawable, x, y, h_box, h_data, current_line)
    drawable:mvaddstr(y+h_box, x, 'v')
 end
 
+local function create_pad(screen)
+   local function calculate_pad_h()
+      local y = 2
+      for i, item in ipairs(screen.widgets) do
+         item.y = y
+         y = y + item.widget.height + 1
+      end
+      return y-1
+   end
+   local pad_data = {
+      viewport_h = scr_h-5,
+      min = 1,
+   }
+   pad_data.total_h = calculate_pad_h()
+   pad_data.max = pad_data.min + pad_data.viewport_h - 1
+   pad_data.last_pos = pad_data.total_h - pad_data.viewport_h + 2
+   local actual_pad = curses.newpad(pad_data.total_h, scr_w-2)
+   return pad_data, actual_pad
+end
+
 local function run_callback(self, ...)
    if self.callback then
       return self.callback(self.id, ...)
@@ -816,14 +836,14 @@ function AbsCursesSelector.new(title, list, default_value, tooltip, callback)
       callback = callback,
       enabled = true,
    }
-   if self.height > self.visible then
-      self.height = self.visible + 1
-      self.scrollable = true
-   end
    return setmetatable(self, { __index = AbsCursesSelector })
 end
 
 function AbsCursesSelector:draw(drawable, x, y, focus)
+   if self.height > self.visible then
+      self.height = self.visible + 1
+      self.scrollable = true
+   end
    self.width = scr_w-8
    if focus and self.focusable then
       drawable:attrset(colors.current)
@@ -1075,7 +1095,22 @@ function Screen:set_value(id, value, index)
          elseif item.type == 'CHECKLIST' then
             item.widget.checklist[index].state = value
          elseif item.type == 'SELECTOR' then
-            item.widget.marked = value
+            local selector = item.widget
+            if type(value) == 'table' then
+               selector.height = #value+1
+               local _, actual_pad = create_pad(self)
+               self.pad = actual_pad
+               self.pad:wbkgd(attr_code(colors.default))
+               selector.list = value
+               index = index or 1
+               if index > #value or index < 1 then
+                  index = 1
+               end
+               selector.marked = index
+               if selector.subfocus > #value then
+                  selector.subfocus = 1
+               end
+            end
          end
       end
    end
@@ -1214,26 +1249,6 @@ local function run_screen(screen, pad, wizard)
    end
    stdscr:move(scr_h-1,scr_w-1)
    return process_key(stdscr:getch(), screen.widgets[screen.focus])
-end
-
-local function create_pad(screen)
-   local function calculate_pad_h()
-      local y = 2
-      for i, item in ipairs(screen.widgets) do
-         item.y = y
-         y = y + item.widget.height + 1
-      end
-      return y-1
-   end
-   local pad_data = {
-      viewport_h = scr_h-5,
-      min = 1,
-   }
-   pad_data.total_h = calculate_pad_h()
-   pad_data.max = pad_data.min + pad_data.viewport_h - 1
-   pad_data.last_pos = pad_data.total_h - pad_data.viewport_h + 2
-   local actual_pad = curses.newpad(pad_data.total_h, scr_w-2)
-   return pad_data, actual_pad
 end
 
 local function iter_screen_items(screen)
