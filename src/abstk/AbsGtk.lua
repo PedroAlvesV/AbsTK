@@ -595,7 +595,6 @@ function Screen:set_value(id, value, index)
             if index > #value or index < 1 then
                index = 1
             end
-            local scrolled_window = item.widget.child.scrolled_window
             local selector = item.widget.child.scrolled_window.child.selector
             for i, item in ipairs(selector:get_children()) do
                if value[i] then
