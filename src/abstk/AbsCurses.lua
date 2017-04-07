@@ -1102,14 +1102,18 @@ function Screen:set_value(id, value, index)
                self.pad = actual_pad
                self.pad:wbkgd(attr_code(colors.default))
                selector.list = value
-               index = index or 1
-               if index > #value or index < 1 then
-                  index = 1
-               end
-               selector.marked = index
                if selector.subfocus > #value then
                   selector.subfocus = 1
                end
+            end
+            if index then
+               if index > #selector.list or index < 1 then
+                  index = 1
+               end
+               selector.marked = index
+            end
+            if selector.marked > #selector.list then
+               selector.marked = #selector.list
             end
          end
       end

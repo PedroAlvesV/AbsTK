@@ -518,7 +518,7 @@ function Screen:delete_widget(id)
 end
 
 function Screen:set_value(id, value, index)
-   for _, item in ipairs(self.widgets) do
+   for i, item in ipairs(self.widgets) do
       if item.id == id then
          if item.type == 'LABEL' then
             local label_widget = item.widget
@@ -557,53 +557,70 @@ function Screen:set_value(id, value, index)
             button:set_active(value)
          elseif item.type == 'RADIOLIST' then
             local old_widget = item.widget
-            local new_widget = Gtk.Box {
-               Gtk.Label { label = item.title, halign = 'START'},
-               orientation = 'VERTICAL',
-            }
-            local lastbutton
-            local function make_item(i, label, value)
-               local radiobutton = Gtk.RadioButton.new_with_label(nil, label)
-               Gtk.RadioButton.join_group(radiobutton, lastbutton)
-               lastbutton = radiobutton
-               radiobutton:set_active(value)
-               if item.callback then
-                  radiobutton.on_toggled = function(self)
-                     if radiobutton:get_active() then
-                        item.callback(id, i, radiobutton:get_label())
+            local new_widget
+            if type(value) == 'table' then
+               new_widget = Gtk.Box {
+                  Gtk.Label { label = item.title, halign = 'START'},
+                  orientation = 'VERTICAL',
+               }
+               local lastbutton
+               local function make_item(i, label, value)
+                  local radiobutton = Gtk.RadioButton.new_with_label(nil, label)
+                  Gtk.RadioButton.join_group(radiobutton, lastbutton)
+                  lastbutton = radiobutton
+                  radiobutton:set_active(value)
+                  if item.callback then
+                     radiobutton.on_toggled = function(self)
+                        if radiobutton:get_active() then
+                           item.callback(id, i, radiobutton:get_label())
+                        end
                      end
                   end
+                  new_widget:add(radiobutton)
+                  return radiobutton
                end
-               new_widget:add(radiobutton)
-               return radiobutton
+               util.make_list_items(make_item, value, index)
+               item.widget = new_widget
+               local vbox = self.window:get_children()[1]
+               vbox:remove(old_widget)
+               vbox:add(new_widget)
+               vbox:reorder_child(new_widget, i-1)
+               self.window:remove(vbox)
+               self.window:add(vbox)
+               self.window:show_all()
             end
-            index = index or 1
-            if index > #value or index < 1 then
-               index = 1
+            local list = item.widget:get_children()[2]:get_group()
+            if not index then
+               local buttonset = old_widget:get_children()[2]:get_group()
+               for i, button in ipairs(buttonset) do
+                  if button:get_active() then
+                     index = i
+                  end
+               end
             end
-            util.make_list_items(make_item, value, index)
-            item.widget = new_widget
-            local vbox = self.window:get_children()[1]
-            vbox:remove(old_widget)
-            vbox:add(new_widget)
-            vbox:reorder_child(new_widget, i-1)
-            self.window:remove(vbox)
-            self.window:add(vbox)
-            self.window:show_all()
+            if index < 1 then index = 1 end
+            if index > #list then index = #list end
+            list[index]:set_active(true)
          elseif item.type == 'SELECTOR' then
-            index = index or 1
-            if index > #value or index < 1 then
-               index = 1
-            end
             local selector = item.widget.child.scrolled_window.child.selector
-            for i, item in ipairs(selector:get_children()) do
-               if value[i] then
-                  item:get_child():set_label(value[i])
-               else
-                  item:destroy()
+            local rows = selector:get_children()
+            if type(value) == 'table' then
+               local selected_row = selector:get_selected_rows()[1]
+               for i, item in ipairs(rows) do
+                  if value[i] then
+                     item:get_child():set_label(value[i])
+                  else
+                     if item == selector:get_selected_row() then
+                        selector:select_row(rows[#value])
+                     end
+                     item:destroy()
+                  end
                end
             end
-            selector:select_row(selector:get_row_at_index(index-1))
+            if index then
+               if index > #value or index < 1 then index = 1 end
+               selector:select_row(selector:get_row_at_index(index-1))
+            end
          elseif item.type == 'LIST' then
             index = index - 1
             local store = item.widget.child.scrolled_window.child.view.model
