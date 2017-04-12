@@ -836,6 +836,7 @@ function AbsCursesSelector.new(title, list, default_value, tooltip, callback)
       callback = callback,
       enabled = true,
    }
+   if self.height > self.visible then self.height = self.visible + 1 end
    return setmetatable(self, { __index = AbsCursesSelector })
 end
 
@@ -1098,6 +1099,9 @@ function Screen:set_value(id, value, index)
             local selector = item.widget
             if type(value) == 'table' then
                selector.height = #value+1
+               if selector.height > selector.visible then
+                  selector.height = selector.visible + 1
+               end
                local _, actual_pad = create_pad(self)
                self.pad = actual_pad
                self.pad:wbkgd(attr_code(colors.default))
