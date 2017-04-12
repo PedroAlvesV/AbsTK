@@ -770,7 +770,9 @@ function Screen:run()
    end
    local assist_buttons = create_assist_buttons()
    vbox:pack_end(assist_buttons, false, false, 0)
-   self.window:add(vbox)
+   local content = Gtk.ScrolledWindow{vbox}
+   content:set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+   self.window:add(content)
    self.window:show_all()
    Gtk.main()
    return self.data
