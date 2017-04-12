@@ -473,20 +473,25 @@ function Screen:show_message_box(message, buttons)
       transient_for = self.window,
       modal = true,
       destroy_with_parent = true,
-      message_type = 0,
       buttons = buttons_constant,
       text = message,
    }
    message_dialog:set_deletable(false)
    local result = message_dialog:run()
    if result == Gtk.ResponseType.OK then
+      message_dialog:destroy()
+      message_dialog:close()
       return "OK"
    elseif result == Gtk.ResponseType.CANCEL or result == Gtk.ResponseType.DELETE_EVENT or result == Gtk.ResponseType.CLOSE then
+      message_dialog:destroy()
       message_dialog:close()
       return "CANCEL"
    elseif result == Gtk.ResponseType.YES then
+      message_dialog:destroy()
+      message_dialog:close()
       return "YES"
    elseif result == Gtk.ResponseType.NO then
+      message_dialog:destroy()
       message_dialog:close()
       return "NO"
    end
