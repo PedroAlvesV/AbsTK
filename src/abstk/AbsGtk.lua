@@ -478,6 +478,12 @@ function Screen:show_message_box(message, buttons)
    }
    message_dialog:set_deletable(false)
    local result = message_dialog:run()
+   if result and buttons_constant == Gtk.ButtonsType.OK then
+      -- prevent "CANCEL" signal from ESC
+      message_dialog:destroy()
+      message_dialog:close()
+      return "OK"
+   end
    if result == Gtk.ResponseType.OK then
       message_dialog:destroy()
       message_dialog:close()
