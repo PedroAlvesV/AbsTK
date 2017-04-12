@@ -621,6 +621,14 @@ function Screen:set_value(id, value, index)
                      item:destroy()
                   end
                end
+               if #value > #rows then
+                  for i=#rows+1, #value do
+                     print(i, value[i])
+                     local new_row = Gtk.Label {id = i, label = value[i], halign = 'START'}
+                     new_row:show()
+                     selector:insert(new_row, -1)
+                  end
+               end
             end
             if index then
                if index > #value or index < 1 then index = 1 end
