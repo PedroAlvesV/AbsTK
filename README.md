@@ -41,7 +41,7 @@ abstk.set_mode(...)
 $ lua minimalist-test.lua curses
 ```
 
-<p align="justify">All it accepts is "curses" and "gtk", because it's not the kind of thing that should be on the final version of your code. When nothing is passed, the toolkit decides which one to use based on <code>os.getenv("DISPLAY")</code> returning value. If it returns something, the OS runs in a GUI, so AbsTK runs in GUI as well. Otherwise, it runs in text-mode.</p>
+<p align="justify">On the example above, I use the args table received when the application is called. This function needs to be called, before any other AbsTK function, with or without an argument, in order to determine which UI will be built. This argument must be a string. More precisely, <code>"curses"</code> or <code>"gtk"</code>. When nothing is passed, the toolkit decides which one to use based on <code>os.getenv("DISPLAY")</code> returning value. If it returns something, the OS runs in a GUI, so AbsTK runs in GUI as well. Otherwise, it runs in text-mode.</p>
 
 ### Examples
 
