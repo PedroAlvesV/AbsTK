@@ -8,6 +8,14 @@
 -- @see AbsGtk
 -------------------------------------------------
 
+local utf8
+
+if _VERSION < "Lua 5.3" then
+  utf8 = { len = string.len }
+else
+  utf8 = require "utf8"
+end
+
 local util = {}
 
 function util.make_list_items(make_item, list, default_value)
