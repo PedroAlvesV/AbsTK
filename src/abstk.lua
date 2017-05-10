@@ -12,17 +12,10 @@ local AbsGtk
 local AbsCurses
 
 do
-   local okay,mod
-  
-   okay,mod = pcall(require,'abstk.AbsGtk')
-   if okay then
-     AbsGtk = mod
-   end
-  
-   okay,mod = pcall(require,'abstk.AbsCurses')
-   if okay then
-     AbsCurses = mod
-   end
+   local has_gtk, gtk_module = pcall(require,'abstk.AbsGtk')
+   local has_curses, curses_module = pcall(require,'abstk.AbsCurses')
+   if has_gtk then AbsGtk = gtk_module end
+   if has_curses then AbsCurses = curses_module end
 end
 
 local mode = nil
