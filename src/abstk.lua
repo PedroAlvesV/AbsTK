@@ -8,8 +8,22 @@
 
 local abstk = {}
 
-local AbsGtk = require 'abstk.AbsGtk'
-local AbsCurses = require 'abstk.AbsCurses'
+local AbsGtk
+local AbsCurses
+
+do
+   local okay,mod
+  
+   okay,mod = pcall(require,'abstk.AbsGtk')
+   if okay then
+     AbsGtk = mod
+   end
+  
+   okay,mod = pcall(require,'abstk.AbsCurses')
+   if okay then
+     AbsCurses = mod
+   end
+end
 
 local mode = nil
 
@@ -24,7 +38,7 @@ local mode = nil
 function abstk.set_mode(arg)
    if arg == 'curses' or arg == 'gtk' then
       mode = arg
-   elseif os.getenv("DISPLAY") then
+   elseif os.getenv("DISPLAY") and AbsGtk then
       mode = 'gtk'
    else
       mode = 'curses'
