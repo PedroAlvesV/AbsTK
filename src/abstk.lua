@@ -29,7 +29,7 @@ local mode = nil
 -- @param arg the mode
 -------------------------------------------------
 function abstk.set_mode(arg)
-   if arg == 'curses' or arg == 'gtk' then
+   if (arg == 'curses' and AbsCurses) or (arg == 'gtk' and AbsGtk) then
       mode = arg
    elseif os.getenv("DISPLAY") and AbsGtk then
       mode = 'gtk'
