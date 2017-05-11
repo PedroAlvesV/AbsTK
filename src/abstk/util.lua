@@ -11,7 +11,8 @@
 local utf8
 
 if _VERSION < "Lua 5.3" then
-   local has_dep, utf8 = pcall(require, 'lua-utf8')
+   local has_dep
+   has_dep, utf8 = pcall(require, 'lua-utf8')
    if not has_dep then
       utf8 = { len = string.len }
    end
