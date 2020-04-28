@@ -57,6 +57,7 @@ local keys = {
    LEFT = 260,
    RIGHT = 261,
    HOME = 262,
+   BTAB = 353,
    END = 360,
    PAGE_DOWN = 338,
    PAGE_UP = 339,
@@ -234,7 +235,7 @@ end
 function AbsCursesLabel:process_key(key)
    if key == keys.TAB or key == keys.DOWN then
       return actions.NEXT
-   elseif key == keys.UP then
+   elseif key == keys.BTAB or key == keys.UP then
       return actions.PREVIOUS
    end
    return actions.PASSTHROUGH
@@ -281,7 +282,7 @@ function AbsCursesButton:process_key(key, index)
    end
    if key == keys.TAB or key == keys.DOWN then
       return actions.NEXT
-   elseif key == keys.UP then
+   elseif key == keys.BTAB or key == keys.UP then
       return actions.PREVIOUS
    end
    return actions.PASSTHROUGH
@@ -434,7 +435,7 @@ function AbsCursesTextInput:process_key(key)
    end
    if key == keys.TAB or key == keys.DOWN then
       return actions.NEXT
-   elseif key == keys.UP then
+   elseif key == keys.BTAB or key == keys.UP then
       return actions.PREVIOUS
    elseif key == keys.PAGE_UP or key == keys.PAGE_DOWN then
       return actions.PASSTHROUGH
@@ -721,7 +722,7 @@ function AbsCursesCheckBox:process_key(key, index)
    end
    if key == keys.TAB or key == keys.DOWN then
       return actions.NEXT
-   elseif key == keys.UP then
+   elseif key == keys.BTAB or key == keys.UP then
       return actions.PREVIOUS
    end
    return actions.PASSTHROUGH
