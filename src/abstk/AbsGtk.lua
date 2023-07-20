@@ -10,7 +10,7 @@
 local AbsGtk = {}
 
 local lgi = require 'lgi'
-local Gtk = lgi.require('Gtk')
+local Gtk = lgi.require('Gtk', '3.0')
 local util = require 'abstk.util'
 
 local Screen = {}
